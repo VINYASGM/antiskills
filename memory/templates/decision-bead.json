@@ -1,0 +1,12 @@
+{
+  "id": "bd-1042",
+  "type": "architectural_decision",
+  "status": "resolved",
+  "title": "Adopt Sequential Merge for Multi-Agent Branching",
+  "description": "Parallel agents writing to shared Git refs caused lock contention and silent overwrites. Decision: implement isolated git worktrees per agent with sequential merge + forced rebase strategy.",
+  "dependencies": ["bd-1020"],
+  "author": "Agent-Orchestrator",
+  "timestamp": "2026-05-24T17:34:00Z",
+  "tags": ["git", "orchestration", "multi-agent"],
+  "evidence": "Tested with 3 concurrent agents — zero merge conflicts when using worktree isolation."
+}

@@ -1,0 +1,72 @@
+name: refactoring
+trigger: Technical debt threshold crossed
+description: >
+  Behavior-preserving code restructuring workflow. Refactoring MUST NOT change
+  observable behavior — the test suite is the contract. If tests change during
+  refactoring, the refactoring is wrong.
+
+escalation:
+  max_retries_per_gate: 2
+  on_failure: CRP  # Revert refactor branch and escalate to human
+
+phases:
+  - name: smell-isolation
+    description: >
+      Identify and document specific code smells in the target module.
+      Each smell must reference exact file paths and line ranges.
+      Quantify the current state: cyclomatic complexity, duplication ratio,
+      coupling metrics, and file length.
+    agent: architect
+    inputs:
+      - Module or directory flagged for refactoring
+      - Current complexity metrics (from static analysis)
+      - Existing test coverage report
+    outputs:
+      - Cataloged list of code smells with file:line references
+      - Baseline complexity metrics snapshot
+      - Prioritized refactoring targets ranked by impact
+      - Risk assessment for each target
+    gate:
+      - Each code smell has a specific file:line reference
+      - Baseline metrics are recorded before any changes
+      - Existing test coverage for target code is ≥70% (if not, generate tests first)
+
+  - name: ast-rewriting
+    description: >
+      Restructure the code to eliminate identified smells. Apply one
+      refactoring pattern at a time. Run tests after each transformation
+      to catch regressions immediately — do NOT batch multiple refactors
+      then test at the end.
+    agent: backend-engineer  # or frontend-engineer depending on target
+    inputs:
+      - Prioritized code smell list
+      - Baseline test suite results
+      - Architecture constraints and patterns
+    outputs:
+      - Refactored code on a dedicated branch
+      - Commit-per-refactoring-step (atomic, revertible commits)
+      - Updated import graph if module boundaries changed
+    gate:
+      - Test suite passes after EVERY individual refactoring step
+      - No new dependencies introduced
+      - Each commit is atomic and independently revertible
+
+  - name: logic-verification
+    description: >
+      Verify the refactored code produces identical observable behavior.
+      Compare test results pre- and post-refactor. Measure new complexity
+      metrics and confirm improvement.
+    agent: architect
+    inputs:
+      - Refactored branch
+      - Baseline complexity metrics
+      - Baseline test suite results
+    outputs:
+      - Post-refactor complexity metrics
+      - Side-by-side comparison (before/after metrics)
+      - Verification report confirming behavioral equivalence
+    gate:
+      - Test suite results are identical pre- and post-refactor
+      - Cyclomatic complexity is reduced (measured, not estimated)
+      - No new lint warnings or type errors introduced
+      - Bead status updated to resolved

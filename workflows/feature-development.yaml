@@ -1,0 +1,78 @@
+name: feature-development
+trigger: Approved Epic or Feature Specification
+description: End-to-end feature implementation from spec to merge.
+
+escalation:
+  max_retries_per_gate: 3
+  on_failure: CRP  # Consultation Request Pack to human
+
+phases:
+  - name: specification
+    description: Create detailed SPEC.md from requirements
+    agent: planner
+    inputs:
+      - Business requirements document
+      - Relevant beads from memory
+    outputs:
+      - SPEC.md with acceptance criteria
+    gate:
+      - Human approval of SPEC.md
+      - All acceptance criteria are testable
+
+  - name: decomposition
+    description: Break SPEC into atomic tasks and create task graph
+    agent: orchestrator
+    inputs:
+      - Approved SPEC.md
+      - Architecture constraints
+    outputs:
+      - Task beads in memory/beads.json
+      - Dependency graph of tasks
+    gate:
+      - Each task is independently implementable
+      - No circular task dependencies
+
+  - name: implementation
+    description: Execute tasks in parallel using isolated worktrees
+    parallel: true
+    agents:
+      - backend-engineer  # API, data, and service layer tasks
+      - frontend-engineer  # UI, component, and styling tasks
+    inputs:
+      - Assigned task beads
+      - Relevant rules and context
+    outputs:
+      - Feature branches with code changes
+      - Unit and integration tests
+    gate:
+      - All tests passing
+      - Lint and type check clean
+      - Code coverage maintained or increased
+
+  - name: verification
+    description: Code review and security audit
+    agents:
+      - code-reviewer
+      - security-reviewer
+    inputs:
+      - Feature branches
+      - Pre-merge checklist
+    outputs:
+      - Review comments
+      - Approval or rejection with critique
+    gate:
+      - Code reviewer approved
+      - No critical security findings
+      - Execution evidence attached
+
+  - name: integration
+    description: Sequential merge into main with rebase
+    agent: orchestrator
+    inputs:
+      - Approved feature branches
+    outputs:
+      - Merged main branch
+      - Updated beads (task status -> resolved)
+    gate:
+      - CI pipeline passing on main
+      - No regression in existing tests

@@ -1,0 +1,12 @@
+{
+  "id": "bd-2001",
+  "type": "incident",
+  "status": "resolved",
+  "title": "Auth Service Null Pointer on Unvalidated OAuth Callback",
+  "description": "Stack trace showed NullReferenceError in auth-service.ts:142. Root cause: OAuth provider returns null for email field when user has private email settings. Fix: add null coalescing with fallback to provider username.",
+  "dependencies": ["bd-1055"],
+  "author": "Agent-Debugging-Specialist",
+  "timestamp": "2026-05-24T15:22:00Z",
+  "tags": ["bug", "auth", "oauth", "null-pointer"],
+  "evidence": "Regression test added: auth-service.test.ts:89 — covers null email callback scenario. CI passing."
+}

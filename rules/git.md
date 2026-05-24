@@ -1,0 +1,11 @@
+Git workflow rules:
+- Branch naming: feature/, fix/, refactor/, docs/, test/ prefixes
+- Commit messages: Conventional Commits (feat:, fix:, refactor:, docs:, test:, chore:)
+- One logical change per commit
+- Agent branches: agent/<agent-name>/<task-id>
+- Worktree naming: ../worktree-<agent-name>-<task-id>
+- Merge strategy: sequential merge with forced rebase onto main
+- Never force-push to main or shared branches
+- PR template required (see /templates/PR.md)
+- Squash merges for feature branches
+- Tag releases with semantic versioning

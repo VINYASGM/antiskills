@@ -1,0 +1,13 @@
+Formatting and style:
+- Indentation: 2 spaces (no tabs)
+- Line length: 100 characters max
+- Semicolons: always in TypeScript
+- Quotes: single quotes for strings, double for JSX attributes
+- Trailing commas: always in multi-line
+- Object destructuring: prefer over multiple property access
+- Arrow functions: prefer for callbacks, named functions for top-level
+- Imports: sorted by category (see rules/global.md), one blank line between categories
+- File structure: imports -> types -> constants -> main logic -> exports
+- No default exports (except pages in Next.js)
+- Prefer readonly/const assertions
+- Explicit return types on all exported functions

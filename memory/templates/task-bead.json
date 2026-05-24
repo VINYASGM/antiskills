@@ -1,0 +1,12 @@
+{
+  "id": "bd-3001",
+  "type": "task_state",
+  "status": "in_progress",
+  "title": "Implement OAuth Google Login Flow",
+  "description": "Frontend: AuthButton component using design tokens. Backend: /api/v1/auth/google/callback endpoint. Database: User schema update with oauth_provider and oauth_id fields.",
+  "dependencies": ["bd-1042", "bd-0500"],
+  "author": "Agent-Orchestrator",
+  "timestamp": "2026-05-24T16:00:00Z",
+  "tags": ["feature", "oauth", "authentication"],
+  "evidence": "Spec approved. Backend worktree created. Frontend worktree created."
+}

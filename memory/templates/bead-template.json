@@ -1,0 +1,12 @@
+{
+  "id": "bd-XXXX",
+  "type": "[architectural_decision|bug_discovery|task_state|incident|consensus|requirement]",
+  "status": "[open|in_progress|resolved|blocked|archived]",
+  "title": "[Concise title of the decision/task/incident]",
+  "description": "[Detailed description with context and rationale]",
+  "dependencies": ["bd-YYYY"],
+  "author": "[Agent-Name or Human-Orchestrator]",
+  "timestamp": "[ISO 8601 timestamp]",
+  "tags": ["[relevant", "tags]"],
+  "evidence": "[Test output, log references, or verification proof]"
+}

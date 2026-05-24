@@ -1,0 +1,15 @@
+Security rules:
+- Authenticate ALL requests before parsing payload data
+- Never store secrets in code — use environment variables
+- All dependencies verified against sanctioned registry
+- Input validation at every boundary (Zod schemas preferred)
+- SQL parameterized queries only — NEVER string concatenation
+- CORS configured explicitly — no wildcard origins in production
+- HTTPS enforced in production
+- Session tokens: httpOnly, secure, sameSite=strict
+- Password hashing: bcrypt with cost factor >= 12
+- Rate limit authentication endpoints aggressively
+- Log all authentication failures with IP and user agent
+- CSP headers configured
+- No eval(), no dynamic code execution from user input
+- Dependency audit on every CI run

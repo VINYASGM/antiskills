@@ -1,0 +1,11 @@
+Before merging to main:
+- [ ] Code review approved by code-reviewer agent or human
+- [ ] All CI checks passing (lint, types, tests)
+- [ ] Execution evidence attached to PR
+- [ ] Bead status updated (in_progress -> resolved)
+- [ ] No unresolved CRPs blocking this change
+- [ ] Documentation updated if public API changed
+- [ ] Rebased onto latest main (no merge commits)
+- [ ] Blast radius reviewed — no unintended side effects
+- [ ] Security reviewer approved (if auth/data changes)
+- [ ] Test coverage maintained or increased

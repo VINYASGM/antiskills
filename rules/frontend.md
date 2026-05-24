@@ -1,0 +1,12 @@
+Frontend-specific rules (loaded only when working in /frontend/):
+- Spacing: strict 4px/8px baseline grid. No arbitrary padding/margins.
+- Typography: font weights and line heights follow logarithmic scale. Body line-height: 1.5-1.6.
+- Transitions: ALL hover/focus/active states MUST have CSS transitions (transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1)). Immediate snapping = FAILURE.
+- Loading states: skeleton screens matching exact dimensions of incoming data. No spinners for content areas.
+- Destructive actions: high visual friction (distinct color + confirmation modal)
+- Accessibility: ARIA labels, semantic HTML, keyboard navigability. HARD pre-requisite.
+- Icons: SVG only (Heroicons, Lucide). NEVER emoji as UI icons.
+- Responsive breakpoints: 375px, 768px, 1024px, 1440px
+- Color: no generic red/blue/green. Use curated HSL palettes with dark mode support.
+- Component isolation: each component owns its styles. No global CSS leaking.
+- Performance: lazy load images, code-split routes, < 100KB initial JS bundle target

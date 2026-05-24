@@ -1,0 +1,12 @@
+Testing rules:
+- Tests verify behavior through public interfaces, not implementation details
+- TDD: red-green-refactor in vertical slices (one test -> one implementation -> repeat)
+- Coverage threshold: 80% branch coverage minimum
+- Never mock internal collaborators — mock at system boundaries only
+- Test naming: `should [expected behavior] when [condition]`
+- Each test file mirrors its source file: `foo.ts` -> `foo.test.ts`
+- Integration tests > Unit tests > E2E tests (in terms of value)
+- Tests must be deterministic — no time-dependent, network-dependent, or order-dependent tests
+- Snapshot tests allowed only for serialized output (JSON, HTML) — not for logic
+- Every bug fix requires a regression test first
+- Test data factories over fixtures when possible

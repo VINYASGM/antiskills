@@ -1,0 +1,14 @@
+Backend rules (loaded only when working in /backend/):
+- All database queries paginated by default (cursor-based preferred)
+- API versioning: explicit /v1/, /v2/ in URL paths
+- URL format: kebab-case
+- JSON payload format: camelCase
+- Response envelope: { data: T, meta: { page, total }, errors: Error[] }
+- Authentication before payload parsing (authenticate -> authorize -> validate -> process)
+- Rate limiting on all public endpoints
+- Request ID header on every response for tracing
+- Database: use migrations, never manual schema changes
+- N+1 query detection: use query analysis in development
+- Background jobs: idempotent, retryable, with dead letter queue
+- Logging: structured JSON logs with correlation IDs
+- Health check endpoint required: GET /health returning { status: 'ok', version, uptime }

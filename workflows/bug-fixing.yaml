@@ -1,0 +1,86 @@
+name: bug-fixing
+trigger: Issue bead creation or CI failure
+description: >
+  Structured debugging workflow that enforces hypothesis-driven patching.
+  Requires reproduction proof before any code changes and validates fixes
+  against regression suites before merge.
+
+escalation:
+  max_retries_per_gate: 3
+  on_failure:
+    - git revert to last known good state
+    - CRP  # Consultation Request Pack to human
+
+phases:
+  - name: reproduction
+    description: >
+      Build a deterministic feedback loop that reproduces the bug.
+      Create a failing test case that captures the exact defect behavior.
+      If the bug cannot be reproduced, escalate immediately — do NOT guess.
+    agent: debugging-specialist
+    inputs:
+      - Issue bead with bug report details
+      - Stack traces and error logs
+      - Relevant source files identified from error context
+    outputs:
+      - Minimal reproduction script or test case
+      - Environment snapshot (OS, runtime version, dependency versions)
+      - Confirmed failing test that demonstrates the bug
+    gate:
+      - Reproduction test fails consistently on current main
+      - Reproduction is deterministic (passes 5/5 runs as "expected failure")
+
+  - name: hypothesis-generation
+    description: >
+      Generate a minimum of 3 hypotheses for root cause before writing any fix.
+      Rank hypotheses by likelihood and evidence. Do NOT jump to the first guess.
+    agent: debugging-specialist
+    inputs:
+      - Reproduction test case
+      - Relevant source code and git blame history
+      - Recent commits touching affected files
+    outputs:
+      - Ranked list of ≥3 hypotheses with supporting evidence
+      - Identified root cause with explanation
+      - Affected code paths mapped
+    gate:
+      - Minimum 3 hypotheses documented
+      - Selected hypothesis has concrete supporting evidence
+      - Root cause traces to specific lines of code
+
+  - name: patching
+    description: >
+      Apply a targeted, minimal fix for the identified root cause.
+      Touch only the lines necessary to resolve the defect.
+      Do NOT refactor adjacent code. Do NOT "improve" things along the way.
+    agent: debugging-specialist
+    inputs:
+      - Confirmed root cause and affected code paths
+      - Reproduction test case
+    outputs:
+      - Patch branch with minimal code changes
+      - Updated or new unit test covering the fix
+      - Explanation of what changed and why
+    gate:
+      - Previously-failing reproduction test now passes
+      - All existing tests still pass
+      - Patch diff touches only necessary lines
+
+  - name: validation
+    description: >
+      Run the full regression test suite and verify no new failures.
+      Add the reproduction test to the permanent test suite to prevent recurrence.
+    agent: testing-engineer
+    inputs:
+      - Patch branch
+      - Full test suite
+      - Reproduction test case
+    outputs:
+      - Full test suite results (before and after comparison)
+      - Regression test permanently added to suite
+      - Execution evidence log
+    gate:
+      - Previously-failing test now passes
+      - No new test regressions introduced
+      - Regression test is committed to the test suite
+      - Bead status updated to resolved

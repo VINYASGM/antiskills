@@ -1,0 +1,14 @@
+Project terminology dictionary:
+- Bead: Atomic, trackable unit of work in the memory system
+- ACE: Agent Command Environment (human oversight layer)
+- AEE: Agent Execution Environment (agent execution layer)
+- CRP: Consultation Request Pack (agent-to-human escalation document)
+- SPEC: Feature specification document driving implementation
+- Worktree: Isolated Git working directory for parallel agent work
+- Context Rot: Progressive degradation of agent comprehension in long sessions
+- Semantic Drift: Gradual deviation from original intent during autonomous coding
+- Comprehension Debt: Human loss of mental model as codebase grows autonomously
+- Phase Gate: Mandatory checkpoint requiring verification before proceeding
+- Blast Radius: Set of files/modules affected by a proposed change
+- Deep Module: Module with simple interface hiding complex implementation (high leverage)
+- Shallow Module: Module where interface is nearly as complex as implementation (low leverage)

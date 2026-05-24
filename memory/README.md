@@ -1,0 +1,12 @@
+Comprehensive guide to the Beads memory system:
+- What is a Bead: An atomic, trackable unit of work stored as a JSON object in Git
+- Why Beads: Agents suffer progressive dementia in long tasks. Beads provide instant state recovery.
+- Bead Schema: id, type, status, title, description, dependencies, author, timestamp, tags, evidence
+- Bead Types: architectural_decision, bug_discovery, task_state, incident, consensus, requirement
+- Bead Statuses: open, in_progress, resolved, blocked, archived
+- How to Use:
+  - Creating: Add a new object to beads.json with a unique bd-XXXX id
+  - Querying: Search beads.json for specific IDs or filter by type/status
+  - Linking: Set dependencies array to reference parent beads
+  - Recovering: When agent session crashes, new agent reads beads.json to recover full state
+- Rules: NEVER delete beads. NEVER modify resolved beads. ALWAYS link to parent beads. ALWAYS include evidence.

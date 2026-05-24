@@ -1,0 +1,74 @@
+name: testing-generation
+trigger: Uncovered code merged to main
+description: >
+  Systematic test generation workflow that analyzes execution paths,
+  generates minimal boundary mocks, and writes behavior-focused assertions.
+  Target: 80%+ branch coverage on all merged code.
+
+escalation:
+  max_retries_per_gate: 2
+  on_failure: CRP  # Escalate with coverage gap analysis
+
+phases:
+  - name: path-analysis
+    description: >
+      Map all execution paths through the uncovered code. Identify branching
+      points, early returns, error paths, and edge cases. Classify each path
+      as happy-path, error-path, or edge-case.
+    agent: testing-engineer
+    inputs:
+      - Source files with coverage gaps (from coverage report)
+      - Existing test files for the module
+      - Function signatures and type information
+    outputs:
+      - Execution path map per function/method
+      - Classified path list (happy / error / edge)
+      - Identified untested branches with line references
+      - Priority ranking (critical paths first)
+    gate:
+      - Every public function has its execution paths documented
+      - Each path is classified with a concrete example input
+      - No path is marked "unclear" — ambiguity must be resolved before proceeding
+
+  - name: mock-generation
+    description: >
+      Create minimal mocks and fixtures for external dependencies.
+      Mocks must be boundary-focused: mock at the system boundary (DB, HTTP,
+      filesystem), NOT at internal module boundaries. Prefer real implementations
+      over mocks wherever feasible.
+    agent: testing-engineer
+    inputs:
+      - Execution path map
+      - Dependency graph of target modules
+      - Existing mock/fixture library
+    outputs:
+      - Mock definitions for external dependencies only
+      - Fixture data for each test scenario
+      - Factory functions for complex test objects
+    gate:
+      - No internal module is mocked (only system boundaries)
+      - Each mock has a clear teardown/cleanup
+      - Mock behavior matches documented API contracts
+      - Fixtures cover happy-path AND boundary inputs
+
+  - name: assertion-writing
+    description: >
+      Write test cases with behavior-focused assertions. Each test must
+      test ONE behavior and have a descriptive name that reads as a
+      specification. Structure: Arrange → Act → Assert.
+    agent: testing-engineer
+    inputs:
+      - Execution path map with priority ranking
+      - Generated mocks and fixtures
+      - Existing test patterns in the codebase
+    outputs:
+      - Test files following existing project conventions
+      - Coverage report showing improvement
+      - Execution evidence (test run output)
+    gate:
+      - 80%+ branch coverage achieved on target files
+      - All new tests pass
+      - No existing tests broken
+      - Each test name describes the behavior being tested
+      - No test depends on execution order of other tests
+      - Bead status updated to resolved

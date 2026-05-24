@@ -1,0 +1,78 @@
+name: security-audit
+trigger: New dependency added or scheduled cron
+description: >
+  Automated security audit workflow covering dependency vulnerabilities,
+  secret detection, and threat modeling. Enforces zero-tolerance for
+  high/critical findings before code ships.
+
+escalation:
+  max_retries_per_gate: 1  # Security issues get one fix attempt, then escalate
+  on_failure: CRP with urgency CRITICAL
+
+phases:
+  - name: cve-scanning
+    description: >
+      Scan all project dependencies (direct and transitive) for known CVEs.
+      Check against NVD, GitHub Advisory Database, and OSV. Flag any
+      dependency with a high or critical severity CVE. Also check for
+      dependencies that are unmaintained (no commits in 12+ months) or
+      have known supply chain risks.
+    agent: security-reviewer
+    inputs:
+      - package.json / lock files
+      - Current dependency tree (fully resolved)
+      - Previous audit report (if exists)
+    outputs:
+      - CVE report with severity ratings (CVSS scores)
+      - List of affected dependencies with upgrade paths
+      - List of unmaintained or risky dependencies
+      - Delta from previous audit (new vs. resolved findings)
+    gate:
+      - Zero high/critical CVEs in direct dependencies
+      - All critical CVEs in transitive dependencies have documented mitigation
+      - No dependencies with known supply chain compromises
+
+  - name: secret-detection
+    description: >
+      Scan the entire codebase, git history, and environment files for
+      leaked secrets. Check for API keys, tokens, passwords, private keys,
+      and connection strings. Include .env files, config files, and
+      hardcoded values in source code.
+    agent: security-reviewer
+    inputs:
+      - Full codebase (all tracked files)
+      - Git history (last 100 commits)
+      - .gitignore and .env.example files
+    outputs:
+      - List of detected secrets with file:line references
+      - Classification of each secret (API key, password, token, etc.)
+      - Remediation steps for each finding
+      - Updated .gitignore recommendations
+    gate:
+      - Zero secrets detected in tracked files
+      - .env files are gitignored
+      - No hardcoded credentials in source code
+      - All secrets use environment variable references
+
+  - name: threat-modeling
+    description: >
+      Analyze the application architecture for security threats using
+      STRIDE methodology. Identify attack surfaces, trust boundaries,
+      and data flow vulnerabilities. Focus on new or changed components.
+    agent: security-reviewer
+    inputs:
+      - Architecture.md and system topology diagrams
+      - Network/port exposure configuration
+      - Authentication and authorization flows
+      - Data storage and transmission patterns
+    outputs:
+      - STRIDE threat model for new/changed components
+      - Attack surface inventory
+      - Risk matrix (likelihood × impact)
+      - Recommended mitigations prioritized by risk
+    gate:
+      - All new components have threat models
+      - No unmitigated high-risk threats
+      - Trust boundaries are explicitly documented
+      - Threat model is reviewed and acknowledged
+      - Bead status updated to resolved

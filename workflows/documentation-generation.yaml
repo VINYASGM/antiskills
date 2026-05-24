@@ -1,0 +1,73 @@
+name: documentation-generation
+trigger: Feature merge to main
+description: >
+  Automated documentation generation workflow that produces accurate,
+  current markdown documentation from merged code. Documentation must
+  reflect the code as-shipped — never aspirational or speculative.
+
+escalation:
+  max_retries_per_gate: 2
+  on_failure: CRP  # Escalate with list of undocumentable items
+
+phases:
+  - name: code-summarization
+    description: >
+      Analyze the merged feature code and produce structured summaries.
+      Extract purpose, behavior, dependencies, and side effects for each
+      module touched by the feature. Read the code — do NOT rely on commit
+      messages or PR descriptions as the source of truth.
+    agent: documentation-writer
+    inputs:
+      - List of files changed in the feature merge
+      - Feature SPEC.md (if available)
+      - Existing documentation for affected modules
+    outputs:
+      - Per-module summary (purpose, inputs, outputs, side effects)
+      - Dependency map showing what the feature connects to
+      - List of breaking changes or behavioral differences from prior version
+    gate:
+      - Every changed module has a summary
+      - Summaries are verified against actual code (not just commit messages)
+      - Breaking changes are explicitly flagged
+
+  - name: api-extraction
+    description: >
+      Extract all public API surfaces introduced or modified by the feature.
+      Document request/response schemas, authentication requirements,
+      error codes, and rate limits. For non-HTTP APIs (functions, classes),
+      document the public interface with parameter types and return types.
+    agent: documentation-writer
+    inputs:
+      - Per-module summaries from code-summarization phase
+      - Source code of public interfaces
+      - Existing API documentation
+    outputs:
+      - API reference entries for new/modified endpoints or functions
+      - Request/response examples with realistic data
+      - Error code catalog for new error types
+    gate:
+      - All public APIs are documented (zero undocumented public surfaces)
+      - Each endpoint/function has at least one usage example
+      - Error responses are documented with resolution steps
+
+  - name: markdown-compilation
+    description: >
+      Compile summaries and API references into final markdown documents.
+      Update existing docs in-place — do NOT create parallel documentation
+      that drifts from the original. Fix stale references in existing docs
+      that the feature invalidated.
+    agent: documentation-writer
+    inputs:
+      - Module summaries
+      - API reference entries
+      - Existing documentation files
+    outputs:
+      - Updated markdown documentation files
+      - Updated table of contents / index if structure changed
+      - Changelog entry for the feature
+    gate:
+      - Documentation accurately reflects current code behavior
+      - All public APIs are documented
+      - No stale references to removed or renamed items
+      - Internal links resolve correctly
+      - Bead status updated to resolved

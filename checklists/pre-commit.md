@@ -1,0 +1,11 @@
+Before committing:
+- [ ] `pnpm lint` passes with zero errors
+- [ ] `pnpm tsc --noEmit` passes
+- [ ] No secrets, API keys, or .env values in staged files
+- [ ] Test coverage not decreased (run `pnpm vitest run --coverage`)
+- [ ] All new functions have JSDoc comments
+- [ ] No TODO comments without associated bead ID (TODO(bd-XXXX))
+- [ ] Import ordering follows convention
+- [ ] No console.log() in production code
+- [ ] File length under 300 lines
+- [ ] Function length under 40 lines
