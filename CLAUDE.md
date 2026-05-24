@@ -34,7 +34,13 @@ Stack: Node.js 20+, pnpm, Vitest, ESLint, TypeScript 5+ (No `any`).
 
 ## Critical CLI Commands
 - CLI Framework: Run `./veyra` (bash) or `./veyra.ps1` (PS) for native commands.
-- `veyra bead create` / `list` / `show`
-- `veyra lint` (Runs constitutional constraints checker)
-- `veyra context assemble <task>` (Deterministic prompt assembly)
-- `veyra worktree create` / `merge` / `cleanup`
+- `veyra bead list` / `create` (SQLite backed memory graph)
+- `veyra context assemble <task>` (Deterministic TS AST context parsing)
+- `veyra worktree merge <branch...>` (Optimistic concurrent integration)
+- `veyra agent spawn <role> <task>` (Generates Antigravity subagent prompt)
+
+## Antigravity Vibecoding Integrations
+- ALWAYS use `/grill-me` or the `grill-with-docs` skill during the Spec phase to solidify requirements.
+- NEVER guess on bugs. ALWAYS invoke the `diagnose` skill for reproduction loops.
+- Use the `prototype` skill in `scratch/` before committing structural UI changes.
+- Use `/goal` for overnight refactoring inside isolated Git worktrees.

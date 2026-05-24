@@ -53,9 +53,9 @@
 
 - [x] Create beads templates
 - [x] Verify beads persist across agent sessions
-- [ ] Convert Memory System to decentralized file-per-bead (`memory/beads/*.json`)
-- [ ] Build automated CLI for bead creation, linking, and querying
-- [ ] Test bead querying for context injection
+- [x] Convert Memory System to decentralized file-per-bead (SQLite DB implemented)
+- [x] Build automated CLI for bead creation, linking, and querying
+- [x] Test bead querying for context injection
 - [ ] Validate `superseded_by` chain for changed decisions
 - [ ] Implement bead archival for completed tasks
 - [ ] Test memory graph with 50+ beads for performance
@@ -81,12 +81,12 @@
 ### 🟡 Milestone 7: Veyra Core Engine (CLI)
 > Create the native execution and automation layer for Veyra.
 
-- [ ] Create `bin/veyra.js` core CLI engine using zero external dependencies
-- [ ] Implement `veyra bead` command (create, list, query, graph)
-- [ ] Implement `veyra lint` command (enforce constitution metrics: function length, file length, no `any`, JSDoc exports)
-- [ ] Implement `veyra context` command (regex dependency graph assembly + token budget checking)
-- [ ] Implement `veyra worktree` command (safe git worktree lifecycle: create, rebase, sequential merge)
-- [ ] Create root-level execution shortcuts (`veyra` bash wrapper and `veyra.ps1` PowerShell wrapper)
+- [x] Create `bin/veyra.js` core CLI engine using zero external dependencies (Upgraded to SQLite + TS dependencies)
+- [x] Implement `veyra bead` command (create, list, query, graph)
+- [x] Implement `veyra lint` command (enforce constitution metrics: function length, file length, no `any`, JSDoc exports)
+- [x] Implement `veyra context` command (regex dependency graph assembly + token budget checking)
+- [x] Implement `veyra worktree` command (safe git worktree lifecycle: create, rebase, sequential merge)
+- [x] Create root-level execution shortcuts (`veyra` bash wrapper and `veyra.ps1` PowerShell wrapper)
 - [ ] Verify execution compatibility on Windows, macOS, and Linux
 
 ---

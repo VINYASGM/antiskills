@@ -1,2 +1,2 @@
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-node "$ScriptDir\bin\veyra.js" $args
+$scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Definition
+node "$scriptPath\bin\veyra.js" $args

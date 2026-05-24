@@ -9,9 +9,9 @@
 
 | Field | Value |
 |---|---|
-| **Phase** | Phase 2 — Active Execution Layer (CLI Engine) |
-| **Status** | In Progress |
-| **Goal** | Implement the zero-dependency Veyra CLI (`bin/veyra.js`, wrappers) with bead management, constitution linter, and context assembly |
+| **Phase** | Phase 3 — Veyra + Antigravity Integration |
+| **Status** | Active |
+| **Goal** | Optimize Veyra for vibecoding by integrating Antigravity skills and tools into the orchestration layer. |
 | **Started** | 2026-05-24 |
 | **Target Completion** | 2026-05-26 |
 
