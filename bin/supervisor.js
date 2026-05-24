@@ -1,10 +1,18 @@
 const path = require('node:path');
 const fs = require('node:fs');
+const skillManager = require('./skills');
 
 class Supervisor {
-  spawnAgent(agentRole, taskId) {
+  async spawnAgent(agentRole, taskId, skills = [], goal = '') {
     console.log(`\n\x1b[36m⚡ VEYRA + ANTIGRAVITY ORCHESTRATOR\x1b[0m`);
     console.log(`Preparing to spawn subagent for task: \x1b[1m${taskId}\x1b[0m\n`);
+
+    if (skills && skills.length > 0) {
+      console.log(`\x1b[35m[JIT Skill Mounting] Mounting required skills for ${agentRole}...\x1b[0m`);
+      for (const skill of skills) {
+        await skillManager.install(skill);
+      }
+    }
 
     const contextPath = path.join(process.cwd(), 'context', 'file-manifests', `${taskId}.json`);
     let contextStr = "No pre-assembled context found. Run 'veyra context assemble' first.";
@@ -21,6 +29,11 @@ class Supervisor {
     console.log(`ROLE: ${agentRole}`);
     console.log(`PROMPT:`);
     console.log(`You are the ${agentRole}. Your current task is ${taskId}.`);
+    if (goal) console.log(`Your goal is: ${goal}`);
+    if (skills && skills.length > 0) {
+      console.log(`\nUse the following skills located in .agent/skills/ to complete your task:`);
+      skills.forEach(s => console.log(` - ${s}`));
+    }
     console.log(`\nYour isolated Git worktree has been created at: ../${worktreePath}`);
     console.log(`You MUST ` + `cd` + ` into this directory before running any commands or editing files.\n`);
     console.log(contextStr);

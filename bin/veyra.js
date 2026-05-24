@@ -10,6 +10,8 @@ const contextAssembler = require('./context');
 const worktreeManager = require('./worktree');
 const linter = require('./linter');
 const supervisor = require('./supervisor');
+const skillManager = require('./skills');
+const workflowEngine = require('./workflow');
 
 const styles = {
   reset: '\x1b[0m', bright: '\x1b[1m', dim: '\x1b[2m',
@@ -31,11 +33,15 @@ const showHelp = () => {
   console.log(`  ${styles.green}context assemble <task>${styles.reset}    Assemble context using TS AST parsing`);
   console.log(`  ${styles.green}worktree merge <branch...>${styles.reset} Optimistic concurrent merge`);
   console.log(`  ${styles.green}agent spawn <role> <task>${styles.reset}  Spawn an agent under supervisor tree`);
+  console.log(`  ${styles.green}workflow list${styles.reset}              List all awesome-skills workflows`);
+  console.log(`  ${styles.green}workflow run <id>${styles.reset}          Execute a workflow and spawn agents step-by-step`);
+  console.log(`  ${styles.green}skill search <query>${styles.reset}       Search global Awesome Skills registry`);
+  console.log(`  ${styles.green}skill install <id>${styles.reset}         Download and mount a skill to .agent/skills/`);
   console.log(`  ${styles.green}lint${styles.reset}                       Run static analysis`);
   console.log();
 };
 
-const main = () => {
+const main = async () => {
   const args = process.argv.slice(2);
   if (args.length === 0 || args[0] === 'help' || args[0] === '--help') {
     showHelp();
@@ -45,7 +51,14 @@ const main = () => {
   const [command, subcommand, ...rest] = args;
 
   if (command === 'bead') {
-    if (subcommand === 'list') {
+    if (subcommand === 'create') {
+      printHeader();
+      const beads = beadsDB.getAll();
+      if (beads.length === 0) console.log("No memory beads found.");
+      for (const b of beads) {
+        console.log(`[${b.id}] ${b.type} | ${b.status} | ${b.title}`);
+      }
+    } else if (subcommand === 'list') {
       printHeader();
       const beads = beadsDB.getAll();
       if (beads.length === 0) console.log("No memory beads found.");
@@ -108,7 +121,31 @@ const main = () => {
       const role = rest[0];
       const task = rest[1];
       if (!role || !task) return console.log('Missing role or task ID.');
-      supervisor.spawnAgent(role, task);
+      await supervisor.spawnAgent(role, task);
+    }
+  } else if (command === 'workflow') {
+    if (subcommand === 'list') {
+      printHeader();
+      await workflowEngine.list();
+    } else if (subcommand === 'run') {
+      printHeader();
+      const workflowId = rest[0];
+      if (!workflowId) return console.log('Missing workflow ID.');
+      await workflowEngine.run(workflowId);
+    } else {
+      showHelp();
+    }
+  } else if (command === 'skill') {
+    if (subcommand === 'search') {
+      const query = rest.join(' ');
+      if (!query) return console.log('Missing search query.');
+      await skillManager.search(query);
+    } else if (subcommand === 'install') {
+      const skillId = rest[0];
+      if (!skillId) return console.log('Missing skill ID.');
+      await skillManager.install(skillId);
+    } else {
+      showHelp();
     }
   } else if (command === 'lint') {
     linter.lintAll();
