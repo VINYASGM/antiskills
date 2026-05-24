@@ -46,37 +46,33 @@ These defaults are overridden when Veyra is cloned for a specific project.
 
 ## 3. Core Schemas
 
-### 3.1 Beads JSON Schema (`memory/beads.json`)
+### 3.1 Decentralized Bead JSON Schema (`memory/beads/bd-XXXX.json`)
 
-Each bead is a node in an append-only directed graph. Beads are never deleted — only superseded by new beads.
+Each bead is stored as an individual JSON file containing a single bead object. Beads are never deleted — only superseded by new beads.
 
 ```json
 {
-  "version": "1.0",
-  "beads": [
-    {
-      "id": "bead-001",
-      "type": "decision | bug | task | architecture | escalation",
-      "title": "Short descriptive title",
-      "content": "Detailed description of the decision, bug, or task",
-      "status": "active | resolved | superseded | archived",
-      "created": "2025-05-24T12:00:00Z",
-      "author": "agent-id | human",
-      "references": ["bead-000"],
-      "tags": ["backend", "database", "migration"],
-      "evidence": "Link to test output or execution log",
-      "superseded_by": null
-    }
-  ]
+  "id": "bd-0002",
+  "type": "architectural_decision | bug_discovery | task_state | incident | consensus | requirement",
+  "status": "open | in_progress | resolved | blocked | archived",
+  "title": "Short descriptive title",
+  "description": "Detailed description of the decision, bug, or task",
+  "dependencies": ["bd-0001"],
+  "author": "agent-id | human-orchestrator",
+  "timestamp": "2026-05-24T12:00:00Z",
+  "tags": ["backend", "database", "migration"],
+  "evidence": "Link to test output, Git hash, or execution logs",
+  "superseded_by": null
 }
 ```
 
 **Field requirements:**
-- `id` — Unique, monotonically incrementing: `bead-001`, `bead-002`, ...
-- `type` — One of: `decision`, `bug`, `task`, `architecture`, `escalation`
-- `references` — Array of bead IDs this bead relates to (parent decisions, related bugs)
-- `superseded_by` — If this bead is replaced by a newer decision, set this to the new bead's ID
-- `evidence` — Required for `bug` and `task` types. Link to terminal output or test logs.
+- `id` — Unique string identifier matching pattern `bd-XXXX` where XXXX is a 4-digit zero-padded integer.
+- `type` — One of the standardized bead types.
+- `status` — Current state of the bead.
+- `dependencies` — Array of bead ID strings that this bead relates to.
+- `superseded_by` — ID of the bead replacing this decision if it has been updated.
+- `evidence` — Required for `resolved` status on tasks and bugs. Link to verification output.
 
 ### 3.2 Workflow YAML Schema (`workflows/*.yaml`)
 

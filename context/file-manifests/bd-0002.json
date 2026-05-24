@@ -1,0 +1,32 @@
+{
+  "task": "bd-0002",
+  "timestamp": "2026-05-24T14:05:40.990Z",
+  "budget": 15000,
+  "files": [
+    {
+      "path": ".agent/skills/improve-codebase-architecture/DEEPENING.md",
+      "sizeBytes": 2602,
+      "tokens": 649
+    },
+    {
+      "path": ".agent/skills/improve-codebase-architecture/INTERFACE-DESIGN.md",
+      "sizeBytes": 2769,
+      "tokens": 688
+    },
+    {
+      "path": ".agent/skills/improve-codebase-architecture/LANGUAGE.md",
+      "sizeBytes": 3857,
+      "tokens": 961
+    },
+    {
+      "path": ".agent/skills/improve-codebase-architecture/SKILL.md",
+      "sizeBytes": 5211,
+      "tokens": 1292
+    },
+    {
+      "path": "docs/architecture-overview.md",
+      "sizeBytes": 307,
+      "tokens": 77
+    }
+  ]
+}

@@ -124,31 +124,31 @@ graph TD
 
 ## 3. Memory Flow
 
-The Beads memory system forms a directed graph. Every task, decision, and bug is a node. Edges represent relationships (references, supersedes). Agents query this graph for context instead of relying on chat history.
+The Beads memory system forms a directed graph. Every task, decision, and bug is a node stored as a standalone JSON file in `memory/beads/*.json`. Edges represent relationships (dependencies, supersedes). The Veyra CLI Engine dynamically compiles these decentralized nodes into a unified, queryable in-memory graph to assemble task contexts for agents.
 
 ```mermaid
 graph LR
     subgraph TRIGGER["Trigger"]
         T["📥 Task Assignment"]
     end
-
+ 
     subgraph MEMORY["Memory System"]
-        BC["🔵 Bead Creation"]
-        BG["🔗 Bead Graph"]
-        BQ["🔍 Bead Query"]
+        BC["🔵 Bead Creation (standalone file)"]
+        BG["🔗 Engine Compiles Bead Graph"]
+        BQ["🔍 Bead Query (CLI)"]
     end
-
+ 
     subgraph CONTEXT["Context Assembly"]
         CI["📄 Context Injection"]
         TB["📏 Token Budget Check"]
     end
-
+ 
     subgraph AGENT["Agent Execution"]
         AP["🤖 Agent Prompt"]
         EX["⚡ Execution"]
         EV["📋 Evidence Capture"]
     end
-
+ 
     T --> BC
     BC --> BG
     BG --> BQ
@@ -157,16 +157,16 @@ graph LR
     TB --> AP
     AP --> EX
     EX --> EV
-    EV -->|"update bead status"| BG
+    EV -->|"CLI updates bead file"| BG
 ```
-
+ 
 **Bead lifecycle:**
-1. Task is assigned → `task` bead created with `status: active`
-2. Agent queries related beads for context (prior decisions, related bugs)
-3. Context is assembled from bead content + file manifests
-4. Agent executes and produces evidence
-5. Bead is updated: `status: resolved`, `evidence: <link>`
-6. If a decision changes, old bead gets `superseded_by: <new-bead-id>`
+1. Task is assigned → CLI creates decentralized `task` bead file under `memory/beads/bd-XXXX.json` with `status: open`.
+2. Agent runs CLI query to search related beads for context (prior decisions, related bugs).
+3. Context is assembled from parsed bead dependencies + file manifests.
+4. Agent executes and produces evidence.
+5. CLI updates the bead file: `status: resolved`, `evidence: <link>`.
+6. If a decision changes, CLI marks the old bead file with `superseded_by: <new-bead-id>`.
 
 ---
 

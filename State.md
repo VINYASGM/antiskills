@@ -1,7 +1,7 @@
 # Project State — Veyra
 
-**Last Updated:** 2025-05-24
-**Phase:** Phase 1 — MVP Foundation
+**Last Updated:** 2026-05-24
+**Phase:** Phase 2 — Active Execution Layer (CLI Engine)
 
 ---
 
@@ -9,11 +9,11 @@
 
 | Field | Value |
 |---|---|
-| **Phase** | Phase 1 — MVP Foundation |
+| **Phase** | Phase 2 — Active Execution Layer (CLI Engine) |
 | **Status** | In Progress |
-| **Goal** | Create all directories, root files, agent definitions, and memory initialization |
-| **Started** | 2025-05-24 |
-| **Target Completion** | 2025-05-25 |
+| **Goal** | Implement the zero-dependency Veyra CLI (`bin/veyra.js`, wrappers) with bead management, constitution linter, and context assembly |
+| **Started** | 2026-05-24 |
+| **Target Completion** | 2026-05-26 |
 
 ---
 
@@ -21,7 +21,7 @@
 
 | Agent | Status | Worktree | Branch | Task |
 |---|---|---|---|---|
-| — | — | — | — | No agents active. Repository initialized, awaiting first project. |
+| — | — | — | — | No agents active. Preparing the core OS CLI engine. |
 
 ---
 
@@ -29,8 +29,8 @@
 
 | Field | Value |
 |---|---|
-| **Beads File** | `memory/beads.json` |
-| **Total Beads** | 1 (root node) |
+| **Beads Directory** | `memory/beads/` |
+| **Total Beads** | 1 (decentralized root bead `memory/beads/bd-0001.json`) |
 | **Active Beads** | 1 |
 | **Resolved Beads** | 0 |
 | **Archived Beads** | 0 |
@@ -41,24 +41,19 @@
 
 | Directory | Status | Files | Purpose |
 |---|---|---|---|
-| `agents/` | 🟡 Pending | 0 | Agent-as-Code definitions |
-| `rules/` | 🟡 Pending | 0 | Directory-scoped engineering rules |
-| `memory/` | 🟡 Pending | 0 | Beads memory system |
-| `context/` | 🟡 Pending | 0 | Deterministic context injection maps |
-| `context/ast-maps/` | 🟡 Pending | 0 | AST snapshots |
-| `context/dependency-graphs/` | 🟡 Pending | 0 | Module dependency graphs |
-| `context/file-manifests/` | 🟡 Pending | 0 | Scoped file lists |
-| `workflows/` | 🟡 Pending | 0 | YAML workflow definitions |
-| `prompts/` | 🟡 Pending | 0 | Reusable prompt templates |
-| `templates/` | 🟡 Pending | 0 | Document scaffolding templates |
-| `debugging/` | 🟡 Pending | 0 | Debugging playbooks |
-| `checklists/` | 🟡 Pending | 0 | Review and deployment checklists |
-| `docs/` | 🟡 Pending | 0 | Human-facing documentation |
-| `orchestration/` | 🟡 Pending | 0 | Multi-agent coordination protocols |
-| `governance/` | 🟡 Pending | 0 | Decision records and policies |
-| `governance/decisions/` | 🟡 Pending | 0 | Architecture Decision Records |
-| `standards/` | 🟡 Pending | 0 | Code style and conventions |
-| `.agent/skills/` | 🟢 Present | 1 | Antigravity skill definitions |
+| `bin/` | 🟡 In Progress | 0 | Veyra Engine CLI Core (`veyra.js`) |
+| `agents/` | 🟢 Present | 13 | Agent-as-Code definitions |
+| `rules/` | 🟢 Present | 6 | Directory-scoped engineering rules |
+| `memory/` | 🟢 Present | 1 | Beads memory system (`memory/beads/`) |
+| `context/` | 🟢 Present | 4 | Deterministic context injection maps |
+| `workflows/` | 🟢 Present | 7 | YAML workflow definitions |
+| `prompts/` | 🟢 Present | 1 | Reusable prompt templates |
+| `templates/` | 🟢 Present | 3 | Document scaffolding templates |
+| `debugging/` | 🟢 Present | 3 | Debugging playbooks |
+| `checklists/` | 🟢 Present | 3 | Review and deployment checklists |
+| `docs/` | 🟢 Present | 3 | Human-facing documentation |
+| `standards/` | 🟢 Present | 2 | Code style and conventions |
+| `.agent/skills/` | 🟢 Present | 12 | Antigravity skill definitions |
 
 ---
 
@@ -69,25 +64,23 @@
 | `.gitignore` | 🟢 Created | ~50 | Git exclusions |
 | `CLAUDE.md` | 🟢 Created | ~110 | Agent constitution |
 | `README.md` | 🟢 Created | ~120 | Repository overview |
-| `PRD.md` | 🟢 Created | ~130 | Product Requirements |
-| `TRD.md` | 🟢 Created | ~250 | Technical Requirements |
-| `Architecture.md` | 🟢 Created | ~280 | Living architecture |
-| `State.md` | 🟢 Created | — | This file |
-| `ToDo.md` | 🟢 Created | ~60 | Roadmap |
+| `PRD.md` | 🟢 Updated | ~130 | Product Requirements |
+| `TRD.md` | 🟢 Updated | ~260 | Technical Requirements |
+| `Architecture.md` | 🟢 Updated | ~290 | Living architecture |
+| `State.md` | 🟢 Updated | — | This file |
+| `ToDo.md` | 🟢 Updated | ~100 | Roadmap |
 
 ---
 
 ## Blocking Issues
 
-None. Repository is in initial setup phase.
+None. Repository structure and core configurations are successfully initialized.
 
 ---
 
 ## Next Actions
 
-1. Create all subdirectories listed in workspace inventory
-2. Write agent definitions in `agents/`
-3. Write scoped rules in `rules/`
-4. Initialize `memory/beads.json` with root bead
-5. Create workflow YAML files in `workflows/`
-6. Write prompt templates in `prompts/`
+1. Create `memory/beads/` and migrate `memory/beads.json` root node to `memory/beads/bd-0001.json`.
+2. Implement core CLI compiler in `bin/veyra.js` (commands: `bead`, `worktree`, `lint`, `context`).
+3. Create root command execution wrappers `veyra` (bash) and `veyra.ps1` (PowerShell).
+4. Run self-validation via `veyra lint` and test a sample task workflow.

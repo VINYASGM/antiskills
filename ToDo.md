@@ -53,6 +53,8 @@
 
 - [x] Create beads templates
 - [x] Verify beads persist across agent sessions
+- [ ] Convert Memory System to decentralized file-per-bead (`memory/beads/*.json`)
+- [ ] Build automated CLI for bead creation, linking, and querying
 - [ ] Test bead querying for context injection
 - [ ] Validate `superseded_by` chain for changed decisions
 - [ ] Implement bead archival for completed tasks
@@ -67,10 +69,25 @@
 - [x] Write `workflows/bug-fix.yaml`
 - [x] Write `workflows/refactor.yaml`
 - [x] Write `workflows/security-patch.yaml`
-- [ ] Execute feature-development workflow for a real feature
-- [ ] Verify all phase gates are enforced
+- [ ] Build custom constitution linter (`veyra lint`) to programmatically verify code constraints
+- [ ] Build deterministic context assembler (`veyra context`) using regex import scanning + Git
+- [ ] Execute feature-development workflow for a real feature using the Veyra CLI
+- [ ] Verify all phase gates are enforced by the CLI pre-merge linter
 - [ ] Capture execution evidence for every phase
 - [ ] Validate beads are created at each workflow step
+
+---
+
+### 🟡 Milestone 7: Veyra Core Engine (CLI)
+> Create the native execution and automation layer for Veyra.
+
+- [ ] Create `bin/veyra.js` core CLI engine using zero external dependencies
+- [ ] Implement `veyra bead` command (create, list, query, graph)
+- [ ] Implement `veyra lint` command (enforce constitution metrics: function length, file length, no `any`, JSDoc exports)
+- [ ] Implement `veyra context` command (regex dependency graph assembly + token budget checking)
+- [ ] Implement `veyra worktree` command (safe git worktree lifecycle: create, rebase, sequential merge)
+- [ ] Create root-level execution shortcuts (`veyra` bash wrapper and `veyra.ps1` PowerShell wrapper)
+- [ ] Verify execution compatibility on Windows, macOS, and Linux
 
 ---
 
@@ -94,6 +111,7 @@
 | 1. Repository Structure | ✅ Complete | 10/10 tasks |
 | 2. First Project Onboarding | ⬜ Not Started | 0/6 tasks |
 | 3. Agent Integration | 🟡 In Progress | 10/12 tasks |
-| 4. Memory System | 🟡 In Progress | 2/6 tasks |
-| 5. Workflow Execution | 🟡 In Progress | 4/8 tasks |
+| 4. Memory System | 🟡 In Progress | 2/8 tasks |
+| 5. Workflow Execution | 🟡 In Progress | 4/10 tasks |
 | 6. Multi-Agent Orchestration | ⬜ Not Started | 0/7 tasks |
+| 7. Veyra Core Engine (CLI) | 🟡 In Progress | 0/7 tasks |

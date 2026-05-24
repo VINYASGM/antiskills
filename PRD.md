@@ -68,19 +68,22 @@ AI coding agents suffer from five systemic failures:
 ### 6.1 Agent-as-Code Definitions (`agents/`)
 Each agent is defined in a markdown file specifying: identity, capabilities, tool access, constraints, escalation triggers, and output format. Agents are deterministic — the same definition produces the same behavior.
 
-### 6.2 Beads Memory System (`memory/`)
-A persistent, append-only JSON graph where each node (bead) represents a decision, bug, task state, or architectural choice. Beads are referenced by ID. Agents query beads for context instead of scrolling chat history.
+### 6.2 Decentralized Beads Memory System (`memory/beads/`)
+A persistent, append-only JSON graph where each node (bead) is stored in its own separate file (e.g., `memory/beads/bd-XXXX.json`) to completely eliminate Git merge conflicts between parallel agents. The unified graph is dynamically compiled by the Veyra engine.
 
-### 6.3 Workflow Library (`workflows/`)
+### 6.3 Veyra CLI Engine (`bin/veyra.js`)
+A native, zero-dependency Node.js CLI that serves as the runtime execution layer for the operating system. It provides programmatic APIs and shell shortcuts (`./veyra`) for bead management, git worktree isolation, deterministic context assembly, and automated rule linting.
+
+### 6.4 Workflow Library (`workflows/`)
 YAML workflow definitions for common development patterns: feature development, bug fixes, refactors, security patches, dependency updates. Each workflow defines phases, entry/exit criteria, and agent assignments.
 
-### 6.4 Engineering Constitution (`CLAUDE.md`)
+### 6.5 Engineering Constitution (`CLAUDE.md`)
 A single-file agent operating system that defines: stack, commands, hard rules, code style, context budget, coordination protocols, and escalation triggers. Kept under 120 lines to fit within agent context budgets.
 
-### 6.5 Deterministic Context Injection (`context/`)
-AST maps, dependency graphs, and file-path manifests that tell agents exactly which files to read. No probabilistic retrieval. No "find similar" — just "read these files."
+### 6.6 Deterministic Context Injection (`context/`)
+AST maps, dependency graphs, and file-path manifests compiled by the Veyra engine to tell agents exactly which files to read. No probabilistic retrieval. No "find similar" — just "read these files."
 
-### 6.6 Directory-Scoped Rules (`rules/`)
+### 6.7 Directory-Scoped Rules (`rules/`)
 Engineering rules loaded on-demand based on the directory an agent is working in. Frontend rules for frontend work, backend rules for backend work. Keeps agent context lean and relevant.
 
 ---

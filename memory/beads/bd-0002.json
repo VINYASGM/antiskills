@@ -1,0 +1,18 @@
+{
+  "id": "bd-0002",
+  "type": "architectural_decision",
+  "status": "open",
+  "title": "Adopt Decentralized Beads",
+  "description": "Adopted decentralized beads in memory/beads/*.json files to eliminate git merge conflicts.",
+  "dependencies": [
+    "bd-0001"
+  ],
+  "author": "human-orchestrator",
+  "timestamp": "2026-05-24T14:04:28.175Z",
+  "tags": [
+    "beads",
+    "architecture"
+  ],
+  "evidence": "",
+  "superseded_by": null
+}
