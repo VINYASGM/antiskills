@@ -30,10 +30,11 @@
 | Field | Value |
 |---|---|
 | **Beads Directory** | `memory/beads/` |
-| **Total Beads** | 2 (Decentralized plain-text Markdown beads) |
+| **Total Beads** | 3 (Decentralized plain-text Markdown beads) |
 | **- bd-0001.md** | `Initialize Veyra AI-Native Engineering OS` (resolved) |
 | **- bd-0002.md** | `Adopt Decentralized Beads` (open) |
-| **Active Beads** | 1 |
+| **- bd-0004.md** | `Update Agent Constitution and Validate CLI` (open) |
+| **Active Beads** | 2 |
 | **Resolved Beads** | 1 |
 
 ---
@@ -58,7 +59,7 @@
 | File | Status | Lines | Purpose |
 |---|---|---|---|
 | `.gitignore` | 🟢 Updated | ~60 | Git exclusions (including SQLite binary caches) |
-| `CLAUDE.md` | 🟡 In Progress | ~110 | Agent constitution |
+| `CLAUDE.md` | 🟢 Completed | ~110 | Agent constitution |
 | `README.md` | 🟢 Present | ~120 | Repository overview |
 | `PRD.md` | 🟢 Updated | ~110 | Overhauled Product Requirements |
 | `TRD.md` | 🟢 Updated | ~150 | Overhauled Technical Requirements |
@@ -76,6 +77,5 @@ None. The core OS components have been successfully overhauled.
 
 ## Next Actions
 
-1. Update the agent constitution `CLAUDE.md` to reflect the extended intent, JIT sync, and visual review commands.
-2. Run command line validation via `node bin/veyra.js` to ensure the Node engine works cleanly.
-3. Generate the walkthrough documentation showing execution evidence.
+1. Review the generated Walkthrough of execution evidence.
+2. Advance to Phase 5: Swarm Execution and TDD Workflows.

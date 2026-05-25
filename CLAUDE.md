@@ -28,12 +28,20 @@ Stack: Read `STACK.md` for project runtime, framework, and toolchain.
 - AST + Semantic Intel: Context assembly parses both compiler dependencies and shared string literal mappings.
 
 ## Critical CLI Commands
+> **Note:** Running any Veyra CLI command automatically triggers a JIT synchronization of all Markdown beads into the local `.gitignored` SQLite cache.
+
 - `node bin/veyra.js bead list`                  List JIT synchronized memory beads
 - `node bin/veyra.js bead create <title>`        Create a new Markdown memory bead
 - `node bin/veyra.js context assemble <task>`    Assemble hybrid AST and Semantic context
+- `node bin/veyra.js context index`              Generate dynamic codebase repo map and dependency DAG
 - `node bin/veyra.js intent publish <ag> <tsk>`  Broadcast files, DB columns, REST routes, styles
 - `node bin/veyra.js intent check <ag> <tsk>`    Check active peer conflicts JIT
 - `node bin/veyra.js intent list`                List all active agent broadcasts
-- `node bin/veyra.js worktree merge <branch>`    Optimistic concurrent integration
-- `node bin/veyra.js visual-review`              Run Playwright responsive viewport audit
+- `node bin/veyra.js worktree merge <branch...>` Optimistic concurrent integration
+- `node bin/veyra.js agent spawn <role> <task>`  Spawn an agent under supervisor tree
+- `node bin/veyra.js workflow list`              List all awesome-skills workflows
+- `node bin/veyra.js workflow run <id>`          Execute a workflow and spawn agents step-by-step
+- `node bin/veyra.js skill search <query>`       Search global Awesome Skills registry
+- `node bin/veyra.js skill install <id>`         Download and mount a skill to .agent/skills/
+- `node bin/veyra.js visual-review`              Execute automated Playwright responsive visual audit
 - `node bin/veyra.js lint`                       Run code linter static audits
