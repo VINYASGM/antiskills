@@ -13,6 +13,8 @@ const supervisor = require('./supervisor');
 const skillManager = require('./skills');
 const workflowEngine = require('./workflow');
 const intentManager = require('./intent');
+const path = require('node:path');
+const fs = require('node:fs');
 
 const styles = {
   reset: '\x1b[0m', bright: '\x1b[1m', dim: '\x1b[2m',
@@ -31,7 +33,8 @@ const showHelp = () => {
   console.log(`${styles.bright}COMMANDS:${styles.reset}`);
   console.log(`  ${styles.green}bead list${styles.reset}                  List all memory beads (SQLite JIT compiled)`);
   console.log(`  ${styles.green}bead create${styles.reset}                Create a new memory bead`);
-  console.log(`  ${styles.green}context assemble <task>${styles.reset}    Assemble hybrid context using AST & Semantic search`);
+  console.log(`  ${styles.green}context assemble <task>${styles.reset}    Assemble hybrid context and write task manifest`);
+  console.log(`  ${styles.green}context index${styles.reset}              Generate dynamic codebase repo map and dependency DAG`);
   console.log(`  ${styles.green}intent publish <ag> <tsk>${styles.reset}  Broadcast agent files, DB, routes, styles intents`);
   console.log(`  ${styles.green}intent check <ag> <tsk>${styles.reset}    Verify structural & semantic overlaps JIT`);
   console.log(`  ${styles.green}intent list${styles.reset}                  List all active agent broadcasts`);
@@ -150,7 +153,6 @@ const main = async () => {
       
       const entryFiles = ['./src/index.ts', './src/main.ts', './index.js'].filter(f => require('fs').existsSync(f));
       if (entryFiles.length === 0) {
-        // Fallback search to find any local code files
         const fs = require('fs');
         const codeFiles = fs.readdirSync(process.cwd()).filter(f => f.endsWith('.js') || f.endsWith('.ts'));
         if (codeFiles.length > 0) entryFiles.push(codeFiles[0]);
@@ -164,7 +166,27 @@ const main = async () => {
       
       console.log(`\nRanked Context Files (${totalTokens} tokens):`);
       ranked.forEach(f => console.log(` - ${f.path} (${f.tokens} tokens)`));
+      
+      // Save manifest json
+      const manifestPath = path.join(process.cwd(), 'context', 'file-manifests', `${taskId}.json`);
+      const manifestDir = path.dirname(manifestPath);
+      if (!fs.existsSync(manifestDir)) fs.mkdirSync(manifestDir, { recursive: true });
+      
+      const manifest = {
+        task: taskId,
+        timestamp: new Date().toISOString(),
+        budget: 15000,
+        files: ranked
+      };
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf8');
+      
+      console.log(`✔ Manifest indexed & saved: context/file-manifests/${taskId}.json`);
       console.log('✔ Hybrid context compiled successfully.');
+    } else if (subcommand === 'index') {
+      printHeader();
+      contextAssembler.generateIndex();
+    } else {
+      showHelp();
     }
   } else if (command === 'worktree') {
     if (subcommand === 'merge') {
