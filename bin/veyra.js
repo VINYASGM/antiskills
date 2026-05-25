@@ -2,7 +2,7 @@
 
 /**
  * ⚡ Veyra AI-Native OS Core Engine
- * Elite-tier context orchestration via DB, AST, and parallel subagents.
+ * Elite-tier context orchestration via DB, AST, parallel subagents, and visual loops.
  */
 
 const beadsDB = require('./db');
@@ -12,6 +12,7 @@ const linter = require('./linter');
 const supervisor = require('./supervisor');
 const skillManager = require('./skills');
 const workflowEngine = require('./workflow');
+const intentManager = require('./intent');
 
 const styles = {
   reset: '\x1b[0m', bright: '\x1b[1m', dim: '\x1b[2m',
@@ -28,15 +29,19 @@ const showHelp = () => {
   console.log(`${styles.bright}USAGE:${styles.reset}`);
   console.log(`  node bin/veyra.js <command> [subcommand] [options]\n`);
   console.log(`${styles.bright}COMMANDS:${styles.reset}`);
-  console.log(`  ${styles.green}bead list${styles.reset}                  List all memory beads (SQLite backed)`);
+  console.log(`  ${styles.green}bead list${styles.reset}                  List all memory beads (SQLite JIT compiled)`);
   console.log(`  ${styles.green}bead create${styles.reset}                Create a new memory bead`);
-  console.log(`  ${styles.green}context assemble <task>${styles.reset}    Assemble context using TS AST parsing`);
+  console.log(`  ${styles.green}context assemble <task>${styles.reset}    Assemble hybrid context using AST & Semantic search`);
+  console.log(`  ${styles.green}intent publish <ag> <tsk>${styles.reset}  Broadcast agent files, DB, routes, styles intents`);
+  console.log(`  ${styles.green}intent check <ag> <tsk>${styles.reset}    Verify structural & semantic overlaps JIT`);
+  console.log(`  ${styles.green}intent list${styles.reset}                  List all active agent broadcasts`);
   console.log(`  ${styles.green}worktree merge <branch...>${styles.reset} Optimistic concurrent merge`);
   console.log(`  ${styles.green}agent spawn <role> <task>${styles.reset}  Spawn an agent under supervisor tree`);
   console.log(`  ${styles.green}workflow list${styles.reset}              List all awesome-skills workflows`);
   console.log(`  ${styles.green}workflow run <id>${styles.reset}          Execute a workflow and spawn agents step-by-step`);
   console.log(`  ${styles.green}skill search <query>${styles.reset}       Search global Awesome Skills registry`);
   console.log(`  ${styles.green}skill install <id>${styles.reset}         Download and mount a skill to .agent/skills/`);
+  console.log(`  ${styles.green}visual-review${styles.reset}                Execute automated Playwright visual audit`);
   console.log(`  ${styles.green}lint${styles.reset}                       Run static analysis`);
   console.log();
 };
@@ -50,15 +55,11 @@ const main = async () => {
 
   const [command, subcommand, ...rest] = args;
 
+  // JIT Synchronize memory whenever CLI runs
+  beadsDB.sync();
+
   if (command === 'bead') {
-    if (subcommand === 'create') {
-      printHeader();
-      const beads = beadsDB.getAll();
-      if (beads.length === 0) console.log("No memory beads found.");
-      for (const b of beads) {
-        console.log(`[${b.id}] ${b.type} | ${b.status} | ${b.title}`);
-      }
-    } else if (subcommand === 'list') {
+    if (subcommand === 'list') {
       printHeader();
       const beads = beadsDB.getAll();
       if (beads.length === 0) console.log("No memory beads found.");
@@ -66,12 +67,75 @@ const main = async () => {
         console.log(`[${b.id}] ${b.type} | ${b.status} | ${b.title}`);
       }
     } else if (subcommand === 'create') {
-      beadsDB.create({
-        id: beadsDB.getNextId(),
+      printHeader();
+      const title = rest.join(' ') || 'Untitled Task';
+      const newId = beadsDB.create({
         type: 'task_state',
-        title: rest.join(' ') || 'Untitled Task'
+        status: 'open',
+        title: title,
+        description: 'Created via Veyra CLI bead command.',
+        author: 'human-orchestrator',
+        timestamp: new Date().toISOString(),
+        tags: ['cli'],
+        dependencies: []
       });
-      console.log(`✔ Bead created successfully.`);
+      console.log(`✔ Bead created successfully: [${newId}] ${title}`);
+    } else {
+      showHelp();
+    }
+  } else if (command === 'intent') {
+    printHeader();
+    if (subcommand === 'publish') {
+      const agentId = rest[0];
+      const taskId = rest[1];
+      if (!agentId || !taskId) return console.log('Missing agentId or taskId.');
+      
+      const filesStr = rest[2] || '';
+      const colsStr = rest[3] || '';
+      const routesStr = rest[4] || '';
+      const stylesStr = rest[5] || '';
+      
+      const files = filesStr.split(',').map(s => s.trim()).filter(Boolean);
+      const databaseColumns = colsStr.split(',').map(s => s.trim()).filter(Boolean);
+      const routes = routesStr.split(',').map(s => s.trim()).filter(Boolean);
+      const styles = stylesStr.split(',').map(s => s.trim()).filter(Boolean);
+      
+      intentManager.publish(agentId, taskId, { files, databaseColumns, routes, styles });
+    } else if (subcommand === 'check') {
+      const agentId = rest[0];
+      const taskId = rest[1];
+      if (!agentId || !taskId) return console.log('Missing agentId or taskId.');
+      
+      const filesStr = rest[2] || '';
+      const colsStr = rest[3] || '';
+      const routesStr = rest[4] || '';
+      const stylesStr = rest[5] || '';
+      
+      const files = filesStr.split(',').map(s => s.trim()).filter(Boolean);
+      const databaseColumns = colsStr.split(',').map(s => s.trim()).filter(Boolean);
+      const routes = routesStr.split(',').map(s => s.trim()).filter(Boolean);
+      const styles = stylesStr.split(',').map(s => s.trim()).filter(Boolean);
+      
+      const conflicts = intentManager.checkConflicts(agentId, taskId, { files, databaseColumns, routes, styles });
+      if (conflicts.length === 0) {
+        console.log('✔ No active structural or semantic conflicts detected with peer agents. Safe to edit!');
+      } else {
+        console.log(`⚠ Conflict Warning: Found ${conflicts.length} potential clashes!`);
+        conflicts.forEach(c => {
+          console.log(`\n[${c.severity}] ${c.type} (Peer: ${c.peer}, Task: ${c.task})`);
+          console.log(`Details: ${c.details}`);
+        });
+      }
+    } else if (subcommand === 'list') {
+      const intents = intentManager.list();
+      if (intents.length === 0) console.log("No active intents broadcasted.");
+      for (const i of intents) {
+        console.log(`\n[Agent: ${i.agentId}] | [Task: ${i.taskId}]`);
+        console.log(` - Intended Files: ${i.files.join(', ') || 'None'}`);
+        console.log(` - Intended Schema changes: ${i.databaseColumns.join(', ') || 'None'}`);
+        console.log(` - Intended Routes: ${i.routes.join(', ') || 'None'}`);
+        console.log(` - Intended Styles: ${i.styles.join(', ') || 'None'}`);
+      }
     } else {
       showHelp();
     }
@@ -85,15 +149,22 @@ const main = async () => {
       if (!bead) return console.log('Bead not found in DB.');
       
       const entryFiles = ['./src/index.ts', './src/main.ts', './index.js'].filter(f => require('fs').existsSync(f));
+      if (entryFiles.length === 0) {
+        // Fallback search to find any local code files
+        const fs = require('fs');
+        const codeFiles = fs.readdirSync(process.cwd()).filter(f => f.endsWith('.js') || f.endsWith('.ts'));
+        if (codeFiles.length > 0) entryFiles.push(codeFiles[0]);
+      }
+      
       if (entryFiles.length === 0) return console.log('No entry files found for graph traversal.');
 
-      console.log('Traversing TS AST Dependency Graph...');
+      console.log('Running Hybrid Code Intelligence (AST + Semantic Discovery)...');
       const allFiles = contextAssembler.buildGraph(entryFiles);
       const { ranked, totalTokens } = contextAssembler.rankFiles(allFiles, 15000);
       
       console.log(`\nRanked Context Files (${totalTokens} tokens):`);
-      ranked.forEach(f => console.log(` - ${f.path}`));
-      console.log('✔ Context compiled efficiently without regex.');
+      ranked.forEach(f => console.log(` - ${f.path} (${f.tokens} tokens)`));
+      console.log('✔ Hybrid context compiled successfully.');
     }
   } else if (command === 'worktree') {
     if (subcommand === 'merge') {
@@ -147,6 +218,10 @@ const main = async () => {
     } else {
       showHelp();
     }
+  } else if (command === 'visual-review') {
+    printHeader();
+    const visualReviewHarness = require('./visual-review');
+    await visualReviewHarness.run();
   } else if (command === 'lint') {
     linter.lintAll();
   } else {

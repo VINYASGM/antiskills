@@ -53,3 +53,9 @@ temp/
 # TypeScript incremental compilation
 *.tsbuildinfo
 scratch/
+
+# Veyra Local DB Caching
+memory/*.db
+memory/*.db-journal
+memory/*.db-shm
+memory/*.db-wal

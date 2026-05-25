@@ -1,7 +1,7 @@
 # Project State — Veyra
 
 **Last Updated:** 2026-05-25
-**Phase:** Phase 2 — Active Execution Layer (CLI Engine)
+**Phase:** Phase 4 — System Validation & Swarm Execution
 
 ---
 
@@ -9,10 +9,10 @@
 
 | Field | Value |
 |---|---|
-| **Phase** | Phase 3 — Veyra + Antigravity Integration |
+| **Phase** | Phase 4 — Overhaul Validation & Testing |
 | **Status** | Active |
-| **Goal** | Optimize Veyra for vibecoding by integrating Antigravity skills and tools into the orchestration layer. |
-| **Started** | 2026-05-24 |
+| **Goal** | Verify Veyra's newly implemented architecture including Git-native Markdown memory sync, JIT SQLite caching, intent conflict checking, hybrid context assembly, and responsive visual audits. |
+| **Started** | 2026-05-25 |
 | **Target Completion** | 2026-05-26 |
 
 ---
@@ -21,7 +21,7 @@
 
 | Agent | Status | Worktree | Branch | Task |
 |---|---|---|---|---|
-| — | — | — | — | No agents active. Preparing the core OS CLI engine. |
+| — | — | — | — | Core operating system components completed. Validation in progress. |
 
 ---
 
@@ -30,10 +30,11 @@
 | Field | Value |
 |---|---|
 | **Beads Directory** | `memory/beads/` |
-| **Total Beads** | 1 (decentralized root bead `memory/beads/bd-0001.json`) |
+| **Total Beads** | 2 (Decentralized plain-text Markdown beads) |
+| **- bd-0001.md** | `Initialize Veyra AI-Native Engineering OS` (resolved) |
+| **- bd-0002.md** | `Adopt Decentralized Beads` (open) |
 | **Active Beads** | 1 |
-| **Resolved Beads** | 0 |
-| **Archived Beads** | 0 |
+| **Resolved Beads** | 1 |
 
 ---
 
@@ -41,19 +42,14 @@
 
 | Directory | Status | Files | Purpose |
 |---|---|---|---|
-| `bin/` | 🟡 In Progress | 0 | Veyra Engine CLI Core (`veyra.js`) |
-| `agents/` | 🟢 Present | 13 | Agent-as-Code definitions |
-| `rules/` | 🟢 Present | 6 | Directory-scoped engineering rules |
-| `memory/` | 🟢 Present | 1 | Beads memory system (`memory/beads/`) |
+| `bin/` | 🟢 Completed | 10 | Veyra CLI Engine Core (`db.js`, `context.js`, `intent.js`, `visual-review.js`) |
+| `agents/` | 🟢 Completed | 14 | Agent-as-Code definitions (added `vlm-ui-reviewer.md`) |
+| `rules/` | 🟢 Present | 6 | Directory-scoped rules |
+| `memory/` | 🟢 Active | 4 | Markdown beads state and ephemeral intents/inboxes |
 | `context/` | 🟢 Present | 4 | Deterministic context injection maps |
 | `workflows/` | 🟢 Present | 7 | YAML workflow definitions |
-| `prompts/` | 🟢 Present | 1 | Reusable prompt templates |
-| `templates/` | 🟢 Present | 3 | Document scaffolding templates |
-| `debugging/` | 🟢 Present | 3 | Debugging playbooks |
-| `checklists/` | 🟢 Present | 3 | Review and deployment checklists |
-| `docs/` | 🟢 Present | 5 | Human-facing documentation (`subsystems/` for scoped subsystem docs) |
-| `standards/` | 🟢 Present | 2 | Code style and conventions |
-| `.agent/skills/` | 🟢 Present | 12 | Antigravity skill definitions |
+| `checklists/` | 🟢 Completed | 4 | Pre-merge, visual-audit checklist |
+| `orchestration/` | 🟢 Completed | 4 | Direct Actor choreography protocol |
 
 ---
 
@@ -61,27 +57,25 @@
 
 | File | Status | Lines | Purpose |
 |---|---|---|---|
-| `.gitignore` | 🟢 Created | ~50 | Git exclusions |
-| `CLAUDE.md` | 🟢 Created | ~110 | Agent constitution |
-| `README.md` | 🟢 Created | ~120 | Repository overview |
-| `PRD.md` | 🟢 Updated | ~130 | Product Requirements |
-| `TRD.md` | 🟢 Updated | ~260 | Technical Requirements |
-| `Architecture.md` | 🟢 Updated | ~340 | Living architecture (with prose summaries for agent consumption) |
+| `.gitignore` | 🟢 Updated | ~60 | Git exclusions (including SQLite binary caches) |
+| `CLAUDE.md` | 🟡 In Progress | ~110 | Agent constitution |
+| `README.md` | 🟢 Present | ~120 | Repository overview |
+| `PRD.md` | 🟢 Updated | ~110 | Overhauled Product Requirements |
+| `TRD.md` | 🟢 Updated | ~150 | Overhauled Technical Requirements |
+| `Architecture.md` | 🟢 Updated | ~140 | Choreographic System Architecture |
 | `State.md` | 🟢 Updated | — | This file |
-| `ToDo.md` | 🟢 Updated | ~120 | Roadmap |
-| `STACK.md` | 🟢 Created | ~10 | Project stack definition (runtime, framework, toolchain) |
+| `ToDo.md` | 🟢 Updated | ~80 | Roadmap |
 
 ---
 
 ## Blocking Issues
 
-None. Repository structure and core configurations are successfully initialized.
+None. The core OS components have been successfully overhauled.
 
 ---
 
 ## Next Actions
 
-1. Create `memory/beads/` and migrate `memory/beads.json` root node to `memory/beads/bd-0001.json`.
-2. Implement core CLI compiler in `bin/veyra.js` (commands: `bead`, `worktree`, `lint`, `context`).
-3. Create root command execution wrappers `veyra` (bash) and `veyra.ps1` (PowerShell).
-4. Run self-validation via `veyra lint` and test a sample task workflow.
+1. Update the agent constitution `CLAUDE.md` to reflect the extended intent, JIT sync, and visual review commands.
+2. Run command line validation via `node bin/veyra.js` to ensure the Node engine works cleanly.
+3. Generate the walkthrough documentation showing execution evidence.

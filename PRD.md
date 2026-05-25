@@ -1,17 +1,17 @@
 # Product Requirements Document — Veyra
 
-**Version:** 1.0
-**Author:** VINYASGM
-**Date:** 2025-05-24
+**Version:** 2.0
+**Author:** VINYASGM / ANTIGRAVITY
+**Date:** 2026-05-25
 **Status:** Active
 
 ---
 
 ## 1. Overview
 
-Veyra is a **reusable AI-native engineering operating system repository framework**. It provides the directory structure, agent definitions, memory system, workflow library, and engineering constitution required to run multi-agent software development at production quality.
+Veyra is a **reusable AI-native engineering operating system repository framework**. It provides the directory structure, agent definitions, memory systems, workflows, and engineering constitutions required to run multi-agent software development swarms at production quality.
 
-Veyra is not an application — it is a **template repository** that teams clone, customize for their stack, and use as the operating system for AI-assisted engineering.
+Veyra is a **template repository** that software teams clone, customize for their tech stack, and run as the core operating layer for AI-assisted engineering.
 
 ---
 
@@ -28,13 +28,14 @@ Veyra is not an application — it is a **template repository** that teams clone
 
 ## 3. Problem Statement
 
-AI coding agents suffer from five systemic failures:
+AI coding agents suffer from six systemic failures:
 
-1. **Context Rot** — Agents lose context mid-task as chat history grows. They forget constraints, repeat mistakes, and drift from specs.
-2. **Multi-Agent Chaos** — Parallel agents overwrite each other's files, create merge conflicts, and make contradictory architectural decisions.
-3. **Spec-Less Development** — Agents jump straight to code without structured requirements, producing fragile, inconsistent implementations.
-4. **Ephemeral Memory** — Decisions made in one session are lost in the next. Agents re-discover the same bugs, re-debate the same tradeoffs.
-5. **Probabilistic Context** — RAG-based context retrieval is lossy. Agents get "similar" files instead of the exact files they need.
+1. **Context Rot** — Agents lose context mid-task as chat history grows, drifting from specs.
+2. **Multi-Agent Chaos** — Parallel agents overwrite each other's files, creating Git and binary merge conflicts.
+3. **Waterfall Rigidness** — Locking agents into phase-gated execution limits LLM non-linear self-correction and TDD REPL speed.
+4. **Ephemeral Memory & Lock Contention** — Storing graph state in single large files or binary databases causes locking and merge nightmares in Git worktrees.
+5. **Decoupled Architecture Blindness** — Compiler-based AST trees fail to capture relationships between REST APIs, ORMs, and frontend styles, causing semantic conflicts.
+6. **Visual Frontend Blindspots** — Text-based agents cannot review CSS, z-index overlaps, or responsive scaling, producing ugly layouts.
 
 ---
 
@@ -42,11 +43,13 @@ AI coding agents suffer from five systemic failures:
 
 | Goal | Description |
 |---|---|
-| **Eliminate context rot** | Replace chat-history dependence with persistent Beads memory and deterministic context injection |
-| **Prevent multi-agent chaos** | Enforce Git worktree isolation — one agent, one branch, sequential merges |
-| **Enable spec-driven development** | Require PRD → TRD → Architecture → Plan before any code is written |
-| **Maintain architectural consistency** | Define agent-enforced rules scoped by directory, loaded on-demand |
-| **Persist decisions across sessions** | Use the Beads memory pattern — append-only JSON graph of decisions, bugs, and task states |
+| **Eliminate context rot** | Replace chat history dependency with persistent Beads memory and deterministic hybrid context injection. |
+| **Prevent multi-agent chaos** | Enforce Git worktree isolation with continuous context broadcasting (intents) to flag semantic overlaps JIT. |
+| **Enable REPL-driven development** | Adopt Test-Driven Development (TDD) loops allowing living specs to be amended interactively. |
+| **Maintain architectural consistency** | Define directory-scoped rules loaded on-demand to keep prompts lightweight and relevant. |
+| **Persist memory natively** | Store authoritative decisions as Git-native Markdown beads, using SQLite as an ephemeral local query cache. |
+| **Visual verification CI** | Integrate visual review CI loops compiling screenshots for Vision-Language Model reviews. |
+| **Distributed Choreography** | Move to Actor Model peer-to-peer messaging to prevent orchestrator context fragmentation. |
 
 ---
 
@@ -54,67 +57,43 @@ AI coding agents suffer from five systemic failures:
 
 | Criterion | Measurement |
 |---|---|
-| Agents operate in parallel without file conflicts | Zero merge conflicts from concurrent agent work |
-| Memory persists across sessions | Beads created in session N are queryable in session N+1 |
-| All code changes have execution evidence | 100% of PRs include test output logs |
-| Context is deterministic, not probabilistic | Agents receive explicit file paths, not RAG search results |
-| New projects onboard in <30 minutes | Clone Veyra, customize CLAUDE.md, start first task |
-| Agent escalations are structured | All escalations use Consultation Request Pack (CRP) format |
+| Zero Git merge conflicts | Authoritative memory stored in separate Markdown files; `.gitignore` SQLite binaries. |
+| Pre-merge semantic safety | 100% of parallel merges run `intent check` to verify zero payload or schema mismatches. |
+| Hybrid context accuracy | Context includes both AST imports and semantic REST/CSS/schema strings within token budget. |
+| Visual verification | All UI component modifications pass headless screenshot audits across mobile, tablet, desktop viewports. |
+| Distributed scalability | Agent swarm scales beyond 3+ concurrent actors without Orchestrator context overflow. |
 
 ---
 
 ## 6. Key Features
 
 ### 6.1 Agent-as-Code Definitions (`agents/`)
-Each agent is defined in a markdown file specifying: identity, capabilities, tool access, constraints, escalation triggers, and output format. Agents are deterministic — the same definition produces the same behavior.
+Deterministic agent specifications (markdown) detailing authority, tool permissions, specific scoped rules, and peer actor messaging schemas.
 
-### 6.2 Decentralized Beads Memory System (`memory/beads/`)
-A persistent, append-only JSON graph where each node (bead) is stored in its own separate file (e.g., `memory/beads/bd-XXXX.json`) to completely eliminate Git merge conflicts between parallel agents. The unified graph is dynamically compiled by the Veyra engine.
+### 6.2 Git-Native Memory System (`memory/beads/bd-XXXX.md`)
+Persistent, text-based beads written in Markdown with YAML frontmatter. Highly mergeable in Git with zero conflict collisions. Recompiled JIT to local `.gitignored` SQLite `beads.db` cache for lightning-fast queries.
 
-### 6.3 Veyra CLI Engine (`bin/veyra.js`)
-A native, zero-dependency Node.js CLI that serves as the runtime execution layer for the operating system. It provides programmatic APIs and shell shortcuts (`./veyra`) for bead management, git worktree isolation, deterministic context assembly, and automated rule linting.
+### 6.3 Context Broadcasting (`bin/intent.js`)
+An ephemeral intent publisher. Agents broadcast JIT intentions (files to edit, database columns to modify, REST API contracts to change) to a shared memory directory, scanning peer intents to detect conflicts.
 
-### 6.4 Workflow Library (`workflows/`)
-YAML workflow definitions for common development patterns: feature development, bug fixes, refactors, security patches, dependency updates. Each workflow defines phases, entry/exit criteria, and agent assignments.
+### 6.4 Hybrid Code Intelligence Engine (`bin/context.js`)
+Blends TypeScript AST module mapping with multi-file semantic regex indexing to link decoupled routes (`/api/`), styles, and schemas.
 
-### 6.5 Engineering Constitution (`CLAUDE.md`)
-A single-file agent operating system that defines: stack, commands, hard rules, code style, context budget, coordination protocols, and escalation triggers. Kept under 120 lines to fit within agent context budgets.
+### 6.5 Actor Model Choreography (`orchestration/choreography-protocol.md`)
+Standardized peer messaging loops using JIT local directories (`memory/inbox/`) bypassing Orchestrator bottle-necks.
 
-### 6.6 Deterministic Context Injection (`context/`)
-AST maps, dependency graphs, and file-path manifests compiled by the Veyra engine to tell agents exactly which files to read. No probabilistic retrieval. No "find similar" — just "read these files."
-
-### 6.7 Directory-Scoped Rules (`rules/`)
-Engineering rules loaded on-demand based on the directory an agent is working in. Frontend rules for frontend work, backend rules for backend work. Keeps agent context lean and relevant.
+### 6.6 VLM Responsive Visual CI Loop (`bin/visual-review.js`)
+Headless browser harness generating layout captures across Mobile, Tablet, and Desktop breakpoints, consumed by a visual audit VLM reviewer.
 
 ---
 
 ## 7. Non-Functional Requirements
-
-| Requirement | Detail |
-|---|---|
-| **Stack-agnostic** | Works with any tech stack. The framework is markdown + JSON + YAML + Git. |
-| **Git-native** | All coordination uses Git primitives (worktrees, branches, rebases). No external orchestration service. |
-| **Zero external dependencies** | Core framework requires only Git and a text editor. No npm install for the framework itself. |
-| **Cross-platform** | Windows, macOS, Linux. No OS-specific scripts in the core framework. |
-| **Agent-agnostic** | Works with any AI coding agent that reads markdown files (Antigravity, Claude Code, Cursor, Copilot, etc.) |
-| **Offline-capable** | The entire framework works offline. No API calls required for framework operation. |
+- **Git-native**: Versioned in plain text. Excludes compiled assets and local database caches.
+- **Zero-dependency Core**: Node.js and TypeScript built-ins only.
+- **Cross-platform**: Shell execution wrappers compatible with Windows Powershell and Unix Bash.
 
 ---
 
 ## 8. Out of Scope
-
-- Veyra does **not** include application code — it is a framework, not a starter kit
-- Veyra does **not** provide an AI agent runtime — it defines how agents should behave
-- Veyra does **not** replace Git — it enhances Git workflows with agent-aware protocols
-- Veyra does **not** require a specific IDE — it works with any tool that reads files
-
----
-
-## 9. Risks
-
-| Risk | Mitigation |
-|---|---|
-| Agents ignore CLAUDE.md rules | Hard rules are tested via code review agent before merge |
-| Beads memory grows unbounded | Implement bead archival for completed tasks |
-| Teams over-customize and break conventions | Provide a validation script that checks framework integrity |
-| New agents are poorly defined | Provide agent definition templates with required fields |
+- Hosting or providing LLM models or APIs.
+- Replacing Git primitives (uses standard worktree features).

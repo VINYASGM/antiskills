@@ -8,99 +8,61 @@
 
 ### ✅ Milestone 1: Repository Structure
 > Create all directories and root configuration files.
-
 - [x] Create root files: `.gitignore`, `README.md`, `CLAUDE.md`
 - [x] Create spec files: `PRD.md`, `TRD.md`, `Architecture.md`
 - [x] Create state files: `State.md`, `ToDo.md`
 - [x] Create all subdirectories: `agents/`, `rules/`, `memory/`, `context/`, `workflows/`, `prompts/`, `templates/`, `debugging/`, `checklists/`, `docs/`, `orchestration/`, `governance/`, `standards/`
-- [x] Initialize `memory/beads.json` with root bead
+- [x] Initialize `memory/beads/` with Git-native Markdown root bead
 - [x] Create `.gitkeep` files in empty directories
 
 ---
 
-### ⬜ Milestone 2: First Project Onboarding
-> Clone Veyra for a real project. Configure stack and customize CLAUDE.md.
-
-- [ ] Clone Veyra into a new project directory
-- [x] Customize `CLAUDE.md` for project-specific stack (extracted to `STACK.md`)
-- [ ] Write project-specific PRD and TRD
-- [ ] Define project architecture in `Architecture.md`
-- [ ] Create initial beads for project decisions
-- [ ] Verify agent constitution loads correctly
+### ✅ Milestone 2: Memory System & JIT Cache
+- [x] Create decentralized Markdown beads (`memory/beads/*.md`)
+- [x] Build frontmatter parser for plain-text Markdown memory tracking
+- [x] Synchronize JIT memory states into a `.gitignored` local SQLite cache (`beads.db`)
+- [x] Exclude SQLite binaries and locking/temporary files from Git in `.gitignore`
+- [x] Validate bead query performance with local JIT SQLite sync
 
 ---
 
-### ✅ Milestone 3: Agent Integration
-> Write agent definitions and test them with Antigravity subagents.
-
-- [x] Write `agents/orchestrator.md`
-- [x] Write `agents/planner.md`
-- [x] Write `agents/architect.md`
-- [x] Write `agents/backend-engineer.md`
-- [x] Write `agents/frontend-engineer.md`
-- [x] Write `agents/code-reviewer.md`
-- [x] Write `agents/debugging-specialist.md`
-- [x] Write `agents/testing-engineer.md`
-- [x] Write `agents/security-reviewer.md`
-- [x] Write `agents/documentation-writer.md`
-- [ ] Test agent definitions with Antigravity subagent invocations
-- [ ] Validate agents load correct scoped rules
+### ✅ Milestone 3: Continuous Context Broadcasting (Intents)
+- [x] Design ephemeral Intent schema matching files, routes, DB columns, and CSS styles
+- [x] Implement JIT intent publisher and checker in `bin/intent.js`
+- [x] Integrate `intent publish`, `intent list`, and `intent check` commands into Veyra CLI
+- [x] Perform semantic conflict checks comparing parallel agent intentions JIT
 
 ---
 
-### 🟡 Milestone 4: Memory System
-> Validate the Beads pattern works across sessions.
-
-- [x] Create beads templates
-- [x] Verify beads persist across agent sessions
-- [x] Convert Memory System to decentralized file-per-bead (SQLite DB implemented)
-- [x] Build automated CLI for bead creation, linking, and querying
-- [x] Test bead querying for context injection
-- [ ] Validate `superseded_by` chain for changed decisions
-- [ ] Implement bead archival for completed tasks
-- [ ] Test memory graph with 50+ beads for performance
+### ✅ Milestone 4: Hybrid Code Intelligence Engine
+- [x] Integrate TS AST traversal mapping explicit imports
+- [x] Implement multi-file regex scanning for decoupled semantic bindings (REST routes, styles, DB columns)
+- [x] Build decoupled link resolution to pull implicit dependencies into agent context
+- [x] Implement ranked file token budget assembly in `bin/context.js`
 
 ---
 
-### 🟡 Milestone 5: Workflow Execution
-> Run a complete feature development workflow end-to-end.
-
-- [x] Write `workflows/feature-development.yaml`
-- [x] Write `workflows/bug-fix.yaml`
-- [x] Write `workflows/refactor.yaml`
-- [x] Write `workflows/security-patch.yaml`
-- [ ] Build custom constitution linter (`veyra lint`) to programmatically verify code constraints
-- [ ] Build deterministic context assembler (`veyra context`) using regex import scanning + Git
-- [ ] Execute feature-development workflow for a real feature using the Veyra CLI
-- [ ] Verify all phase gates are enforced by the CLI pre-merge linter
-- [ ] Capture execution evidence for every phase
-- [ ] Validate beads are created at each workflow step
+### ✅ Milestone 5: Distributed Actor Choreography & TDD
+- [x] Define peer message payloads in `orchestration/choreography-protocol.md`
+- [x] Pivot Orchestrator from central supervisor to asynchronous actor registry broker
+- [x] Instruct Frontend, Testing, and Code Review agents to use peer-to-peer JSON inboxes
+- [x] Implement high-frequency, interactive TDD self-correction loop instructions
 
 ---
 
-### 🟡 Milestone 7: Veyra Core Engine (CLI)
-> Create the native execution and automation layer for Veyra.
-
-- [x] Create `bin/veyra.js` core CLI engine using zero external dependencies (Upgraded to SQLite + TS dependencies)
-- [x] Implement `veyra bead` command (create, list, query, graph)
-- [x] Implement `veyra lint` command (enforce constitution metrics: function length, file length, no `any`, JSDoc exports)
-- [x] Implement `veyra context` command (regex dependency graph assembly + token budget checking)
-- [x] Implement `veyra worktree` command (safe git worktree lifecycle: create, rebase, sequential merge)
-- [x] Create root-level execution shortcuts (`veyra` bash wrapper and `veyra.ps1` PowerShell wrapper)
-- [ ] Verify execution compatibility on Windows, macOS, and Linux
+### 🟡 Milestone 6: Responsive Visual CI Loop
+- [x] Build `bin/visual-review.js` executing Puppeteer/Playwright capturing Mobile, Tablet, and Desktop breakpoints
+- [x] Define visual reviewer agent (`agents/vlm-ui-reviewer.md`)
+- [x] Write visual grid, spacing, z-index, typography checklist (`checklists/visual-audit.md`)
+- [ ] Test vision-based visual review loop against responsive frontend mockups
 
 ---
 
-### ⬜ Milestone 6: Multi-Agent Orchestration
-> Test parallel agents with Git worktree isolation.
-
-- [ ] Create 3 simultaneous worktrees for parallel agent work
-- [ ] Run 3 agents in parallel on separate tasks
-- [ ] Verify zero file conflicts between agents
-- [ ] Execute sequential merge protocol (rebase + fast-forward)
-- [ ] Test CRP escalation when merge conflicts occur
-- [ ] Validate merge order is deterministic
-- [ ] Clean up worktrees after merge
+### 🟡 Milestone 7: Swarm Orchestration & Validation
+- [ ] Run concurrent multi-agent simulation using isolated Git worktrees
+- [ ] Verify intent conflicts are triggered JIT during parallel executions
+- [ ] Execute fast-forward rebase and merges under actor choreography
+- [ ] Generate execution evidence and close out tasks
 
 ---
 
@@ -108,10 +70,10 @@
 
 | Milestone | Status | Progress |
 |---|---|---|
-| 1. Repository Structure | ✅ Complete | 10/10 tasks |
-| 2. First Project Onboarding | 🟡 In Progress | 1/6 tasks |
-| 3. Agent Integration | 🟡 In Progress | 10/12 tasks |
-| 4. Memory System | 🟡 In Progress | 2/8 tasks |
-| 5. Workflow Execution | 🟡 In Progress | 4/10 tasks |
-| 6. Multi-Agent Orchestration | ⬜ Not Started | 0/7 tasks |
-| 7. Veyra Core Engine (CLI) | 🟡 In Progress | 0/7 tasks |
+| 1. Repository Structure | ✅ Complete | 6/6 tasks |
+| 2. Memory System & JIT Cache | ✅ Complete | 5/5 tasks |
+| 3. Continuous Broadcasting (Intents) | ✅ Complete | 4/4 tasks |
+| 4. Hybrid Code Intelligence | ✅ Complete | 4/4 tasks |
+| 5. Distributed Actor Choreography | ✅ Complete | 4/4 tasks |
+| 6. Responsive Visual CI Loop | 🟡 In Progress | 3/4 tasks |
+| 7. Swarm Validation | ⬜ Not Started | 0/4 tasks |
