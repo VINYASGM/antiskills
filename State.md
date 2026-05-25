@@ -1,7 +1,7 @@
 # Project State — Veyra
 
 **Last Updated:** 2026-05-25
-**Phase:** Phase 4 — System Validation & Swarm Execution
+**Phase:** Phase 6 — Elite Architectural Overhaul
 
 ---
 
@@ -9,9 +9,9 @@
 
 | Field | Value |
 |---|---|
-| **Phase** | Phase 4 — Overhaul Validation & Testing |
+| **Phase** | Phase 6 — Elite Architectural Overhaul |
 | **Status** | Active |
-| **Goal** | Verify Veyra's newly implemented architecture including Git-native Markdown memory sync, JIT SQLite caching, intent conflict checking, hybrid context assembly, and responsive visual audits. |
+| **Goal** | Refactor core OS engine to use SQLite WAL pub-sub, add circuit breakers, and optimize codebase intelligence. |
 | **Started** | 2026-05-25 |
 | **Target Completion** | 2026-05-26 |
 
@@ -30,12 +30,13 @@
 | Field | Value |
 |---|---|
 | **Beads Directory** | `memory/beads/` |
-| **Total Beads** | 3 (Decentralized plain-text Markdown beads) |
+| **Total Beads** | 4 (Decentralized plain-text Markdown beads) |
 | **- bd-0001.md** | `Initialize Veyra AI-Native Engineering OS` (resolved) |
-| **- bd-0002.md** | `Adopt Decentralized Beads` (open) |
-| **- bd-0004.md** | `Update Agent Constitution and Validate CLI` (open) |
-| **Active Beads** | 2 |
-| **Resolved Beads** | 1 |
+| **- bd-0002.md** | `Adopt Decentralized Beads` (resolved) |
+| **- bd-0004.md** | `Update Agent Constitution and Validate CLI` (resolved) |
+| **- bd-0005.md** | `Swarm Execution & Visual CI Validation` (resolved) |
+| **Active Beads** | 0 |
+| **Resolved Beads** | 4 |
 
 ---
 
@@ -77,5 +78,6 @@ None. The core OS components have been successfully overhauled.
 
 ## Next Actions
 
-1. Review the generated Walkthrough of execution evidence.
-2. Advance to Phase 5: Swarm Execution and TDD Workflows.
+1. Refactor `bin/db.js` and `bin/intent.js` for SQLite Intent Registry.
+2. Refactor `bin/supervisor.js` for TTL/DLQ.
+3. Refactor `bin/context.js` for OOM limits.

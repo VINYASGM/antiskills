@@ -164,14 +164,15 @@ class ContextAssembler {
 
     // Step 2: Global Decoupled Code Discovery (implicit RAG fallback)
     const allProjFiles = [];
-    const scanDir = (dir) => {
-      if (allProjFiles.length > 200) return; // Cap directory scanning for performance
+    const scanDir = (dir, depth = 0) => {
+      if (depth > 5) return; // Phase 6: OOM depth limit fallback
+      if (allProjFiles.length > 500) return; // Cap directory scanning for performance
       try {
         const items = fs.readdirSync(dir, { withFileTypes: true });
         for (const item of items) {
           if (item.isDirectory()) {
             if (['node_modules', '.git', 'dist', 'build', '.next', 'scratch', 'memory'].includes(item.name)) continue;
-            scanDir(path.join(dir, item.name));
+            scanDir(path.join(dir, item.name), depth + 1);
           } else {
             const ext = path.extname(item.name);
             if (['.ts', '.tsx', '.js', '.jsx', '.css', '.json'].includes(ext)) {
@@ -291,13 +292,14 @@ class ContextAssembler {
     const root = process.cwd();
     const files = [];
     
-    const scanDir = (dir) => {
+    const scanDir = (dir, depth = 0) => {
+      if (depth > 5 || files.length > 1000) return; // Phase 6: Limit graph traversal to avoid OOM
       try {
         const items = fs.readdirSync(dir, { withFileTypes: true });
         for (const item of items) {
           if (item.isDirectory()) {
             if (['node_modules', '.git', 'dist', 'build', '.next', 'scratch', 'memory'].includes(item.name)) continue;
-            scanDir(path.join(dir, item.name));
+            scanDir(path.join(dir, item.name), depth + 1);
           } else {
             const ext = path.extname(item.name);
             if (['.ts', '.tsx', '.js', '.jsx'].includes(ext)) {

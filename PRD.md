@@ -74,7 +74,7 @@ Deterministic agent specifications (markdown) detailing authority, tool permissi
 Persistent, text-based beads written in Markdown with YAML frontmatter. Highly mergeable in Git with zero conflict collisions. Recompiled JIT to local `.gitignored` SQLite `beads.db` cache for lightning-fast queries.
 
 ### 6.3 Context Broadcasting (`bin/intent.js`)
-An ephemeral intent publisher. Agents broadcast JIT intentions (files to edit, database columns to modify, REST API contracts to change) to a shared memory directory, scanning peer intents to detect conflicts.
+An ephemeral intent publisher. Agents broadcast JIT intentions (files to edit, database columns to modify, REST API contracts to change) to a highly-concurrent SQLite WAL intent registry, scanning peer intents to detect conflicts.
 
 ### 6.4 Hybrid Code Intelligence Engine (`bin/context.js`)
 Blends TypeScript AST module mapping with multi-file semantic regex indexing to link decoupled routes (`/api/`), styles, and schemas.

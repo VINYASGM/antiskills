@@ -34,6 +34,8 @@ class Supervisor {
       console.log(`\nUse the following skills located in .agent/skills/ to complete your task:`);
       skills.forEach(s => console.log(` - ${s}`));
     }
+    console.log(`\n\x1b[31m[CIRCUIT BREAKER]\x1b[0m You are bound by a strict Time-To-Live (TTL) constraint.`);
+    console.log(`If you enter an infinite hallucination loop (>3 messages with no code modifications), your execution will be terminated and logged to the Dead-Letter Queue (DLQ).`);
     console.log(`\nYour isolated Git worktree has been created at: ../${worktreePath}`);
     console.log(`You MUST ` + `cd` + ` into this directory before running any commands or editing files.\n`);
     console.log(contextStr);

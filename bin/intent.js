@@ -1,20 +1,20 @@
 const path = require('node:path');
 const fs = require('node:fs');
+const beadsDB = require('./db.js');
 
 /**
  * 📡 IntentManager — Continuous Context Broadcasting
  * Enables parallel agents to broadcast their intentions (e.g., schemas, API routes, files)
  * and analyze overlaps JIT to prevent semantic conflicts before the commit phase.
+ * 
+ * *Upgraded in Phase 6 to use SQLite WAL pub-sub instead of JSON file writes.*
  */
 class IntentManager {
   /**
-   * Initializes filesystem folders for ephemeral intent JSON states JIT.
+   * Cleans up legacy ephemeral intent JSON folders if they exist.
    */
   constructor() {
     this.intentsDir = path.join(process.cwd(), 'memory', 'intents');
-    if (!fs.existsSync(this.intentsDir)) {
-      fs.mkdirSync(this.intentsDir, { recursive: true });
-    }
   }
 
   /**
@@ -29,7 +29,6 @@ class IntentManager {
    * intentManager.publish('backend-engineer', 'bd-0003', { files: ['src/db.ts'], databaseColumns: ['users.role'] });
    */
   publish(agentId, taskId, data = {}) {
-    const filePath = path.join(this.intentsDir, `in-${agentId}-${taskId}.json`);
     const intent = {
       agentId,
       taskId,
@@ -40,8 +39,15 @@ class IntentManager {
       styles: data.styles || []
     };
 
-    fs.writeFileSync(filePath, JSON.stringify(intent, null, 2), 'utf8');
-    console.log(`✔ Intent broadcasted: in-${agentId}-${taskId}.json`);
+    beadsDB.db.prepare(`
+      INSERT INTO intents (agent_id, task_id, timestamp, data)
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT(agent_id, task_id) DO UPDATE SET 
+        timestamp=excluded.timestamp, 
+        data=excluded.data
+    `).run(agentId, taskId, intent.timestamp, JSON.stringify(intent));
+
+    console.log(`✔ Intent broadcasted via SQLite WAL: ${agentId} on ${taskId}`);
     return intent;
   }
 
@@ -51,13 +57,11 @@ class IntentManager {
    * @returns {object[]} Ranked array of active intent records.
    */
   list() {
-    if (!fs.existsSync(this.intentsDir)) return [];
-    const files = fs.readdirSync(this.intentsDir).filter(f => f.startsWith('in-') && f.endsWith('.json'));
+    const rows = beadsDB.db.prepare(`SELECT data FROM intents`).all();
     const intents = [];
-    for (const file of files) {
+    for (const row of rows) {
       try {
-        const raw = fs.readFileSync(path.join(this.intentsDir, file), 'utf8');
-        intents.push(JSON.parse(raw));
+        intents.push(JSON.parse(row.data));
       } catch (e) {}
     }
     return intents;
@@ -143,11 +147,14 @@ class IntentManager {
    * @returns {void}
    */
   clear(agentId, taskId) {
+    beadsDB.db.prepare(`DELETE FROM intents WHERE agent_id = ? AND task_id = ?`).run(agentId, taskId);
+    
+    // Cleanup legacy file if exists
     const filePath = path.join(this.intentsDir, `in-${agentId}-${taskId}.json`);
     if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      console.log(`✔ Intent cleared: in-${agentId}-${taskId}.json`);
+      try { fs.unlinkSync(filePath); } catch (e) {}
     }
+    console.log(`✔ Intent cleared via SQLite: ${agentId} on ${taskId}`);
   }
 }
 

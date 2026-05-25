@@ -18,6 +18,7 @@ class BeadsDB {
     
     this.dbPath = path.join(memoryDir, 'beads.db');
     this.db = new Database(this.dbPath);
+    this.db.pragma('journal_mode = WAL'); // Enable high-concurrency for parallel swarm agents
     this.init();
     this.migrateLegacy();
     this.sync(); // JIT Sync on initialize
@@ -52,6 +53,13 @@ class BeadsDB {
         dependency_id TEXT,
         FOREIGN KEY(bead_id) REFERENCES beads(id) ON DELETE CASCADE,
         UNIQUE(bead_id, dependency_id)
+      );
+      CREATE TABLE IF NOT EXISTS intents (
+        agent_id TEXT,
+        task_id TEXT,
+        timestamp TEXT,
+        data TEXT,
+        PRIMARY KEY(agent_id, task_id)
       );
       CREATE INDEX IF NOT EXISTS idx_status ON beads(status);
       CREATE INDEX IF NOT EXISTS idx_type ON beads(type);

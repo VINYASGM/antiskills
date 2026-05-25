@@ -29,8 +29,8 @@ graph TD
     end
 
     subgraph MEM["Natively Synchronized Memory"]
-        MD_B["📄 Markdown Beads"] <-->|JIT compilation| SQL_C["⚡ SQLite Local Cache"]
-        INT["📡 Ephemeral Intents Bus"]
+        MD_B["📄 Markdown Beads"] <-->|JIT compilation| SQL_C["⚡ SQLite Local Cache (WAL)"]
+        SQL_C <-->|Pub/Sub| INT["📡 Ephemeral Intents Registry"]
     end
 
     subgraph GIT["Git Layer"]
@@ -109,4 +109,4 @@ To completely eliminate semantic conflict loops (where branches compile successf
 1. **Broadcasting**: Before writing code in their isolated Git worktree, the agent publishes its implementation intentions (`veyra intent publish`) listing files, API routes, database fields, and CSS elements they plan to touch.
 2. **Conflict Checking**: The agent runs `veyra intent check`. The system cross-references all broadcasted active peer intents and returns JIT alerts for overlapping schemas or contracts.
 3. **Adaptation**: The agent adapts their implementation JIT *before* writing code, avoiding rebase loops.
-4. **Fast-Forward Merge**: Merges are executed sequentially via fast-forwarding, cleaning up ephemeral intent files upon branch termination.
+4. **Fast-Forward Merge**: Merges are executed concurrently via optimistic fast-forwarding, clearing ephemeral intent records from SQLite upon branch termination.

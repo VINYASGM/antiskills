@@ -44,8 +44,8 @@ superseded_by: null
 Adopted decentralized beads in memory/beads/*.json files to eliminate git merge conflicts. Now upgraded to Markdown beads JIT cached by SQLite.
 ```
 
-### 2.2 Broadcasted Intent Schema (`memory/intents/in-{agent}-{task}.json`)
-Active intents broadcasted to prevent semantic conflict collisions.
+### 2.2 Broadcasted Intent Schema (SQLite `intents` table)
+Active intents broadcasted to prevent semantic conflict collisions. Stored in SQLite WAL mode for high concurrency.
 ```json
 {
   "agentId": "frontend-engineer",
@@ -90,9 +90,8 @@ veyra/
 │   └── ...
 ├── memory/                  # Ephemeral state & Git-tracked memory
 │   ├── beads/               # Git-tracked Markdown memory files (*.md)
-│   ├── intents/             # Ephemeral JSON intent broadcasts
 │   ├── inbox/               # Actor Model direct asynchronous mailboxes
-│   └── beads.db             # LOCAL CACHE (Strictly .gitignored)
+│   └── beads.db             # LOCAL CACHE (Strictly .gitignored, powers intent registry & JIT queries)
 ├── checklists/              # Review & layout checklists
 │   ├── visual-audit.md      # Grid, responsive, z-index, typography checklist
 │   └── ...
@@ -113,9 +112,9 @@ veyra/
 
 ### 4.1 Hybrid Context Assembly
 Deterministic context parsing uses:
-1. **TypeScript AST Traversal**: Maps compiler imports and exports.
+1. **TypeScript AST Traversal**: Maps compiler imports and exports with strict depth limit (`depth > 5`) to prevent OOM.
 2. **Semantic Regex Scanning**: Maps matching string keys across JS/TS/CSS/HTML (REST endpoints, styled classNames, SQL tables).
-3. **Decoupled Link Extraction**: Pulls matching semantic dependencies directly into the agent's token budget.
+3. **Decoupled Link Extraction**: Pulls matching semantic dependencies directly into the agent's token budget (capped at 500-1000 files).
 
 ```
 [Target Task]

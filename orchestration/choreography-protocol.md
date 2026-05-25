@@ -109,3 +109,13 @@ Instead of phase-gated waterfalls, agents run a tight **Red-Green-Refactor loop*
 2. **Green**: Write the minimal code needed to make the test pass.
 3. **Refactor**: Clean up implementation without altering tests.
 4. **Negotiation Protocol**: If an agent uncovers a library blocker or schema issue during the implementation step, they do NOT fail the pipeline. They immediately write a plan-amendment message to their peer (e.g. Architect or Backend) and update their JIT plan in `implementation-plan.md` recursively.
+
+---
+
+## 4. Time-To-Live (TTL) & Dead-Letter Queue (DLQ)
+*(Added in Phase 6)*
+
+To prevent multi-agent hallucination deadlocks (e.g., two agents endlessly messaging each other without merging code):
+- **TTL Constraint**: An agent is strictly bound to a 3-message loop TTL per task without resolving a merge conflict. 
+- **Circuit Breaker**: If the TTL is exceeded, the agent must automatically **Halt Execution** and move the message/state to the **Dead-Letter Queue (DLQ)**.
+- **Escalation**: DLQ events are surfaced immediately to the Human Orchestrator for manual intervention.
