@@ -2,15 +2,17 @@
 
 ## Identity & Core
 AI-native engineering OS. Spec-driven, phase-gated execution. No code without a plan and evidence.
-Stack: Node.js 20+, pnpm, Vitest, ESLint, TypeScript 5+ (No `any`).
+Stack: Read `STACK.md` for the project runtime, framework, and toolchain.
 
-## 🟢 Session Start Ritual (ALWAYS execute first)
-1. Read `memory/current-task.json` to immediately orient yourself.
-2. Read the active bead and its listed context beads.
-3. Review `State.md` and the active `task.md` checklist.
-4. Check for unstaged/uncommitted files using `git status`.
-5. Run `veyra lint` to ensure workspace integrity.
-6. State your understanding of the context and your immediate next action.
+## 🟢 Session Start Protocol (ALWAYS execute first)
+1. Read `State.md` — determine current phase, blocking issues, and next actions.
+2. Read `memory/current-task.json` — orient to the active bead and context beads.
+3. Load `rules/global.md` (always) + the scoped rule file matching the working directory (`rules/frontend.md`, `rules/backend.md`, etc.).
+4. Read the active bead file and its listed context beads.
+5. List all open beads via `veyra bead list --status=open`.
+6. Check for unstaged/uncommitted files using `git status`.
+7. Confirm current phase and active worktree — state discrepancies if any.
+8. State your understanding of the context and your immediate next action.
 
 ## 🔴 Session End Ritual (ALWAYS execute before exiting)
 1. Run tests and generate execution evidence for your changes.
@@ -23,6 +25,7 @@ Stack: Node.js 20+, pnpm, Vitest, ESLint, TypeScript 5+ (No `any`).
 ## Rules & Context
 - Directory-scoped rules: Load `@rules/global.md` always. 
   Load `@rules/frontend.md` or `@rules/backend.md` depending on scope.
+- Memory Worker: See `docs/subsystems/claude-mem-worker.md` — load only when building the worker service.
 - Max Context: Do not dump all rules into a single prompt.
 - Architecture Decisions: Read and write to decentralized beads (`memory/beads/`).
 

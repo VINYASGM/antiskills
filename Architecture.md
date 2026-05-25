@@ -10,6 +10,8 @@
 
 The system has two operating modes: the **Agent Command Environment (ACE)** where humans define specs and review results, and the **Agent Execution Environment (AEE)** where agents write code in isolated worktrees.
 
+**Plain-text summary:** Human Orchestrator defines specs and reviews results. The Orchestration Layer (Orchestrator, Task Router, Merge Coordinator, Escalation Handler) routes tasks to 9 specialized agents: Planner, Architect, Backend Engineer, Frontend Engineer, Code Reviewer, Debugging Specialist, Testing Engineer, Security Reviewer, and Documentation Writer. Each engineering agent works in an isolated Git worktree. Worktrees integrate into main via rebase + merge. Code Reviewer and Security Reviewer feed back to the human Review stage. Unresolvable issues escalate from the Escalation Handler to the Human Orchestrator.
+
 ```mermaid
 graph TD
     subgraph ACE["Agent Command Environment"]
@@ -74,6 +76,8 @@ graph TD
 
 Agents do not communicate directly with each other. All coordination flows through the **Orchestrator**. Agents produce artifacts; the Orchestrator routes those artifacts to the next agent in the workflow.
 
+**Plain-text summary:** All agents communicate exclusively through the Orchestrator — no direct agent-to-agent channels. The Orchestrator sends task assignments (planning, design review, implementation, test execution, code review, security audit, bug diagnosis, docs generation) and agents return artifacts (spec artifacts, design artifacts, code + evidence, test results, review reports, security reports, diagnosis reports, documentation). Escalation path: Code Reviewer / Security Reviewer / Testing Engineer → Debugging Specialist → Orchestrator (CRP escalation to human).
+
 ```mermaid
 graph TD
     O["🎯 Orchestrator"]
@@ -126,6 +130,8 @@ graph TD
 
 The Beads memory system forms a directed graph. Every task, decision, and bug is a node stored as a standalone JSON file in `memory/beads/*.json`. Edges represent relationships (dependencies, supersedes). The Veyra CLI Engine dynamically compiles these decentralized nodes into a unified, queryable in-memory graph to assemble task contexts for agents.
 
+**Plain-text summary:** Task assignment → bead creation (standalone JSON file under `memory/beads/`) → engine compiles bead graph → CLI queries related beads for context → context injection → token budget check → agent prompt → execution → evidence capture → CLI updates bead file (cycle repeats). Old beads are marked `superseded_by` when decisions change.
+
 ```mermaid
 graph LR
     subgraph TRIGGER["Trigger"]
@@ -174,6 +180,8 @@ graph LR
 
 All agents work in isolated Git worktrees. Merges into main are **strictly sequential** — no parallel merges, no merge commits. Every integration is a fast-forward after rebase.
 
+**Plain-text summary:** Merges are strictly sequential — no parallel merges, no merge commits. Flow: Agent completes work in worktree → tests pass (evidence captured) → Code Reviewer + Security Reviewer approve → `git rebase main` → fast-forward merge into main → remove worktree → update bead to resolved. On conflict: agent retries resolution up to 2 times; on 3rd failure, a CRP is created and escalated to the human orchestrator.
+
 ```mermaid
 gitGraph
     commit id: "init"
@@ -220,6 +228,8 @@ gitGraph
 ## 5. Context Assembly Pipeline
 
 Agents receive **deterministic context** — not RAG search results. The pipeline assembles exactly the files an agent needs based on the task scope.
+
+**Plain-text summary:** Pipeline: Task Scope → AST Parse (syntax tree with function/class boundaries) → Dependency Graph (module import/export map) → File Manifest (ordered file paths). In parallel: Rule Files → Constitution Rules; Relevant Beads → Injected Context. File Manifest feeds Token Count → Priority Ranking → Context Trimming. All streams converge into the final System Prompt. Result: agents receive deterministic context — exactly the files they need, nothing they don't.
 
 ```mermaid
 graph TD
@@ -278,6 +288,8 @@ graph TD
 ---
 
 ## 6. Layer Architecture
+
+**Plain-text summary:** Five layers, top to bottom: Layer 1 (Human Interface) — PRD, TRD, State.md, ToDo.md: define what to build, review results, approve merges. Layer 2 (Orchestration) — CLAUDE.md, Orchestrator, Workflows: route tasks, coordinate agents, manage merge sequence. Layer 3 (Agent Execution) — Agent Definitions, Scoped Rules, Prompt Templates: write code, run tests, review code, fix bugs. Layer 4 (Memory & Context) — Beads Graph, Context Maps, AST Snapshots: persist decisions, assemble context, track state. Layer 5 (Git Infrastructure) — Worktrees, Branches, Main Branch: isolate work, version code, integrate changes.
 
 ```mermaid
 graph TD

@@ -1,6 +1,6 @@
 # Roadmap — Veyra
 
-**Last Updated:** 2026-05-24
+**Last Updated:** 2026-05-25
 
 ---
 
@@ -22,7 +22,7 @@
 > Clone Veyra for a real project. Configure stack and customize CLAUDE.md.
 
 - [ ] Clone Veyra into a new project directory
-- [ ] Customize `CLAUDE.md` for project-specific stack
+- [x] Customize `CLAUDE.md` for project-specific stack (extracted to `STACK.md`)
 - [ ] Write project-specific PRD and TRD
 - [ ] Define project architecture in `Architecture.md`
 - [ ] Create initial beads for project decisions
@@ -109,7 +109,7 @@
 | Milestone | Status | Progress |
 |---|---|---|
 | 1. Repository Structure | ✅ Complete | 10/10 tasks |
-| 2. First Project Onboarding | ⬜ Not Started | 0/6 tasks |
+| 2. First Project Onboarding | 🟡 In Progress | 1/6 tasks |
 | 3. Agent Integration | 🟡 In Progress | 10/12 tasks |
 | 4. Memory System | 🟡 In Progress | 2/8 tasks |
 | 5. Workflow Execution | 🟡 In Progress | 4/10 tasks |

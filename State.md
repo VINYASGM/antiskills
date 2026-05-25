@@ -1,6 +1,6 @@
 # Project State — Veyra
 
-**Last Updated:** 2026-05-24
+**Last Updated:** 2026-05-25
 **Phase:** Phase 2 — Active Execution Layer (CLI Engine)
 
 ---
@@ -51,7 +51,7 @@
 | `templates/` | 🟢 Present | 3 | Document scaffolding templates |
 | `debugging/` | 🟢 Present | 3 | Debugging playbooks |
 | `checklists/` | 🟢 Present | 3 | Review and deployment checklists |
-| `docs/` | 🟢 Present | 3 | Human-facing documentation |
+| `docs/` | 🟢 Present | 5 | Human-facing documentation (`subsystems/` for scoped subsystem docs) |
 | `standards/` | 🟢 Present | 2 | Code style and conventions |
 | `.agent/skills/` | 🟢 Present | 12 | Antigravity skill definitions |
 
@@ -66,9 +66,10 @@
 | `README.md` | 🟢 Created | ~120 | Repository overview |
 | `PRD.md` | 🟢 Updated | ~130 | Product Requirements |
 | `TRD.md` | 🟢 Updated | ~260 | Technical Requirements |
-| `Architecture.md` | 🟢 Updated | ~290 | Living architecture |
+| `Architecture.md` | 🟢 Updated | ~340 | Living architecture (with prose summaries for agent consumption) |
 | `State.md` | 🟢 Updated | — | This file |
-| `ToDo.md` | 🟢 Updated | ~100 | Roadmap |
+| `ToDo.md` | 🟢 Updated | ~120 | Roadmap |
+| `STACK.md` | 🟢 Created | ~10 | Project stack definition (runtime, framework, toolchain) |
 
 ---
 

@@ -1,6 +1,9 @@
-# MASTER.md - Claude-mem Setup Design Guidelines & Code Conventions
+# Claude-mem Worker — Design Guidelines & Code Conventions
 
-This document establishes the official design system, user experience guidelines, and programming conventions for the **Claude-mem Setup** background service and verification tool stack, as extracted from the stack requirements in [PRD.md](file:///C:/Users/Vinyas%20G%20M/.gemini/antigravity/scratch/claude-mem-setup/PRD.md).
+> **Subsystem:** claude-mem background worker.
+> Load only when building or debugging the memory worker service.
+
+This document establishes the official design system, user experience guidelines, and programming conventions for the **Claude-mem Setup** background service and verification tool stack.
 
 ---
 
@@ -45,7 +48,7 @@ Never use color as the sole indicator of status. Always combine colors with expl
   [i] Starting Claude-mem Background Worker...
   [✓] Background process successfully spawned!
       ├── PID: 12488
-      └── Log: C:\Users\Vinyas G M\.gemini\antigravity\brain\...\task-18.log
+      └── Log: <resolved via USERPROFILE or os.homedir()>/.gemini/antigravity/brain/.../task.log
   ```
 
 ---
@@ -67,11 +70,12 @@ Diagnostic and health-check responses must remain clean, predictable, and fully 
     "port": 37777
   },
   "storage": {
-    "path": "C:\\Users\\Vinyas G M\\.claude-mem\\",
+    "path": "<RESOLVED_AT_RUNTIME>",
     "sizeBytes": 20480
   }
 }
 ```
+> **Path resolution:** `storage.path` is resolved at runtime via `process.env.USERPROFILE || require('os').homedir()` joined with `.claude-mem/`. Never hardcode home directories.
 
 ### Standardized Error Payloads
 If an endpoint encounters a failure, it must return a standard error schema with proper HTTP status codes:
