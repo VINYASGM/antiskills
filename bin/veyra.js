@@ -15,6 +15,9 @@ const workflowEngine = require('./workflow');
 const intentManager = require('./intent');
 const patchSystem = require('./patch');
 const router = require('./router');
+const verifyEngine = require('./verify');
+const GovernanceSystem = require('./governance');
+const governance = new GovernanceSystem();
 const ui = require('./ui');
 const path = require('node:path');
 const fs = require('node:fs');
@@ -43,6 +46,9 @@ const showHelp = () => {
     [`${ui.colors.green}intent list${ui.colors.reset}`, 'List all active agent broadcasts'],
     [`${ui.colors.green}patch check${ui.colors.reset}`, 'Check workspace patches for conflicts'],
     [`${ui.colors.green}patch apply <file>${ui.colors.reset}`, 'Apply patches from workspace to real files'],
+    [`${ui.colors.green}verify check <ptch> <cntrct>${ui.colors.reset}`, 'Verify patches against a programmatic contract'],
+    [`${ui.colors.green}governance status <tx>${ui.colors.reset}`, 'Audit current circuit-breaker transition states'],
+    [`${ui.colors.green}governance reset <tx>${ui.colors.reset}`, 'Reset a tripped transaction and attempts count'],
     [`${ui.colors.green}agent spawn <role> <task>${ui.colors.reset}`, 'Spawn an agent under supervisor tree'],
     [`${ui.colors.green}agent auto <task-desc>${ui.colors.reset}`, 'Auto-route task to optimal agent roles'],
     [`${ui.colors.green}workflow list${ui.colors.reset}`, 'List all awesome-skills workflows'],
@@ -313,6 +319,70 @@ const main = async () => {
       ];
       console.log(ui.drawBox('DYNAMIC AGENT ROUTER', lines, 65, 'cyan'));
       console.log();
+    }
+  } else if (command === 'verify') {
+    printHeader();
+    if (subcommand === 'check') {
+      const patchFilePath = rest[0];
+      const contractFilePath = rest[1];
+      if (!patchFilePath || !contractFilePath) {
+        return console.log('Missing patch file or contract file path.');
+      }
+      
+      console.log(`Verifying patch '${patchFilePath}' against contract '${contractFilePath}'...`);
+      const result = verifyEngine.verifyContract(contractFilePath, patchFilePath);
+      
+      const boxColor = result.success ? 'green' : 'red';
+      const boxTitle = result.success ? 'CONTRACT VERIFICATION PASSED' : 'CONTRACT VERIFICATION FAILED';
+      console.log(ui.drawBox(boxTitle, result.logs, 75, boxColor));
+      console.log();
+      if (!result.success) {
+        process.exit(1);
+      }
+    } else {
+      showHelp();
+    }
+  } else if (command === 'governance') {
+    printHeader();
+    const txId = rest[0];
+    if (!txId) return console.log('Missing transaction ID.');
+
+    if (subcommand === 'status') {
+      const tx = governance.getTransaction(txId);
+      if (!tx) {
+        console.log(`Transaction 'tx-${txId}' not found.`);
+        return;
+      }
+      const lines = [
+        `Transaction:  tx-${tx.transactionId}`,
+        `Task ID:      ${tx.taskId}`,
+        `Swarm Agents: ${tx.agents.join(', ')}`,
+        `Attempts:     ${tx.failedAttemptsCount} / ${tx.maxThreshold}`,
+        `Status:       ${tx.status === 'tripped' ? `${ui.colors.red}TRIPPED${ui.colors.reset}` : `${ui.colors.green}ACTIVE${ui.colors.reset}`}`
+      ];
+      if (tx.history.length > 0) {
+        lines.push('');
+        lines.push('Verification Failures History:');
+        tx.history.forEach(h => {
+          lines.push(`  Attempt ${h.attempt} (${h.agentId}): ${h.failureReason.substring(0, 45)}...`);
+        });
+      }
+      console.log(ui.drawBox('GOVERNANCE STATUS AUDIT', lines, 65, tx.status === 'tripped' ? 'red' : 'green'));
+      console.log();
+    } else if (subcommand === 'reset') {
+      const tx = governance.resetTransaction(txId);
+      if (!tx) {
+        console.log(`Transaction 'tx-${txId}' not found.`);
+        return;
+      }
+      console.log(ui.drawBox('GOVERNANCE BREAKERS', [
+        `✔ Reset transaction: tx-${txId}`,
+        `Status:             ACTIVE`,
+        `Attempts Count:     0`
+      ], 55, 'green'));
+      console.log();
+    } else {
+      showHelp();
     }
   } else if (command === 'workflow') {
     if (subcommand === 'list') {

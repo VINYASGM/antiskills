@@ -6,6 +6,11 @@
 
 const ROLE_PATTERNS = [
   {
+    pattern: /\b(explore|speculate|speculative|prototype|try|experiment|investigate|hypothesis|sandbox)\b/i,
+    roles: ['explorer', 'architect'],
+    parallel: false,
+  },
+  {
     pattern: /\b(bug|fix|error|crash|broken|issue|fail|exception)\b/i,
     roles: ['backend-engineer', 'testing-engineer'],
     parallel: false,

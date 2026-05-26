@@ -1,7 +1,7 @@
 # Project State — Veyra
 
 **Last Updated:** 2026-05-26
-**Phase:** Phase 7 Integration
+**Phase:** Veyra V3: AI-Native Flow State & Contract-Proven OS
 
 ---
 
@@ -9,24 +9,29 @@
 
 | Field | Value |
 |---|---|
-| **Current Phase** | Phase 7 Integration (Terminal UI Dashboard via Ink) |
-| **Status** | 🟢 Stable / All Go & JS Tests Green |
-| **Core Goal** | Build beautiful terminal dashboard layout showing agent activity loops |
-| **Started** | 2026-05-25 |
-| **Target Completion** | 2026-05-27 |
+| **Current Phase** | Veyra V3 Production-Ready Swarm |
+| **Status** | 🟢 Stable / 77/77 Vitest Assertions Passed |
+| **Core Goal** | Address architectural critique via decoupled memory graphs, contract checks, hybrid context assembly, dual loops, and circuit breakers |
+| **Started** | 2026-05-26 |
+| **Target Completion** | 2026-05-26 |
 
 ---
 
-## 2. Completed Milestones (V2 Architecture)
+## 2. Completed Milestones (V3 Swarm Upgrades)
 
 | Component / Phase | Status | Accomplishments |
 |---|---|---|
-| **Phase 1: Test Infrastructure** | 🟢 Complete | Installed and configured Vitest with auto-injected globals. Created 65 passing test cases across 5 test suites. |
+| **Phase 1: Test Infrastructure** | 🟢 Complete | Installed and configured Vitest with auto-injected globals. Created passing test cases across 5 test suites. |
 | **Phase 2: DB Optimization** | 🟢 Complete | Refactored `db.js` to utilize lazy-sync, connection pooling, and dirty-flag tracking based on file `mtime` comparison to eliminate O(N) penalties. |
 | **Phase 3: Relevance Scoring** | 🟢 Complete | Created relevance-scored token context generation. Implemented keyword, import graph, and semantic key rankings. |
-| **Phase 4: Go Visual Testing** | 🟢 Complete | Created a Go-based headless verification CLI using Playwright. Implemented responsive viewport screenshots (mobile, tablet, desktop), DOM structure extraction, structural diff rendering, and accessibility audits. Passes real browser-automated tests. |
+| **Phase 4: Go Visual Testing** | 🟢 Complete | Created a Go-based headless verification CLI using Playwright. Implemented responsive viewport screenshots (mobile, tablet, desktop), DOM structure extraction, structural diff rendering, and accessibility audits. |
 | **Phase 5: Patch Workspace** | 🟢 Complete | Replaced isolated Git worktrees with Virtual Filesystem (VFS) patch engine (`patch.js`) supporting unified diff parsing, conflict scanning, and dry-run checks. |
 | **Phase 6: Dynamic Router** | 🟢 Complete | Created a keyword-based task classifier (`router.js`) classifying tasks dynamically and routing them to groups of 1-3 optimized agents. |
+| **Phase 8: Decoupled MCP Memory Graph** | 🟢 Complete | Built external Python MCP Server with DuckDB (persistence) + NetworkX (directed graph) and modularity community-detection task cluster compression. |
+| **Phase 9: Contract-Proven Verification Check** | 🟢 Complete | Programmatic Zod contract checker (`bin/verify.js`) running Vitest/compilation tasks and isolated transactional rollback recoveries. |
+| **Phase 10: Hybrid Context Assembly** | 🟢 Complete | Local similarity TF-IDF Cosine vector search (`bin/vector_search.py`) integrated to blend global semantic weights with AST graphs. |
+| **Phase 11: Explorer-Architect Loop** | 🟢 Complete | Specified sandboxed speculation playground Explorer (`agents/explorer.md`) and routed speculative tasks dynamically through Explorer -> Architect speculative contract sweeps. |
+| **Phase 12: Governance Circuit Breaker** | 🟢 Complete | Attempt state governance (`bin/governance.js`) checking strike limit counters, tripping circuit breakers at 3 failures, and generating diagnostic human escalation reports. |
 
 ---
 
@@ -34,21 +39,25 @@
 
 | Directory / File | Status | Description |
 |---|---|---|
-| `visual-testing/` | 🟢 Newly Added | Go Playwright CLI containing hermetic, real browser tests. |
-| `bin/visual-review.js` | 🟢 Rewritten | Integrated caller that compiles the Go binary JIT, takes screenshots, runs audits, and formats log results. |
-| `bin/patch.js` | 🟢 Newly Added | Unified VFS patch apply, check, and conflict resolver. |
-| `bin/router.js` | 🟢 Newly Added | Keyword-based requirements parser and task allocator. |
-| `bin/db.js` | 🟢 Optimized | High-concurrency JIT memory cache with file `mtime` checks. |
-| `bin/context.js` | 🟢 Optimized | Hybrid token-budget context assembly with rank-based scoring. |
-| `tests/` | 🟢 Created | 65 Vitest test cases validating DB caching, context-relevance, intents, VFS patches, and CLI actions. |
-| `context.md` | 🟢 Created | Central developer entry point and cheat sheet. |
+| `visual-testing/` | 🟢 Active | Go Playwright CLI containing hermetic, real browser tests. |
+| `memory-mcp-server/` | 🟢 Active | Decoupled memory graph server with DuckDB/NetworkX backend. |
+| `bin/visual-review.js` | 🟢 Active | Responsive viewports mock capture executor. |
+| `bin/patch.js` | 🟢 Active | Unified line-based VFS patch dry-runner and collision checker. |
+| `bin/router.js` | 🟢 Active | Speculative & keyword-based task router. |
+| `bin/db.js` | 🟢 Active | High-concurrency JIT memory cache with file `mtime` checks. |
+| `bin/context.js` | 🟢 Active | AST Import graph crawler and vector search context assembly. |
+| `bin/vector_search.py` | 🟢 Active | High-speed local similarity TF-IDF vector scanner. |
+| `bin/verify.js` | 🟢 Active | Contract-proven programmatic checker. |
+| `bin/governance.js` | 🟢 Active | Swarm retry attempt state governance circuit breaker. |
+| `checklists/` | 🟢 Active | JSON programmatic verification contract templates. |
+| `tests/` | 🟢 Active | 77 Vitest test cases validating V3 core modules, databases, VFS patches, circuit breakers, and custom rules. |
+| `context.md` | 🟢 Active | Central developer cheat sheet. |
 
 ---
 
-## 4. Next Actions (Upcoming Work)
+## 4. Next Actions
 
-1. **Phase 7: Terminal Animations & Layouts**
-   - Install `ink` and layout dependencies (`npm install ink ink-spinner ink-gradient react`).
-   - Create visually gorgeous terminal dashboard elements showing active agent swarms, intent conflict check states, and patch application stages.
-2. **Continuous Documentation Updates**
-   - Keep `context.md`, `State.md`, `ToDo.md` in perfect lockstep with technical developments.
+1. **Visual UI Upgrades**
+   - Design gorgeous terminal dashboards showing V3 active transactions, circuit breaker limits, and patch apply channels.
+2. **Continuous Swarm Audits**
+   - Monitor MCP graph compression indexes and contract merge verification success ratios.

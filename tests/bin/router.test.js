@@ -55,6 +55,13 @@ describe('Router — routeTask', () => {
     expect(result.roles).toContain('testing-engineer');
   });
 
+  test('speculative task routes to explorer + architect', () => {
+    const result = router.routeTask('explore sandbox prototype and experiment with the environment');
+    expect(result.roles).toContain('explorer');
+    expect(result.roles).toContain('architect');
+    expect(result.parallel).toBe(false);
+  });
+
   test('returns parallel flag', () => {
     const result = router.routeTask('fix login bug');
     expect(typeof result.parallel).toBe('boolean');

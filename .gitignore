@@ -63,3 +63,8 @@ memory/*.db-wal
 # Go Executables
 *.exe
 /visual-testing/visual-testing
+
+# Agent temporary database states
+.agent/*.db*
+.agent/*.duckdb*
+.agent/governance/

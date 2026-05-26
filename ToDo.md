@@ -40,14 +40,28 @@
 - [x] Run and verify visual verification tests pass.
 
 ---
+## Completed V3 Swarm Milestones
 
-## Active & Upcoming Milestones
+### ✅ Milestone 7: Decoupled MCP Memory Graph (Phase 8)
+- [x] Initialize Python MCP Server in `memory-mcp-server/`.
+- [x] Implement DuckDB database tables for node metadata and NetworkX representation for semantic edges.
+- [x] Develop episodic clustering and recursive compression algorithms to condense context sizes.
 
-### 🚧 Milestone 7: Interactive Terminal Dashboard & Swarm Animations (Phase 7)
-- [ ] Install Ink CLI styling suite (`ink`, `ink-spinner`, `ink-gradient`, `react`).
-- [ ] Design terminal layout dashboard featuring real-time concurrent agent channels, dynamic intent broadcast streams, and VFS patching statuses.
-- [ ] Integrate gorgeous CSS/terminal animations.
+### ✅ Milestone 8: Contract-Proven Verification Check (Phase 9)
+- [x] Build Zod-based programmatic contract validator in `bin/verify.js`.
+- [x] Write integration-branch isolation hooks executing Typechecking, Linters, and Vitest test suites prior to commits.
+- [x] Implement fallback clean recovery logic when contracts fail.
 
-### 🚧 Milestone 8: Architectural Documentation Sync
-- [x] Create central developer `context.md` entry point.
-- [x] Update `State.md`, `ToDo.md`, `Architecture.md`, `TRD.md`, and `PRD.md` with V2 VFS architecture.
+### ✅ Milestone 9: Hybrid Context Assembly (Phase 10)
+- [x] Merge AST import-graph traversal logic with local vector database search client in `bin/context.js`.
+- [x] Enable Ollama/HuggingFace embeddings for high-speed local relevance scoring of config, styled, and DB assets.
+
+### ✅ Milestone 10: Dual Explorer-Architect Orchestration Loop (Phase 11)
+- [x] Define Explorer REPL sandbox specs in `agents/explorer.md`.
+- [x] Modify `bin/router.js` to route speculative requirements tasks through recursive Explorer -> Architect loops.
+- [x] Create Architect formal spec translation scripts.
+
+### ✅ Milestone 11: Governance State-Machine Circuit Breaker (Phase 12)
+- [x] Build `bin/governance.js` tracker with Zod attempt states.
+- [x] Implement 3-strike execution limit.
+- [x] Add automatic developer alert escalation showing detailed failure diagnostic diff bundles.

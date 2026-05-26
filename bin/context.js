@@ -231,6 +231,17 @@ class ContextAssembler {
   rankFiles(files, budget, task) {
     // Build scored file list
     const candidates = [];
+    
+    let vectorScores = {};
+    if (task) {
+      try {
+        const { execSync } = require('node:child_process');
+        const output = execSync(`py bin/vector_search.py "${task.replace(/"/g, '\\"')}"`, { encoding: 'utf8' });
+        vectorScores = JSON.parse(output.trim());
+      } catch (err) {
+        // Fallback silently if py fails
+      }
+    }
 
     for (const file of files) {
       if (!fs.existsSync(file)) continue;
@@ -245,7 +256,7 @@ class ContextAssembler {
           path: path.relative(process.cwd(), file).replace(/\\/g, '/'),
           sizeBytes,
           tokens: estTokens,
-          score: task ? this.scoreFile(file, task, idx) : 0,
+          score: task ? this.scoreFile(file, task, idx, vectorScores) : 0,
         });
       } catch (e) {}
     }
@@ -275,15 +286,22 @@ class ContextAssembler {
 
   /**
    * Scores a file's relevance to a task description.
-   * Score = (keyword overlap × 2) + (1 / (importDepth + 1)) + (semantic key count × 0.5)
+   * Score = (keyword overlap × 2) + (1 / (importDepth + 1)) + (semantic key count × 0.5) + vectorScore
    *
    * @param {string} filePath - Absolute path to the file.
    * @param {string} task - Task description string.
    * @param {number} importDepth - Distance from entry file in import graph (0 = entry).
+   * @param {object} vectorScores - Map of filepath to vector similarity scores.
    * @returns {number} Relevance score (higher = more relevant).
    */
-  scoreFile(filePath, task, importDepth) {
+  scoreFile(filePath, task, importDepth, vectorScores = {}) {
     let score = 0;
+
+    // 0. Add Semantic Vector Similarity score
+    const relPath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+    if (vectorScores[relPath]) {
+      score += vectorScores[relPath];
+    }
 
     // 1. Keyword overlap: check how many task words appear in file content + filename
     const taskWords = task.toLowerCase().split(/\s+/).filter(w => w.length > 2);

@@ -1,34 +1,35 @@
-# Veyra OS V2 Context
+# Veyra OS V3 Context
 
-Welcome to Veyra, the developer context hub. This document serves as the absolute source of truth for the codebase architecture, execution flow, and developer operations for the **Veyra OS V2** framework.
+Welcome to Veyra, the developer context hub. This document serves as the absolute source of truth for the codebase architecture, execution flow, and developer operations for the **Veyra OS V3** framework.
 
 ---
 
 ## 1. Project Purpose & Philosophy
 
-Veyra is a reusable, AI-native engineering operating system repository framework designed to coordinate multiple AI-assisted developer agents in high-performance swarms while completely avoiding the six systemic failure modes of standard "vibe-coded" AI architectures:
-- **No Git worktree merge bottlenecks:** Replaced with a **Virtual Filesystem (VFS) Patch Workspace** (`bin/patch.js`) supporting unified diff generation, dry-run checks, conflict detection, and atomic staging.
-- **No db.json lock contention:** Powered by a high-concurrency, decentralized SQLite database backed by dirty-flag (`mtime`) performance caching to eliminate O(N) read/write penalties.
-- **No FIFO-based context rot:** Relevance-scored token allocation ranks files based on keyword matching, import proximity, and semantic keys.
-- **No waterfall-phase rigidness:** Dynamic peer-to-peer Actor choreography utilizing a **Dynamic Router** (`bin/router.js`) that automatically assigns tasks to optimal agent groups (1-3 agents) based on semantic keywords.
-- **No visual frontend blindspots:** Headless visual reviews powered by a highly robust CI testing suite.
+Veyra is a reusable, AI-native engineering operating system repository framework designed to coordinate multiple AI-assisted developer agents in high-performance swarms while avoiding structural bottlenecks:
+- **Contract-Proven Merges:** Programmatic checks (`bin/verify.js`) validate code properties against math/logical checklists prior to committing, preventing logic degradation.
+- **Decoupled MCP Graph Memory:** Staging memory offloaded to an isolated Model Context Protocol (MCP) server running DuckDB and NetworkX to support large-scale clustering and history summarization.
+- **Hybrid Context Assembly:** Combines local syntax-tree (AST) crawls with global similarity vector searches (RAG) to ensure maximum relevancy and zero token waste.
+- **Explorer-Architect Prototyping Loops:** A fast *Explorer* sandbox tests assumptions before the *Architect* formalizes specs, mitigating waterfall friction.
+- **Governance State-Machine Circuit Breakers:** Strict 3-strike retry bounds in `bin/governance.js` protect against infinite agent ping-pong loop token drain.
 
 ---
 
 ## 2. Directory Structure & Map
 
 - [bin/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin) — CLI engine core.
-  - [db.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/db.js) — Memory bead SQLite cache with lazy synchronization, database connection pooling, and dirty-flag state comparison.
-  - [context.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/context.js) — AST import-graph crawler combined with semantic keyword scanning and token budget-scoped relevance scoring.
-  - [intent.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/intent.js) — Ephemeral context broadcasting intent pub-sub backend.
-  - [patch.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/patch.js) — Line-based unified VFS patch generator, collision check, and atomic patch applier.
-  - [router.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/router.js) — Dynamic task router parsing requirements and assigning to agent buckets.
-  - [visual-review.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/visual-review.js) — Viewport responsive layout screenshot runner (mock capture capability).
-  - [worktree.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/worktree.js) — Deprecated git worktree orchestration layer (retained for backward compatibility).
-  - [veyra.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/veyra.js) — Unified CLI entrypoint wrapper.
-- [agents/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/agents) — Specifications defining individual agent roles, constitutions, toolsets, and peer-to-peer protocols.
-- [memory/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/memory) — Core persistent memory (Markdown beads under `memory/beads/`) and asynchronous P2P agent message mailboxes (`memory/inbox/`).
-- [tests/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/tests) — Strict TDD test suites verifying database, intents, relevance scoring, VFS patching, router classification, worktree executions, and visual reviews.
+  - [db.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/db.js) — Memory cache with lazy-sync and timestamp checking.
+  - [context.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/context.js) — Hybrid context assembly engine (AST + semantic vector search).
+  - [intent.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/intent.js) — Ephemeral broadcast registry for style/API conflict isolation.
+  - [patch.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/patch.js) — Unified line-based VFS patch dry-run applier.
+  - [verify.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/verify.js) — Formal contract and checklist validator.
+  - [governance.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/governance.js) — Multi-agent state tracker and circuit breaker.
+  - [router.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/router.js) — Dual Explorer-Architect flow routing layer.
+  - [veyra.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/veyra.js) — CLI Entrypoint bootloader.
+- [memory-mcp-server/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/memory-mcp-server) — MCP memory server running DuckDB + NetworkX graph operations.
+- [agents/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/agents) — Definitions for Orchestrator, Explorer, Architect, and Implementer roles.
+- [checklists/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/checklists) — JSON structured code contracts.
+- [tests/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/tests) — Regression Vitest suites.
 
 ---
 
@@ -36,55 +37,47 @@ Veyra is a reusable, AI-native engineering operating system repository framework
 
 ```mermaid
 graph TD
-    TASK[Task Inputs & Specs] --> ROUTER[veyra router classification]
-    ROUTER -->|Allocate Agents| AGENTS[1 to 3 Concurrent Peer Agents]
+    TASK[Task Inputs & Specs] --> |Deploy Loops| EXPLORER[🔬 Explorer Sandbox REPL]
+    EXPLORER --> |Validate assumptions| ARCHITECT[📐 Architect spec contract]
     
-    subgraph Execution Loop
-        AGENTS -->|Broadcast Intent| INTENT[intent publish to SQLite WAL]
-        INTENT -->|Detect Semantic Collision| CONFLICT_CHECK[intent check]
+    subgraph VFS Execution Flow
+        ARCHITECT -->|Produce Contract| IMPLEMENTER[🔧 Implementer VFS Patch]
+        IMPLEMENTER -->|Intent publish| INTENT[JIT Intent SQLite WAL]
+        INTENT -->|Conflict Check| PATCH_CHECK[VFS patch scan]
         
-        AGENTS -->|Context Building| CONTEXT[context rank by relevance score]
-        CONTEXT -->|Unified VFS Diff| PATCH_GEN[patch generate & check]
-        PATCH_GEN -->|Apply Atomically| WORKSPACE[Apply to workspace]
-        
-        WORKSPACE -->|Visual & Spacing Check| VISUAL[visual-review run]
+        PATCH_CHECK -->|Assemble Context| CONTEXT[Hybrid context AST + vector RAG]
+        CONTEXT -->|Unified patch diff| VERIFY[🧪 Verify Engine: contract checks]
     end
     
-    VISUAL -->|Consensus & Verification| STABLE[Pass Tests / Git Commit]
+    VERIFY -->|3 strikes track| GOV[🛡️ Governance Circuit Breaker]
+    GOV -->|Pass| COMMIT[Atomic merge to branch Git]
+    GOV -->|Fail threshold| ALARM[🚨 Escalate to Human with Failure diff]
 ```
 
 ---
 
 ## 4. Operational Cheat Sheet
 
-### Running Tests
-To run the full Vitest suite in a TDD-compliant single pass:
+### Running Verification Tests
+To run full regression Vitest checks:
 ```powershell
 npm test
 ```
 
-### Managing Memory Beads
-Synching Markdown beads JIT to the SQLite DB cache:
+### Checking Contracts
+Validating active VFS patches against a checklist contract:
 ```powershell
-node bin/veyra.js db-sync
+node bin/veyra.js verify check <patchFilePath> <contractFilePath>
 ```
 
-### Ephemeral Intents
-Broadcasting intentions to avoid conflicts:
+### JIT Memory Graph Operations
+Querying external MCP graph node dependencies:
 ```powershell
-node bin/veyra.js intent publish <agentId> <taskId> <files...> <dbColumns...> <routes...> <styles...>
-node bin/veyra.js intent check <agentId> <taskId>
+node bin/veyra.js memory query <nodeId>
 ```
 
-### VFS Patches
-Generating and checking a unified patch without touching git branches:
+### State Governance
+Audit current circuit-breaker transition states:
 ```powershell
-node bin/veyra.js patch apply <patchFilePath>
-node bin/veyra.js patch check <patchFilePath>
-```
-
-### Visual Reviews
-Running visual responsive layout capture:
-```powershell
-node bin/veyra.js visual-review run <outputDir>
+node bin/veyra.js governance status <transactionId>
 ```
