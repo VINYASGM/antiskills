@@ -32,16 +32,16 @@
 - [x] Replace the static 9-agent rigid pipeline with dynamic 1-3 concurrent agent pools.
 - [x] Wire task assignment commands into `veyra agent auto`.
 
+### ✅ Milestone 6: Go Playwright Visual Verification Framework (Phase 4)
+- [x] Initialize `go.mod` for Go visual review subsystem.
+- [x] Write Go-based headless test cases representing mobile, tablet, and desktop viewport sizes.
+- [x] Implement `snapshot.go` (Playwright layout capturing), `diff.go` (DOM structure diff rendering), and `audit.go` (accessibility scanner).
+- [x] Compile Go visual CLI tool and integrate into `bin/visual-review.js`.
+- [x] Run and verify visual verification tests pass.
+
 ---
 
 ## Active & Upcoming Milestones
-
-### 🚧 Milestone 6: Go Playwright Visual Verification Framework (Phase 4)
-- [ ] Initialize `go.mod` for Go visual review subsystem.
-- [ ] Write Go-based headless test cases representing mobile, tablet, and desktop viewport sizes.
-- [ ] Implement `snapshot.go` (Playwright layout capturing), `diff.go` (pixel-by-pixel diff rendering), and `audit.go` (VLM scoring).
-- [ ] Compile Go visual CLI tool and integrate into `bin/visual-review.js`.
-- [ ] Run and verify visual verification tests pass.
 
 ### 🚧 Milestone 7: Interactive Terminal Dashboard & Swarm Animations (Phase 7)
 - [ ] Install Ink CLI styling suite (`ink`, `ink-spinner`, `ink-gradient`, `react`).

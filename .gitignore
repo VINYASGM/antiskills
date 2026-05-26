@@ -59,3 +59,7 @@ memory/*.db
 memory/*.db-journal
 memory/*.db-shm
 memory/*.db-wal
+
+# Go Executables
+*.exe
+/visual-testing/visual-testing

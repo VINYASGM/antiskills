@@ -4,7 +4,7 @@ const fs = require('node:fs');
 
 /**
  * 👁️ VLM Visual CI Loop & Responsive Viewport Capturer
- * Compiles the frontend, boots a headless browser (Playwright/Puppeteer),
+ * Compiles the frontend, boots a Go Playwright headless browser,
  * captures screenshots across viewports, and packages them for VLM Agent reviews.
  */
 class VisualReviewRunner {
@@ -19,8 +19,8 @@ class VisualReviewRunner {
   }
 
   /**
-   * Compiles the frontend web application, detects and boots a headless browser 
-   * (Playwright or Puppeteer) JIT, triggers screenshot captures at responsive
+   * Compiles the frontend web application, detects and boots the Go Playwright
+   * visual verification binary JIT, triggers screenshot captures at responsive
    * breakpoints, and deposits them as visual layout audit packages.
    * 
    * @returns {Promise<void>} Resolves when visual reviews complete.
@@ -31,20 +31,6 @@ class VisualReviewRunner {
   async run() {
     console.log('\x1b[36m⚡ Running Responsive Visual Audit Review...\x1b[0m');
 
-    // 1. Detect configuration and server
-    const packageJsonPath = path.join(process.cwd(), 'package.json');
-    let hasPlaywright = false;
-    let hasPuppeteer = false;
-
-    if (fs.existsSync(packageJsonPath)) {
-      try {
-        const pkg = require(packageJsonPath);
-        const deps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
-        hasPlaywright = !!deps['playwright'] || !!deps['@playwright/test'];
-        hasPuppeteer = !!deps['puppeteer'];
-      } catch (e) {}
-    }
-
     const targetUrl = process.env.VISUAL_AUDIT_URL || 'http://localhost:3000';
     console.log(`Target Address: ${targetUrl}`);
     console.log(`Responsive Viewports:`);
@@ -52,77 +38,67 @@ class VisualReviewRunner {
     console.log(` - Tablet (768x1024)`);
     console.log(` - Desktop (1440x900)`);
 
-    // 2. Headless execution routing
-    if (hasPlaywright) {
-      console.log('✔ Playwright detected. Executing headless viewport captures...');
-      try {
-        const script = `
-          const { chromium } = require('playwright');
-          (async () => {
-            const browser = await chromium.launch();
-            const page = await browser.newPage();
-            
-            // Mobile
-            await page.setViewportSize({ width: 375, height: 667 });
-            await page.goto('${targetUrl}');
-            await page.screenshot({ path: '${path.join(this.evidenceDir, 'viewport_mobile.png')}' });
-            
-            // Tablet
-            await page.setViewportSize({ width: 768, height: 1024 });
-            await page.screenshot({ path: '${path.join(this.evidenceDir, 'viewport_tablet.png')}' });
-            
-            // Desktop
-            await page.setViewportSize({ width: 1440, height: 900 });
-            await page.screenshot({ path: '${path.join(this.evidenceDir, 'viewport_desktop.png')}' });
-            
-            await browser.close();
-            console.log('Playwright captures completed.');
-          })();
-        `;
-        fs.writeFileSync(path.join(process.cwd(), 'temp-pw.js'), script);
-        execSync('node temp-pw.js', { stdio: 'inherit' });
-        fs.unlinkSync(path.join(process.cwd(), 'temp-pw.js'));
-        this.printSuccess();
-      } catch (err) {
-        console.error('✘ Playwright execution failed. Falling back...', err.message);
-        this.runMockCapture();
+    const binName = process.platform === 'win32' ? 'visual-testing.exe' : 'visual-testing';
+    const goBinDir = path.join(process.cwd(), 'visual-testing');
+    const goBinPath = path.join(goBinDir, binName);
+
+    let useGo = false;
+
+    // 1. Try to compile/detect Go binary JIT
+    try {
+      if (fs.existsSync(path.join(goBinDir, 'go.mod'))) {
+        if (!fs.existsSync(goBinPath)) {
+          console.log('🔨 Compiling Go Visual Verification tool JIT...');
+          execSync(`go build -o "${goBinPath}" .`, { cwd: goBinDir, stdio: 'ignore' });
+        }
+        if (fs.existsSync(goBinPath)) {
+          useGo = true;
+        }
       }
-    } else if (hasPuppeteer) {
-      console.log('✔ Puppeteer detected. Executing headless viewport captures...');
+    } catch (e) {
+      console.warn('ℹ Go compiler not ready or compilation failed. Falling back to default routing.', e.message);
+    }
+
+    // 2. Headless execution routing
+    if (useGo) {
+      console.log('✔ Go Playwright engine detected. Executing visual and DOM captures...');
       try {
-        const script = `
-          const puppeteer = require('puppeteer');
-          (async () => {
-            const browser = await puppeteer.launch();
-            const page = await browser.newPage();
-            
-            // Mobile
-            await page.setViewport({ width: 375, height: 667 });
-            await page.goto('${targetUrl}');
-            await page.screenshot({ path: '${path.join(this.evidenceDir, 'viewport_mobile.png')}' });
-            
-            // Tablet
-            await page.setViewport({ width: 768, height: 1024 });
-            await page.screenshot({ path: '${path.join(this.evidenceDir, 'viewport_tablet.png')}' });
-            
-            // Desktop
-            await page.setViewport({ width: 1440, height: 900 });
-            await page.screenshot({ path: '${path.join(this.evidenceDir, 'viewport_desktop.png')}' });
-            
-            await browser.close();
-            console.log('Puppeteer captures completed.');
-          })();
-        `;
-        fs.writeFileSync(path.join(process.cwd(), 'temp-pup.js'), script);
-        execSync('node temp-pup.js', { stdio: 'inherit' });
-        fs.unlinkSync(path.join(process.cwd(), 'temp-pup.js'));
+        // Run snapshot capture (Mobile, Tablet, Desktop)
+        console.log('📸 Taking responsive viewport screenshots...');
+        execSync(`"${goBinPath}" snapshot --url "${targetUrl}" --output "${this.evidenceDir}"`, { stdio: 'inherit' });
+
+        // Run accessibility audit
+        console.log('♿ Running accessibility standard audit...');
+        const auditJson = execSync(`"${goBinPath}" audit --url "${targetUrl}"`, { stdio: 'pipe' }).toString();
+        const report = JSON.parse(auditJson);
+
+        // Compile standard Veyra visual audit log
+        let logContent = `=========================================
+VEYRA VISUAL AUDIT LOGS — ACTIVE REPORT
+=========================================
+Target: ${targetUrl}
+Viewports captured: Mobile (375x667), Tablet (768x1024), Desktop (1440x900)
+A11y Violations Found: ${report.violations ? report.violations.length : 0}
+Generated at: ${new Date().toISOString()}
+=========================================`;
+
+        if (report.violations && report.violations.length > 0) {
+          logContent += '\n\nViolations:';
+          for (const v of report.violations) {
+            logContent += `\n - [${v.id}] Selector: ${v.selector}\n   Description: ${v.description}`;
+          }
+        } else {
+          logContent += '\n\n✔ No accessibility violations detected!';
+        }
+
+        fs.writeFileSync(path.join(this.evidenceDir, 'audit_summary.log'), logContent, 'utf8');
         this.printSuccess();
       } catch (err) {
-        console.error('✘ Puppeteer execution failed. Falling back...', err.message);
+        console.error('✘ Go Playwright execution failed. Falling back...', err.message);
         this.runMockCapture();
       }
     } else {
-      console.log('ℹ Headless libraries not present in framework root. Running fallback mockup generator...');
+      console.log('ℹ Go binary unavailable. Running fallback mockup generator...');
       this.runMockCapture();
     }
   }
