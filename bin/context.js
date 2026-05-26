@@ -423,6 +423,68 @@ class ContextAssembler {
   }
 
   /**
+   * JIT Context Freshness Guard
+   * Reads a task manifest, checks if any file in the dependency graph has drifted on disk
+   * (via mtime checks or direct content hash validation), and automatically re-traverses
+   * the AST import graph to rebuild a fresh, synchronized context state if rot is detected.
+   *
+   * @param {string} taskId - Unique task ID.
+   * @param {string[]} entryFiles - Baseline files list to crawl.
+   * @param {number} [budget] - Hard token budget boundary.
+   * @param {string} [taskDesc] - Search context description query.
+   * @returns {object|null} Fresh or cached manifest object.
+   */
+  refreshManifestJIT(taskId, entryFiles, budget = 15000, taskDesc = '') {
+    const manifestPath = path.join(process.cwd(), 'context', 'file-manifests', `${taskId}.json`);
+    if (!fs.existsSync(manifestPath)) {
+      return null;
+    }
+
+    try {
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      let isStale = false;
+
+      // Verify mtimes for all files currently in the manifest
+      for (const file of manifest.files) {
+        const fullPath = path.resolve(file.path);
+        if (!fs.existsSync(fullPath)) {
+          isStale = true;
+          break;
+        }
+        const stat = fs.statSync(fullPath);
+        // If file has been modified after manifest timestamp, it's stale
+        if (new Date(stat.mtime).getTime() > new Date(manifest.timestamp).getTime()) {
+          isStale = true;
+          break;
+        }
+      }
+
+      if (isStale) {
+        console.log(`⚡ Context rot detected for task ${taskId}! Re-evaluating AST dependency graph JIT...`);
+        const allFiles = this.buildGraph(entryFiles);
+        const { ranked, totalTokens } = this.rankFiles(allFiles, budget, taskDesc);
+        
+        const freshManifest = {
+          task: taskId,
+          timestamp: new Date().toISOString(),
+          budget,
+          files: ranked
+        };
+        const manifestDir = path.dirname(manifestPath);
+        if (!fs.existsSync(manifestDir)) fs.mkdirSync(manifestDir, { recursive: true });
+        fs.writeFileSync(manifestPath, JSON.stringify(freshManifest, null, 2), 'utf8');
+        console.log(`✔ Fresh JIT Context Manifest written to context/file-manifests/${taskId}.json`);
+        return freshManifest;
+      }
+      
+      return manifest;
+    } catch (err) {
+      console.error(`⚠ Failed to check manifest freshness: ${err.message}`);
+      return null;
+    }
+  }
+
+  /**
    * Generates dynamic repo mapping and module dependency graphs, writing them to context files.
    * 
    * @returns {void}

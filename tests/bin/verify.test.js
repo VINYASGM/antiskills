@@ -122,4 +122,55 @@ describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
     // Assert backup rollback successfully restored the original content
     expect(fs.readFileSync(targetFilePath, 'utf8')).toBe(original);
   });
+
+  it('verifyContract() triggers JIT context freshness checks and re-evaluation when manifest is stale', () => {
+    // Write original file
+    fs.writeFileSync(targetFilePath, 'const x = 42;\n', 'utf8');
+
+    // Create a manifest directory
+    const manifestDir = path.join(process.cwd(), 'context', 'file-manifests');
+    if (!fs.existsSync(manifestDir)) {
+      fs.mkdirSync(manifestDir, { recursive: true });
+    }
+    const manifestPath = path.join(manifestDir, 'bd-500.json');
+
+    // Write a dummy stale manifest (timestamp in past)
+    const dummyManifest = {
+      task: 'bd-500',
+      timestamp: '2020-01-01T00:00:00.000Z',
+      budget: 15000,
+      files: [
+        { path: path.relative(process.cwd(), targetFilePath).replace(/\\/g, '/') }
+      ]
+    };
+    fs.writeFileSync(manifestPath, JSON.stringify(dummyManifest, null, 2), 'utf8');
+
+    // Create a valid patch
+    const modified = 'const x = 100;\n';
+    const diff = createPatch('const x = 42;\n', modified);
+    fs.writeFileSync(patchPath, diff, 'utf8');
+
+    // Write a contract matching taskId
+    const contract = {
+      contractId: 'ct-500',
+      taskId: 'bd-500',
+      targetFiles: [targetFilePath],
+      rules: {},
+      formalProofs: []
+    };
+    fs.writeFileSync(contractPath, JSON.stringify(contract, null, 2), 'utf8');
+
+    const result = verifyContract(contractPath, patchPath);
+    expect(result.success).toBe(true);
+    expect(result.logs.some(l => l.includes('JIT Context dependency graph re-evaluated'))).toBe(true);
+
+    // Verify manifest has been refreshed (timestamp should be new/recent)
+    const refreshed = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    expect(new Date(refreshed.timestamp).getTime()).toBeGreaterThan(new Date('2025-01-01').getTime());
+
+    // Cleanup manifest file
+    if (fs.existsSync(manifestPath)) {
+      fs.unlinkSync(manifestPath);
+    }
+  });
 });

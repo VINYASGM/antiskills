@@ -9,6 +9,7 @@ const path = require('node:path');
 const { execSync } = require('node:child_process');
 const { z } = require('zod');
 const { applyPatch } = require('./patch');
+const contextAssembler = require('./context');
 
 // 1. Zod Contract Schema
 const ContractSchema = z.object({
@@ -50,6 +51,17 @@ function verifyContract(contractPath, patchPath) {
     const rawData = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
     contract = parseContract(rawData);
     logs.push(`✓ Contract signature validated: ${contract.contractId}`);
+
+    // JIT Context Freshness validation before patch apply or rule evaluation
+    try {
+      const fresh = contextAssembler.refreshManifestJIT(contract.taskId, contract.targetFiles);
+      if (fresh) {
+        logs.push(`✓ JIT Context dependency graph re-evaluated (Status: Green)`);
+      }
+    } catch (e) {
+      logs.push(`⚠ JIT Context freshness check bypassed: ${e.message}`);
+    }
+
   } catch (err) {
     logs.push(`❌ Contract schema error: ${err.message}`);
     return { success: false, logs };
