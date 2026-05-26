@@ -32,6 +32,7 @@
 | **Phase 10: Hybrid Context Assembly** | 🟢 Complete | Local similarity TF-IDF Cosine vector search (`bin/vector_search.py`) integrated to blend global semantic weights with AST graphs. |
 | **Phase 11: Explorer-Architect Loop** | 🟢 Complete | Specified sandboxed speculation playground Explorer (`agents/explorer.md`) and routed speculative tasks dynamically through Explorer -> Architect speculative contract sweeps. |
 | **Phase 12: Governance Circuit Breaker** | 🟢 Complete | Attempt state governance (`bin/governance.js`) checking strike limit counters, tripping circuit breakers at 3 failures, and generating diagnostic human escalation reports. |
+| **Phase 13: Architectural Audit & Zoom-Out** | 🟢 Complete | Conducted detailed zoom-out audit responding to systemic flaws. Structured V3 dependency maps and formulated V4 architectural roadmap. |
 
 ---
 
@@ -52,6 +53,7 @@
 | `checklists/` | 🟢 Active | JSON programmatic verification contract templates. |
 | `tests/` | 🟢 Active | 77 Vitest test cases validating V3 core modules, databases, VFS patches, circuit breakers, and custom rules. |
 | `context.md` | 🟢 Active | Central developer cheat sheet. |
+| `veyra_zoom_out_analysis.md` | 🟢 Active | Detailed structural module maps and side-by-side critique responses. |
 
 ---
 
@@ -61,3 +63,5 @@
    - Design gorgeous terminal dashboards showing V3 active transactions, circuit breaker limits, and patch apply channels.
 2. **Continuous Swarm Audits**
    - Monitor MCP graph compression indexes and contract merge verification success ratios.
+3. **Transition to V4 Code-as-a-Graph Architecture**
+   - Experiment with AST-API structural tree transformations to completely eliminate textual diff patches.

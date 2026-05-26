@@ -65,3 +65,23 @@
 - [x] Build `bin/governance.js` tracker with Zod attempt states.
 - [x] Implement 3-strike execution limit.
 - [x] Add automatic developer alert escalation showing detailed failure diagnostic diff bundles.
+
+### ✅ Milestone 12: Architectural Zoom-Out Audit (Phase 13)
+- [x] Map core node modules, caller functions, and system topologies.
+- [x] Audit the 5 critical legacy bottlenecks (Rebase lock, JSON memory limits, AST explosion, Waterfall Spec, Rule scatter).
+- [x] Build comprehensive responses matching V3 implementations and V4 evolutionary roadmap.
+
+---
+## Future V4 Strategic Milestones
+
+### ⬜ Milestone 13: AST Code-as-a-Graph Transformations
+- [ ] Incorporate AST node manipulation pipelines (`add_node`, `modify_function`).
+- [ ] Eliminate raw line-based patch diff writes entirely to guarantee syntactic correctness.
+
+### ⬜ Milestone 14: Multimodal VLM Layout Auditing
+- [ ] Integrate Playwright snapshots with multimodal vision LLMs.
+- [ ] Execute automated assertions validating responsive visual layouts against Figma assets.
+
+### ⬜ Milestone 15: Pub/Sub Swarm Worker Loop
+- [ ] Formulate a daemon microservice subscribing to an SQLite WAL event bus.
+- [ ] Allocate subagent tasks asynchronously as event bus dependency flags update.

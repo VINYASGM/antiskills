@@ -21,6 +21,8 @@ const governance = new GovernanceSystem();
 const ui = require('./ui');
 const path = require('node:path');
 const fs = require('node:fs');
+const astTransform = require('./ast_transform');
+const eventBus = require('./event_bus');
 
 const printHeader = () => {
   console.log(`\n${ui.colors.bright}${ui.colors.cyan}  __   ___ _   _ ___   _   
@@ -56,7 +58,11 @@ const showHelp = () => {
     [`${ui.colors.green}skill search <query>${ui.colors.reset}`, 'Search global Awesome Skills registry'],
     [`${ui.colors.green}skill install <id>${ui.colors.reset}`, 'Download and mount a skill to .agent/skills/'],
     [`${ui.colors.green}visual-review${ui.colors.reset}`, 'Execute automated Go Playwright visual audit'],
-    [`${ui.colors.green}lint${ui.colors.reset}`, 'Run static analysis linter checks']
+    [`${ui.colors.green}lint${ui.colors.reset}`, 'Run static analysis linter checks'],
+    [`${ui.colors.green}ast apply <file> <act>${ui.colors.reset}`, 'Programmatic AST node transformation'],
+    [`${ui.colors.green}event publish <tpc> <sd>${ui.colors.reset}`, 'Publish concurrent event to SQLite bus'],
+    [`${ui.colors.green}event list [tpc]${ui.colors.reset}`, 'List and audit WAL agent event stream'],
+    [`${ui.colors.green}event prune${ui.colors.reset}`, 'Prune resolved completed events from log table']
   ];
   const widths = [30, 50];
   console.log(ui.drawTable(headers, rows, widths, 'blue'));
@@ -412,6 +418,103 @@ const main = async () => {
     printHeader();
     const visualReviewHarness = require('./visual-review');
     await visualReviewHarness.run();
+  } else if (command === 'lint') {
+    linter.lintAll();
+  } else if (command === 'ast') {
+    if (subcommand === 'apply') {
+      const [filePath, action, target, name, ...params] = rest;
+      if (!filePath || !action) {
+        return console.log('Usage: ast apply <filePath> <import|method|property> <args...>');
+      }
+      if (!fs.existsSync(filePath)) {
+        return console.log(`File not found: ${filePath}`);
+      }
+      try {
+        const originalContent = fs.readFileSync(filePath, 'utf8');
+        let modifiedContent = originalContent;
+
+        if (action === 'import') {
+          if (!target || !name) return console.log('Usage: ast apply <file> import <specifier> <module>');
+          modifiedContent = astTransform.addImport(originalContent, target, name);
+        } else if (action === 'method') {
+          if (!target || !name) return console.log('Usage: ast apply <file> method <class> <methodName> <params> <body>');
+          const methodParams = (params[0] || '').split(',').map(s => s.trim()).filter(Boolean);
+          const methodBody = params.slice(1).join(' ');
+          modifiedContent = astTransform.addMethod(originalContent, target, name, methodParams, methodBody);
+        } else if (action === 'property') {
+          if (!target || !name) return console.log('Usage: ast apply <file> property <variable> <key> <value>');
+          let value = params[0];
+          if (value === 'true') value = true;
+          else if (value === 'false') value = false;
+          else if (!isNaN(Number(value))) value = Number(value);
+          modifiedContent = astTransform.updateObjectProperty(originalContent, target, name, value);
+        } else {
+          return console.log(`Unknown AST action: ${action}`);
+        }
+
+        fs.writeFileSync(filePath, modifiedContent, 'utf8');
+        console.log(ui.drawBox('AST GRAPH TRANSFORMATION', [
+          `✔ Successfully transformed target file:`,
+          `File:   ${filePath}`,
+          `Action: ${action} (${name})`
+        ], 60, 'green'));
+        console.log();
+      } catch (err) {
+        console.log(`${ui.colors.red}✘ AST transform failed: ${err.message}${ui.colors.reset}`);
+      }
+    } else {
+      console.log('Usage: ast apply <filePath> <import|method|property> <args...>');
+    }
+  } else if (command === 'event') {
+    if (subcommand === 'publish') {
+      const [topic, sender, ...payloadParts] = rest;
+      if (!topic || !sender) {
+        return console.log('Usage: event publish <topic> <sender> <jsonPayload>');
+      }
+      let payload = {};
+      try {
+        if (payloadParts.length > 0) {
+          payload = JSON.parse(payloadParts.join(' '));
+        }
+      } catch (e) {
+        return console.log('Invalid JSON payload.');
+      }
+      const eventId = eventBus.publish(topic, sender, payload);
+      console.log(ui.drawBox('EVENT BUS LOG', [
+        `✔ Event successfully published to WAL log.`,
+        `Event ID: ${eventId}`,
+        `Topic:    ${topic}`,
+        `Sender:   ${sender}`
+      ], 60, 'green'));
+      console.log();
+    } else if (subcommand === 'list') {
+      const topic = rest[0] || null;
+      const events = eventBus.listEvents(topic);
+      if (events.length === 0) {
+        console.log('No events found.');
+        return;
+      }
+      const headers = ['ID', 'TOPIC', 'SENDER', 'STATUS', 'TIMESTAMP'];
+      const rows = events.map(e => {
+        let statusStyled = e.status;
+        if (e.status === 'completed') {
+          statusStyled = `${ui.colors.green}completed${ui.colors.reset}`;
+        } else if (e.status === 'pending') {
+          statusStyled = `${ui.colors.yellow}pending${ui.colors.reset}`;
+        } else if (e.status === 'failed') {
+          statusStyled = `${ui.colors.red}failed${ui.colors.reset}`;
+        }
+        return [String(e.id), e.topic, e.sender, statusStyled, e.timestamp];
+      });
+      const widths = [8, 20, 20, 18, 25];
+      console.log(ui.drawTable(headers, rows, widths, 'blue'));
+      console.log();
+    } else if (subcommand === 'prune') {
+      const count = eventBus.clearHistory();
+      console.log(`✔ Pruned ${count} event logs.`);
+    } else {
+      console.log('Usage: event <publish|list|prune> [args...]');
+    }
   } else if (command === 'lint') {
     linter.lintAll();
   } else {
