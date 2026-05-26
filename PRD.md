@@ -1,8 +1,8 @@
 # Product Requirements Document — Veyra
 
-**Version:** 2.0
+**Version:** 2.1
 **Author:** VINYASGM / ANTIGRAVITY
-**Date:** 2026-05-25
+**Date:** 2026-05-26
 **Status:** Active
 
 ---
@@ -11,7 +11,7 @@
 
 Veyra is a **reusable AI-native engineering operating system repository framework**. It provides the directory structure, agent definitions, memory systems, workflows, and engineering constitutions required to run multi-agent software development swarms at production quality.
 
-Veyra is a **template repository** that software teams clone, customize for their tech stack, and run as the core operating layer for AI-assisted engineering.
+Veyra V2 overhauls the core coordination layer, switching from high-overhead Git worktrees to a highly concurrent **Virtual Filesystem (VFS) Patch Workspace** with dynamic routing and relevance-ranked token context injection, enabling massive speed and scaling improvements.
 
 ---
 
@@ -22,78 +22,41 @@ Veyra is a **template repository** that software teams clone, customize for thei
 | **Software engineers using AI coding agents** | Clone Veyra as their project's AI operating layer. Configure agents, rules, and workflows for their specific stack. |
 | **Teams using Antigravity, Claude Code, Cursor, Copilot Workspace** | Use Veyra's agent definitions and coordination protocols to orchestrate multiple AI agents without conflicts. |
 | **Engineering leads** | Define engineering standards, review checklists, and governance policies that agents enforce automatically. |
-| **Solo developers** | Use Veyra as a structured scaffold for AI-assisted development with persistent memory across sessions. |
 
 ---
 
-## 3. Problem Statement
+## 3. Problem Statement & V2 Solutions
 
-AI coding agents suffer from six systemic failures:
+AI coding agents suffer from six systemic failures, which Veyra OS V2 completely resolves:
 
-1. **Context Rot** — Agents lose context mid-task as chat history grows, drifting from specs.
-2. **Multi-Agent Chaos** — Parallel agents overwrite each other's files, creating Git and binary merge conflicts.
-3. **Waterfall Rigidness** — Locking agents into phase-gated execution limits LLM non-linear self-correction and TDD REPL speed.
-4. **Ephemeral Memory & Lock Contention** — Storing graph state in single large files or binary databases causes locking and merge nightmares in Git worktrees.
-5. **Decoupled Architecture Blindness** — Compiler-based AST trees fail to capture relationships between REST APIs, ORMs, and frontend styles, causing semantic conflicts.
-6. **Visual Frontend Blindspots** — Text-based agents cannot review CSS, z-index overlaps, or responsive scaling, producing ugly layouts.
-
----
-
-## 4. Goals
-
-| Goal | Description |
-|---|---|
-| **Eliminate context rot** | Replace chat history dependency with persistent Beads memory and deterministic hybrid context injection. |
-| **Prevent multi-agent chaos** | Enforce Git worktree isolation with continuous context broadcasting (intents) to flag semantic overlaps JIT. |
-| **Enable REPL-driven development** | Adopt Test-Driven Development (TDD) loops allowing living specs to be amended interactively. |
-| **Maintain architectural consistency** | Define directory-scoped rules loaded on-demand to keep prompts lightweight and relevant. |
-| **Persist memory natively** | Store authoritative decisions as Git-native Markdown beads, using SQLite as an ephemeral local query cache. |
-| **Visual verification CI** | Integrate visual review CI loops compiling screenshots for Vision-Language Model reviews. |
-| **Distributed Choreography** | Move to Actor Model peer-to-peer messaging to prevent orchestrator context fragmentation. |
+1. **Multi-Agent Git Bottleneck:** isolated Git worktrees and strict sequential rebase strategies stall parallel agent execution.
+   - *V2 Solution:* **Virtual Filesystem (VFS) Patch Workspace** (`patch.js`) allows parallel dry-runs and conflict checks on a unified single branch.
+2. **Database & Memory Lock Contention:** Storing graph state in single large files or binary databases causes locking and merge nightmares in Git.
+   - *V2 Solution:* Plain-text Markdown beads are synchronised JIT into a local `.gitignored` SQLite WAL cache with lazy sync and file `mtime` modification checks.
+3. **Context Rot & OOMs:** FIFO token insertion overflows compiler limits and causes hallucinations.
+   - *V2 Solution:* **Relevance-Scored Context Assembly** (`context.js`) ranks files based on imports, keyword proximity, and semantic keys, gracefully pruning below token caps.
+4. **Rigid waterfall execution:** locking agents into static phase-gated steps stalls development.
+   - *V2 Solution:* A **Dynamic task router** (`router.js`) automatically assigns tasks to a group of 1-3 agents based on semantic keywords.
+5. **Decoupled Architecture Blindness:** Compiler-based AST trees fail to capture relationships between REST APIs, ORMs, and frontend styles.
+   - *V2 Solution:* Ephemeral intent broadcasting maps files, REST routes, SQL columns, and CSS styles.
+6. **Visual Frontend Blindspots:** Text-based agents cannot verify layout rendering.
+   - *V2 Solution:* Go-based Playwright visual screenshot capturing.
 
 ---
 
-## 5. Success Criteria
+## 4. Key V2 Features
 
-| Criterion | Measurement |
-|---|---|
-| Zero Git merge conflicts | Authoritative memory stored in separate Markdown files; `.gitignore` SQLite binaries. |
-| Pre-merge semantic safety | 100% of parallel merges run `intent check` to verify zero payload or schema mismatches. |
-| Hybrid context accuracy | Context includes both AST imports and semantic REST/CSS/schema strings within token budget. |
-| Visual verification | All UI component modifications pass headless screenshot audits across mobile, tablet, desktop viewports. |
-| Distributed scalability | Agent swarm scales beyond 3+ concurrent actors without Orchestrator context overflow. |
+### 4.1 VFS Patch Workspace (`bin/patch.js`)
+Line-based unified patch generator and dry-run collision scanner. Enables multiple agents to propose changes to the shared workspace without Git locks or worktree creations.
 
----
+### 4.2 SQLite Memory Caching JIT (`bin/db.js`)
+A highly concurrent cache. Evaluates filesystem file modification times to JIT compile Markdown memory beads (`memory/beads/`) instantly.
 
-## 6. Key Features
+### 4.3 Relevance Rank Context Assembly (`bin/context.js`)
+Ranks context files based on AST crawling, keyword overlap, and styling/DB tags, capping budgets smoothly.
 
-### 6.1 Agent-as-Code Definitions (`agents/`)
-Deterministic agent specifications (markdown) detailing authority, tool permissions, specific scoped rules, and peer actor messaging schemas.
+### 4.4 Dynamic Router (`bin/router.js`)
+Keyword requirements router mapping tasks dynamically to optimal 1-3 agent pools.
 
-### 6.2 Git-Native Memory System (`memory/beads/bd-XXXX.md`)
-Persistent, text-based beads written in Markdown with YAML frontmatter. Highly mergeable in Git with zero conflict collisions. Recompiled JIT to local `.gitignored` SQLite `beads.db` cache for lightning-fast queries.
-
-### 6.3 Context Broadcasting (`bin/intent.js`)
-An ephemeral intent publisher. Agents broadcast JIT intentions (files to edit, database columns to modify, REST API contracts to change) to a highly-concurrent SQLite WAL intent registry, scanning peer intents to detect conflicts.
-
-### 6.4 Hybrid Code Intelligence Engine (`bin/context.js`)
-Blends TypeScript AST module mapping with multi-file semantic regex indexing to link decoupled routes (`/api/`), styles, and schemas.
-
-### 6.5 Actor Model Choreography (`orchestration/choreography-protocol.md`)
-Standardized peer messaging loops using JIT local directories (`memory/inbox/`) bypassing Orchestrator bottle-necks.
-
-### 6.6 VLM Responsive Visual CI Loop (`bin/visual-review.js`)
-Headless browser harness generating layout captures across Mobile, Tablet, and Desktop breakpoints, consumed by a visual audit VLM reviewer.
-
----
-
-## 7. Non-Functional Requirements
-- **Git-native**: Versioned in plain text. Excludes compiled assets and local database caches.
-- **Zero-dependency Core**: Node.js and TypeScript built-ins only.
-- **Cross-platform**: Shell execution wrappers compatible with Windows Powershell and Unix Bash.
-
----
-
-## 8. Out of Scope
-- Hosting or providing LLM models or APIs.
-- Replacing Git primitives (uses standard worktree features).
+### 4.5 Responsive Visual Auditing (`bin/visual-review.js`)
+Generates headless viewport mock screenshot captures across Mobile, Tablet, and Desktop break-points.

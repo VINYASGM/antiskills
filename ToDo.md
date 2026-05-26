@@ -1,88 +1,53 @@
 # Roadmap — Veyra
 
-**Last Updated:** 2026-05-25
+**Last Updated:** 2026-05-26
 
 ---
 
-## Milestones
+## Completed Milestones (V2 Architecture Core)
 
-### ✅ Milestone 1: Repository Structure
-> Create all directories and root configuration files.
-- [x] Create root files: `.gitignore`, `README.md`, `CLAUDE.md`
-- [x] Create spec files: `PRD.md`, `TRD.md`, `Architecture.md`
-- [x] Create state files: `State.md`, `ToDo.md`
-- [x] Create all subdirectories: `agents/`, `rules/`, `memory/`, `context/`, `workflows/`, `prompts/`, `templates/`, `debugging/`, `checklists/`, `docs/`, `orchestration/`, `governance/`, `standards/`
-- [x] Initialize `memory/beads/` with Git-native Markdown root bead
-- [x] Create `.gitkeep` files in empty directories
+### ✅ Milestone 1: Test Infrastructure & Integrity (Phase 1)
+- [x] Configure Vitest with auto-injected globals (`vitest.config.js`).
+- [x] Create comprehensive test suites under `tests/bin/` checking `db.js`, `context.js`, `intent.js`, `patch.js`, `router.js`, `worktree.js`, and `visual-review.js`.
+- [x] Verify all 65/65 tests are green in PowerShell environment.
 
----
+### ✅ Milestone 2: JIT SQLite Database Cache & Performance (Phase 2)
+- [x] Implement database connection pooling and SQLite WAL mode enablement.
+- [x] Implement dirty-flag tracking based on file modification timestamp (`mtime`) comparison.
+- [x] Integrate lazy-synchronization to eliminate O(N) memory read/write bottlenecks.
+- [x] Add high-concurrency safe transactional operations.
 
-### ✅ Milestone 2: Memory System & JIT Cache
-- [x] Create decentralized Markdown beads (`memory/beads/*.md`)
-- [x] Build frontmatter parser for plain-text Markdown memory tracking
-- [x] Synchronize JIT memory states into a `.gitignored` local SQLite cache (`beads.db`)
-- [x] Exclude SQLite binaries and locking/temporary files from Git in `.gitignore`
-- [x] Validate bead query performance with local JIT SQLite sync
+### ✅ Milestone 3: Relevance-Scored Token Budget Context (Phase 3)
+- [x] Replace FIFO token insertion with relevance scoring.
+- [x] Track keyword matches, AST import paths, and cross-file semantic tags.
+- [x] Implement soft token budgets (8000-16000 tokens) with gracefully degraded lists.
 
----
+### ✅ Milestone 4: VFS Patch Workspace Orchestration (Phase 5)
+- [x] Build line-based unified diff parser and dry-run conflict checker (`bin/patch.js`).
+- [x] Eliminate expensive and deadlock-prone Git worktrees in agent swarms.
+- [x] Support atomic multi-file patching, collision recovery, and revert logs.
 
-### ✅ Milestone 3: Continuous Context Broadcasting (Intents)
-- [x] Design ephemeral Intent schema matching files, routes, DB columns, and CSS styles
-- [x] Implement JIT intent publisher and checker in `bin/intent.js`
-- [x] Integrate `intent publish`, `intent list`, and `intent check` commands into Veyra CLI
-- [x] Perform semantic conflict checks comparing parallel agent intentions JIT
-
----
-
-### ✅ Milestone 4: Hybrid Code Intelligence Engine
-- [x] Integrate TS AST traversal mapping explicit imports
-- [x] Implement multi-file regex scanning for decoupled semantic bindings (REST routes, styles, DB columns)
-- [x] Build decoupled link resolution to pull implicit dependencies into agent context
-- [x] Implement ranked file token budget assembly in `bin/context.js`
+### ✅ Milestone 5: Dynamic Requirements Router (Phase 6)
+- [x] Build multi-agent classification router mapping keywords to semantic agent requirements (`bin/router.js`).
+- [x] Replace the static 9-agent rigid pipeline with dynamic 1-3 concurrent agent pools.
+- [x] Wire task assignment commands into `veyra agent auto`.
 
 ---
 
-### ✅ Milestone 5: Distributed Actor Choreography & TDD
-- [x] Define peer message payloads in `orchestration/choreography-protocol.md`
-- [x] Pivot Orchestrator from central supervisor to asynchronous actor registry broker
-- [x] Instruct Frontend, Testing, and Code Review agents to use peer-to-peer JSON inboxes
-- [x] Implement high-frequency, interactive TDD self-correction loop instructions
+## Active & Upcoming Milestones
 
----
+### 🚧 Milestone 6: Go Playwright Visual Verification Framework (Phase 4)
+- [ ] Initialize `go.mod` for Go visual review subsystem.
+- [ ] Write Go-based headless test cases representing mobile, tablet, and desktop viewport sizes.
+- [ ] Implement `snapshot.go` (Playwright layout capturing), `diff.go` (pixel-by-pixel diff rendering), and `audit.go` (VLM scoring).
+- [ ] Compile Go visual CLI tool and integrate into `bin/visual-review.js`.
+- [ ] Run and verify visual verification tests pass.
 
-### ✅ Milestone 6: Responsive Visual CI Loop
-- [x] Build `bin/visual-review.js` executing Puppeteer/Playwright capturing Mobile, Tablet, and Desktop breakpoints
-- [x] Define visual reviewer agent (`agents/vlm-ui-reviewer.md`)
-- [x] Write visual grid, spacing, z-index, typography checklist (`checklists/visual-audit.md`)
-- [x] Test vision-based visual review loop against responsive frontend mockups
+### 🚧 Milestone 7: Interactive Terminal Dashboard & Swarm Animations (Phase 7)
+- [ ] Install Ink CLI styling suite (`ink`, `ink-spinner`, `ink-gradient`, `react`).
+- [ ] Design terminal layout dashboard featuring real-time concurrent agent channels, dynamic intent broadcast streams, and VFS patching statuses.
+- [ ] Integrate gorgeous CSS/terminal animations.
 
----
-
-### ✅ Milestone 7: Swarm Orchestration & Validation
-- [x] Run concurrent multi-agent simulation using isolated Git worktrees
-- [x] Verify intent conflicts are triggered JIT during parallel executions
-- [x] Execute fast-forward rebase and merges under actor choreography
-- [x] Generate execution evidence and close out tasks
-
----
-
-### ✅ Milestone 8: Elite Architectural Overhaul (Phase 6)
-- [x] Refactor `bin/db.js` and `bin/intent.js` to use SQLite WAL intent registry
-- [x] Update `bin/supervisor.js` to include TTL and DLQ logic
-- [x] Refactor `bin/context.js` with OOM traversal limits and fallbacks
-- [x] Update `orchestration/choreography-protocol.md`
-
----
-
-## Progress Summary
-
-| Milestone | Status | Progress |
-|---|---|---|
-| 1. Repository Structure | ✅ Complete | 6/6 tasks |
-| 2. Memory System & JIT Cache | ✅ Complete | 5/5 tasks |
-| 3. Continuous Broadcasting (Intents) | ✅ Complete | 4/4 tasks |
-| 4. Hybrid Code Intelligence | ✅ Complete | 4/4 tasks |
-| 5. Distributed Actor Choreography | ✅ Complete | 4/4 tasks |
-| 6. Responsive Visual CI Loop | ✅ Complete | 4/4 tasks |
-| 7. Swarm Validation | ✅ Complete | 4/4 tasks |
-| 8. Elite OS Architecture | ✅ Complete | 4/4 tasks |
+### 🚧 Milestone 8: Architectural Documentation Sync
+- [x] Create central developer `context.md` entry point.
+- [x] Update `State.md`, `ToDo.md`, `Architecture.md`, `TRD.md`, and `PRD.md` with V2 VFS architecture.
