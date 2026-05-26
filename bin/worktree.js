@@ -49,10 +49,12 @@ class WorktreeManager {
     execSync('git checkout main', { stdio: 'inherit' });
 
     console.log(`Rebasing branch ${branch} onto main...`);
-    execSync(`git checkout ${branch} && git rebase main`, { stdio: 'inherit' });
+    execSync(`git checkout ${branch}`, { stdio: 'inherit' });
+    execSync(`git rebase main`, { stdio: 'inherit' });
 
     console.log(`Merging into main (fast-forward only)...`);
-    execSync(`git checkout main && git merge ${branch} --ff-only`, { stdio: 'inherit' });
+    execSync(`git checkout main`, { stdio: 'inherit' });
+    execSync(`git merge ${branch} --ff-only`, { stdio: 'inherit' });
   }
 
   cleanup(branch) {

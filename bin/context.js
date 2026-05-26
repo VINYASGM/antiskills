@@ -223,33 +223,93 @@ class ContextAssembler {
    * 
    * @param {string[]} files - Scoped collection of target files.
    * @param {number} budget - Maximum token estimation permitted for context injection.
-   * @returns {{ranked: Array<{path: string, sizeBytes: number, tokens: number}>, totalTokens: number}} Priority mapped ranked list and total token count.
+   * @param {string} [task] - Optional task description for relevance scoring.
+   * @returns {{ranked: Array<{path: string, sizeBytes: number, tokens: number, score?: number}>, totalTokens: number}} Priority mapped ranked list and total token count.
    * @example
-   * const rankedData = contextAssembler.rankFiles(files, 15000);
+   * const rankedData = contextAssembler.rankFiles(files, 15000, 'fix login bug');
    */
-  rankFiles(files, budget) {
-    const ranked = [];
-    let tokens = 0;
+  rankFiles(files, budget, task) {
+    // Build scored file list
+    const candidates = [];
 
     for (const file of files) {
       if (!fs.existsSync(file)) continue;
       try {
         const sizeBytes = fs.statSync(file).size;
         const content = fs.readFileSync(file, 'utf8');
-        const estTokens = Math.ceil(content.length / 4); // Token approximation
+        const estTokens = Math.ceil(content.length / 4);
+        const idx = files.indexOf(file); // Use position as proxy for import depth
 
-        if (tokens + estTokens > budget) continue; // Try smaller files rather than breaking entirely
-
-        tokens += estTokens;
-        ranked.push({
+        candidates.push({
+          file,
           path: path.relative(process.cwd(), file).replace(/\\/g, '/'),
           sizeBytes,
-          tokens: estTokens
+          tokens: estTokens,
+          score: task ? this.scoreFile(file, task, idx) : 0,
         });
       } catch (e) {}
     }
 
+    // Sort by score descending when task is provided
+    if (task) {
+      candidates.sort((a, b) => b.score - a.score);
+    }
+
+    // Fill budget
+    const ranked = [];
+    let tokens = 0;
+
+    for (const c of candidates) {
+      if (tokens + c.tokens > budget) continue;
+      tokens += c.tokens;
+      ranked.push({
+        path: c.path,
+        sizeBytes: c.sizeBytes,
+        tokens: c.tokens,
+        ...(task ? { score: c.score } : {}),
+      });
+    }
+
     return { ranked, totalTokens: tokens };
+  }
+
+  /**
+   * Scores a file's relevance to a task description.
+   * Score = (keyword overlap × 2) + (1 / (importDepth + 1)) + (semantic key count × 0.5)
+   *
+   * @param {string} filePath - Absolute path to the file.
+   * @param {string} task - Task description string.
+   * @param {number} importDepth - Distance from entry file in import graph (0 = entry).
+   * @returns {number} Relevance score (higher = more relevant).
+   */
+  scoreFile(filePath, task, importDepth) {
+    let score = 0;
+
+    // 1. Keyword overlap: check how many task words appear in file content + filename
+    const taskWords = task.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+    try {
+      const content = fs.readFileSync(filePath, 'utf8').toLowerCase();
+      const fileName = path.basename(filePath).toLowerCase();
+      let keywordHits = 0;
+
+      for (const word of taskWords) {
+        if (content.includes(word)) keywordHits++;
+        if (fileName.includes(word)) keywordHits += 2; // Filename match is stronger
+      }
+
+      score += keywordHits * 2;
+    } catch (e) {}
+
+    // 2. Import proximity: closer to entry = higher score
+    score += 1 / (importDepth + 1);
+
+    // 3. Semantic key density
+    try {
+      const keys = this.extractSemanticKeys(filePath);
+      score += keys.length * 0.5;
+    } catch (e) {}
+
+    return score;
   }
 
   /**

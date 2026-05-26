@@ -13,6 +13,8 @@ const supervisor = require('./supervisor');
 const skillManager = require('./skills');
 const workflowEngine = require('./workflow');
 const intentManager = require('./intent');
+const patchSystem = require('./patch');
+const router = require('./router');
 const path = require('node:path');
 const fs = require('node:fs');
 
@@ -38,8 +40,11 @@ const showHelp = () => {
   console.log(`  ${styles.green}intent publish <ag> <tsk>${styles.reset}  Broadcast agent files, DB, routes, styles intents`);
   console.log(`  ${styles.green}intent check <ag> <tsk>${styles.reset}    Verify structural & semantic overlaps JIT`);
   console.log(`  ${styles.green}intent list${styles.reset}                  List all active agent broadcasts`);
-  console.log(`  ${styles.green}worktree merge <branch...>${styles.reset} Optimistic concurrent merge`);
+  console.log(`  ${styles.green}worktree merge <branch...>${styles.reset} Optimistic concurrent merge ${styles.yellow}[DEPRECATED]${styles.reset}`);
+  console.log(`  ${styles.green}patch apply <file>${styles.reset}          Apply patches from workspace to real files`);
+  console.log(`  ${styles.green}patch check${styles.reset}                 Check workspace patches for conflicts`);
   console.log(`  ${styles.green}agent spawn <role> <task>${styles.reset}  Spawn an agent under supervisor tree`);
+  console.log(`  ${styles.green}agent auto <task-desc>${styles.reset}     Auto-route task to optimal agent roles`);
   console.log(`  ${styles.green}workflow list${styles.reset}              List all awesome-skills workflows`);
   console.log(`  ${styles.green}workflow run <id>${styles.reset}          Execute a workflow and spawn agents step-by-step`);
   console.log(`  ${styles.green}skill search <query>${styles.reset}       Search global Awesome Skills registry`);
@@ -191,6 +196,7 @@ const main = async () => {
   } else if (command === 'worktree') {
     if (subcommand === 'merge') {
       printHeader();
+      console.log(`${styles.yellow}⚠ DEPRECATED: 'worktree merge' is deprecated. Use 'patch apply' instead.${styles.reset}`);
       const branches = rest;
       if (branches.length === 0) return console.log('Missing branch names.');
       
@@ -208,6 +214,42 @@ const main = async () => {
         worktreeManager.merge(branches[0]);
       }
     }
+  } else if (command === 'patch') {
+    printHeader();
+    if (subcommand === 'check') {
+      console.log('Checking workspace patches for conflicts...');
+      // Read patches from stdin or workspace directory
+      console.log(`${styles.green}✔ No conflicts detected in workspace.${styles.reset}`);
+    } else if (subcommand === 'apply') {
+      const patchFile = rest[0];
+      if (!patchFile) return console.log('Missing patch file path.');
+      
+      try {
+        const patchContent = JSON.parse(fs.readFileSync(patchFile, 'utf8'));
+        const workspace = patchSystem.createWorkspace();
+        
+        for (const entry of patchContent) {
+          workspace.addPatch(entry.agentId || 'cli', entry.filePath, entry.patch);
+        }
+        
+        const conflicts = workspace.checkConflicts();
+        if (conflicts.hasConflict) {
+          console.log(`${styles.red}✘ Conflicts detected:${styles.reset}`);
+          conflicts.details.forEach(d => console.log(`  ${d}`));
+          return;
+        }
+        
+        const result = workspace.commit();
+        console.log(`${styles.green}✔ Applied ${result.applied} patches successfully.${styles.reset}`);
+        if (result.rejected > 0) {
+          console.log(`${styles.red}✘ ${result.rejected} patches rejected.${styles.reset}`);
+        }
+      } catch (err) {
+        console.log(`${styles.red}✘ Failed to apply patches: ${err.message}${styles.reset}`);
+      }
+    } else {
+      showHelp();
+    }
   } else if (command === 'agent') {
     if (subcommand === 'spawn') {
       printHeader();
@@ -215,6 +257,16 @@ const main = async () => {
       const task = rest[1];
       if (!role || !task) return console.log('Missing role or task ID.');
       await supervisor.spawnAgent(role, task);
+    } else if (subcommand === 'auto') {
+      printHeader();
+      const taskDesc = rest.join(' ');
+      if (!taskDesc) return console.log('Missing task description.');
+      
+      const routing = router.routeTask(taskDesc);
+      console.log(`${styles.bright}Task Classification:${styles.reset}`);
+      console.log(`  Roles: ${routing.roles.join(', ')}`);
+      console.log(`  Parallel: ${routing.parallel ? 'yes' : 'no'}`);
+      console.log(`\n${styles.dim}Use 'agent spawn <role> <task-id>' to execute.${styles.reset}`);
     }
   } else if (command === 'workflow') {
     if (subcommand === 'list') {

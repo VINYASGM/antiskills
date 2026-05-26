@@ -19,6 +19,10 @@ class BeadsDB {
     this.dbPath = path.join(memoryDir, 'beads.db');
     this.db = new Database(this.dbPath);
     this.db.pragma('journal_mode = WAL'); // Enable high-concurrency for parallel swarm agents
+    this._fileMtimes = new Map(); // filename → mtime (ms) for dirty tracking
+    this._syncStats = { filesScanned: 0, filesSkipped: 0 };
+    this._lastSyncTime = null;
+    this._syncTTLMs = 1000; // 1 second TTL before re-syncing
     this.init();
     this.migrateLegacy();
     this.sync(); // JIT Sync on initialize
@@ -145,6 +149,37 @@ ${bead.description || ''}`;
     
     const files = fs.readdirSync(beadsDir).filter(f => f.startsWith('bd-') && f.endsWith('.md'));
     
+    // Dirty tracking: check mtimes, skip unchanged files
+    let scanned = 0;
+    let skipped = 0;
+    const filesToSync = [];
+    
+    for (const file of files) {
+      scanned++;
+      const filePath = path.join(beadsDir, file);
+      try {
+        const stat = fs.statSync(filePath);
+        const mtime = stat.mtimeMs;
+        const cachedMtime = this._fileMtimes.get(file);
+        
+        if (cachedMtime !== undefined && cachedMtime === mtime) {
+          skipped++;
+          continue; // File unchanged — skip re-parse
+        }
+        
+        this._fileMtimes.set(file, mtime);
+        filesToSync.push({ file, filePath });
+      } catch (err) {
+        // File disappeared between readdir and stat — skip
+      }
+    }
+    
+    this._syncStats = { filesScanned: scanned, filesSkipped: skipped };
+    this._lastSyncTime = Date.now();
+    
+    // Only run transaction if there are dirty files
+    if (filesToSync.length === 0) return;
+    
     const stmt = this.db.prepare(`
       INSERT INTO beads (id, type, status, title, description, author, timestamp, evidence, superseded_by)
       VALUES (@id, @type, @status, @title, @description, @author, @timestamp, @evidence, @superseded_by)
@@ -165,8 +200,7 @@ ${bead.description || ''}`;
     const insertDep = this.db.prepare(`INSERT OR IGNORE INTO dependencies (bead_id, dependency_id) VALUES (?, ?)`);
     
     this.db.transaction(() => {
-      for (const file of files) {
-        const filePath = path.join(beadsDir, file);
+      for (const { file, filePath } of filesToSync) {
         try {
           const raw = fs.readFileSync(filePath, 'utf8');
           const bead = this.parseFrontmatter(raw);
@@ -268,13 +302,21 @@ ${bead.description || ''}`;
    * @returns {object[]} Ranked array of bead configurations with arrays for tags and dependencies.
    */
   getAll() {
-    this.sync(); // JIT refresh
+    this._lazySyncIfStale();
     const beads = this.db.prepare(`SELECT * FROM beads ORDER BY id ASC`).all();
     for (const b of beads) {
       b.tags = this.db.prepare(`SELECT tag FROM tags WHERE bead_id = ?`).all(b.id).map(r => r.tag);
       b.dependencies = this.db.prepare(`SELECT dependency_id FROM dependencies WHERE bead_id = ?`).all(b.id).map(r => r.dependency_id);
     }
     return beads;
+  }
+
+  /**
+   * Triggers sync only if TTL has expired since last sync.
+   */
+  _lazySyncIfStale() {
+    if (this._lastSyncTime && (Date.now() - this._lastSyncTime) < this._syncTTLMs) return;
+    this.sync();
   }
 
   /**
@@ -286,7 +328,7 @@ ${bead.description || ''}`;
    * const bead = beadsDB.get('bd-0001');
    */
   get(id) {
-    this.sync(); // JIT refresh
+    this._lazySyncIfStale();
     const bead = this.db.prepare(`SELECT * FROM beads WHERE id = ?`).get(id);
     if (!bead) return null;
     
@@ -301,7 +343,7 @@ ${bead.description || ''}`;
    * @returns {string} The next available bd-XXXX string.
    */
   getNextId() {
-    this.sync(); // JIT refresh
+    // Query SQLite directly — no sync needed, IDs only increase
     const row = this.db.prepare(`SELECT id FROM beads ORDER BY id DESC LIMIT 1`).get();
     if (!row) return 'bd-0001';
     const match = row.id.match(/bd-(\d+)/);

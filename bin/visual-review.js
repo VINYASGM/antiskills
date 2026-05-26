@@ -107,7 +107,7 @@ class VisualReviewRunner {
             
             // Desktop
             await page.setViewport({ width: 1440, height: 900 });
-            await page.screenshot({ path: '${path.join(this.evidenceDir, 'viewport_desktop.png') });
+            await page.screenshot({ path: '${path.join(this.evidenceDir, 'viewport_desktop.png')}' });
             
             await browser.close();
             console.log('Puppeteer captures completed.');
