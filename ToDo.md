@@ -71,17 +71,28 @@
 - [x] Audit the 5 critical legacy bottlenecks (Rebase lock, JSON memory limits, AST explosion, Waterfall Spec, Rule scatter).
 - [x] Build comprehensive responses matching V3 implementations and V4 evolutionary roadmap.
 
+### ✅ Milestone 13: Task Queue & Claim Discipline (Phase B)
+- [x] Added `claimed_by` and `claimed_at` runtime metadata to SQLite DB to prevent concurrent agent conflicts.
+- [x] Implemented atomic lock-acquisition (`claim()`), release, start, complete, fail, and reopen methods.
+- [x] Integrated auto-sync state updates to Markdown frontmatter (`status` tracking).
+- [x] Implemented automatic stale-claim expiration (>30 mins) to auto-recover stalled tasks.
+- [x] Verified full CLI integration (`bead claim/release/start/complete/fail/reopen`) and wrote 16 robust Vitest integration tests.
+
+### ✅ Milestone 14: GitHub Actions CI Integration (Phase C)
+- [x] Deployed `.github/workflows/ci.yml` CI flow to automate testing.
+- [x] Configured Vitest test suite running on a standard Ubuntu-latest node runner for immediate feedback on branch integrations.
+
 ---
 ## Future V4 Strategic Milestones
 
-### ⬜ Milestone 13: AST Code-as-a-Graph Transformations
+### ⬜ Milestone 15: AST Code-as-a-Graph Transformations
 - [ ] Incorporate AST node manipulation pipelines (`add_node`, `modify_function`).
 - [ ] Eliminate raw line-based patch diff writes entirely to guarantee syntactic correctness.
 
-### ⬜ Milestone 14: Multimodal VLM Layout Auditing
+### ⬜ Milestone 16: Multimodal VLM Layout Auditing
 - [ ] Integrate Playwright snapshots with multimodal vision LLMs.
 - [ ] Execute automated assertions validating responsive visual layouts against Figma assets.
 
-### ⬜ Milestone 15: Pub/Sub Swarm Worker Loop
+### ⬜ Milestone 17: Pub/Sub Swarm Worker Loop
 - [ ] Formulate a daemon microservice subscribing to an SQLite WAL event bus.
 - [ ] Allocate subagent tasks asynchronously as event bus dependency flags update.

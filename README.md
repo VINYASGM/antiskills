@@ -2,7 +2,7 @@
 
 > A reusable, production-grade repository framework for Antigravity-style multi-agent orchestration.
 
-This repository is a **dual-modality workbench** serving both human overseers (**Agent Command Environment**) and autonomous agents (**Agent Execution Environment**). It provides structured, spec-driven development with deterministic context management — no RAG, no guesswork, no context rot. Every agent knows exactly what to read, what to write, and when to escalate.
+This repository is a **dual-modality workbench** serving both human overseers (**Agent Command Environment**) and autonomous agents (**Agent Execution Environment**). It provides structured, spec-driven development with deterministic AST context injection blended with constrained semantic scoring — no context rot. Every agent knows exactly what to read, what to write, and when to escalate.
 
 ---
 
@@ -85,10 +85,10 @@ cp -r veyra/ my-project/
 Every feature starts with a spec (PRD → TRD → Architecture). Code is the **last** step, not the first. Agents receive structured specs, not vague instructions.
 
 ### 2. Deterministic Context Injection
-Context is assembled from AST maps, file paths, and dependency graphs — **not** from probabilistic RAG retrieval. Every agent gets exactly the files it needs, every time, with zero hallucination risk.
+Context is assembled from AST import graphs blended with constrained TF-IDF similarity scoring — scoped deterministic injection that reduces hallucination risk compared to open-ended RAG retrieval.
 
 ### 3. Beads Memory Pattern
-Every decision, bug fix, and task state is recorded as a **Bead** — a JSON node in a persistent graph (`memory/beads.json`). Agents query beads for context instead of relying on ephemeral chat history. Memory survives session boundaries.
+Every decision, bug fix, and task state is recorded as a **Bead** — a Markdown file with YAML frontmatter, JIT-synced to a local SQLite cache (`memory/beads/`). Agents query beads for context instead of relying on ephemeral chat history. Memory survives session boundaries.
 
 ### 4. Phase-Gated Execution
 Work proceeds through strict phases: **Spec → Plan → Implement → Test → Review → Merge**. No phase can be skipped. Each phase has explicit entry and exit criteria.

@@ -93,6 +93,17 @@ State tracking schema representing agent retry status to prevent token exhaustio
 }
 ```
 
+### 2.4 Task Queue & Concurrency Schema
+SQLite-level runtime locking properties for high-concurrency swarms. Ephemeral fields live inside the database, while core statuses sync back to Markdown frontmatter JIT.
+```json
+{
+  "id": "bd-0003",
+  "status": "claimed",
+  "claimed_by": "frontend-engineer",
+  "claimed_at": "2026-05-27T15:00:00.000Z"
+}
+```
+
 ---
 
 ## 3. Directory Structure
@@ -148,3 +159,10 @@ Deterministic parsing combined with vector similarity:
 1. **Observe**: Every failed verification cycle increments `failedAttemptsCount` in `governance.js`.
 2. **Halt**: On the 3rd consecutive validation failure, the state machine switches from `active` to `tripped`.
 3. **Escalate**: The worktree patch is buffered, all agent tasks are frozen, and a highly granular failure report (containing the stack trace, last applied diff, and agent discussion logs) is rendered directly to the human orchestrator.
+
+### 4.4 Task Queue Concurrency Locking
+1. **Atomic Locking (`claim`)**: Agents claim a bead by executing:
+   `UPDATE beads SET claimed_by = ?, claimed_at = ? WHERE id = ? AND claimed_by IS NULL AND status IN ('open', 'failed')`
+   If the rows affected is `0`, the task has already been claimed by another worker (concurrency lock).
+2. **State Transitions**: The system transitions through `open -> claimed -> in_progress -> resolved | failed`. Transition triggers (`claim()`, `release()`, `start()`, `complete()`, `fail()`, `reopen()`) write to SQLite and JIT-synchronize `status` to the YAML frontmatter of the bead's physical Markdown file.
+3. **Stale Claim Expiry**: Sweeps run dynamically during `claim()` calls to auto-release tasks stuck in a `claimed` state for more than 30 minutes back to `open`, preventing deadlocks from crashed agent processes.

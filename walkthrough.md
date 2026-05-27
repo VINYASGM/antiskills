@@ -1,8 +1,8 @@
-# Veyra v2 — Architectural Overhaul Walkthrough
+# Veyra OS V3 — Task Queue & Architectural Integrity Walkthrough
 
 ## Summary
 
-Successfully overhauled the Veyra AI-Native OS engine across all 7 architectural remediation phases. All components are robust, cross-platform operational, and supported by full Go & JS test suites. **68/68 JS tests and 3/3 real Go browser-automated tests are passing green.**
+Successfully overhauled and extended the Veyra AI-Native OS engine across all V3 architectural milestones, including robust JIT database synchronization, relevance-scored hybrid context assembly, and modern state-machine task locking. **All 105 Vitest test cases and 3/3 real Go browser-automated tests are passing green.**
 
 ---
 
@@ -47,6 +47,16 @@ Successfully overhauled the Veyra AI-Native OS engine across all 7 architectural
   - **`progressBar()`**: Outputs horizontal percentage block loader visual progress meters.
   - Mapped gorgeous visual banners and blocks across `bead list`, `intent list`, `intent check`, `context assemble`, and `agent auto` commands.
 
+### Phase 8: Task Queue & Concurrency Locking — [db.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/db.js) & [veyra.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/veyra.js)
+- Deployed a robust, atomic state-machine locking system to prevent dual-agent task assignment conflicts.
+- **SQLite Concurrency Lock:** Claim operations execute row-level updates with optimistic locking parameters (`claimed_by IS NULL`) to ensure absolute exclusive processing.
+- **JIT Frontmatter Sync:** Automatically synchronizes `status` changes directly to the target Markdown bead file's YAML frontmatter.
+- **Automatic Stale Expiration:** Deployed a 30-minute stale lease sweeping module to auto-reclaim and release tasks if worker agent processes crash.
+- **Full CLI Subcommands:** Integrated `bead get`, `bead claim`, `bead release`, `bead start`, `bead complete`, `bead fail`, and `bead reopen` CLI controls.
+
+### Phase 9: Continuous Integration Workflow — [.github/workflows/ci.yml](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/.github/workflows/ci.yml)
+- Formulated standard GitHub Actions CI workflow executing `npm ci` + `npm test` automatically on pushes and pull requests to enforce code stability.
+
 ---
 
 ## Verification Results
@@ -70,16 +80,18 @@ $ npm test
 
  RUN  v4.1.7 C:/Users/Vinyas G M/OneDrive/Desktop/veyra
 
- ✓ tests/bin/visual-review.test.js (3 tests) 54ms
- ✓ tests/bin/patch.test.js (10 tests) 27ms
- ✓ tests/bin/router.test.js (8 tests) 19ms
- ✓ tests/bin/worktree.test.js (3 tests) 8ms
- ✓ tests/bin/ui.test.js (3 tests) 10ms
- ✓ tests/bin/context.test.js (15 tests) 387ms
- ✓ tests/bin/intent.test.js (10 tests) 454ms
- ✓ tests/bin/db.test.js (16 tests) 619ms
+ ✓ tests/bin/patch.test.js (10 tests) 28ms
+ ✓ tests/bin/governance.test.js (4 tests) 30ms
+ ✓ tests/bin/ast-transform.test.js (7 tests) 240ms
+ ✓ tests/bin/verify.test.js (5 tests) 253ms
+ ✓ tests/bin/visual-review.test.js (3 tests) 848ms
+ ✓ tests/bin/context.test.js (15 tests) 1585ms
+ ✓ tests/bin/event-bus.test.js (4 tests) 1296ms
+ ✓ tests/bin/intent.test.js (10 tests) 10610ms
+ ✓ tests/bin/db.test.js (16 tests) 13875ms
+ ✓ tests/bin/task-queue.test.js (16 tests) 14037ms
 
- Test Files  8 passed (8)
-      Tests  68 passed (68)
-   Duration  964ms
+ Test Files  13 passed (13)
+      Tests  105 passed (105)
+   Duration  14.77s
 ```

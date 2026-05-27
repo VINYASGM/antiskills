@@ -39,6 +39,8 @@ AI coding agents suffer from five systemic architectural failures at scale, whic
    - *V3 Solution:* **Recursive Prototyping Loops.** Establish a dual-agent loop: a fast "Explorer" agent rapidly prototypes in an isolated REPL to validate assumptions, and then an "Architect" agent formalizes the spec for the "Implementer" team.
 5. **Infinite Ping-Pong Token Drain:** Lack of limits between Testing, Review, and Implementation agents leads to infinite loop refactoring cycles.
    - *V3 Solution:* **Bounded State-Machine Circuit Breaker.** Enforce strict transaction and retry bounds (e.g., 3-strikes limit) in the Universal Agent Control Plane, auto-escalating to the human operator with a clean failure diff when exceeded.
+6. **Concurrent Task Processing & Dual-Agent Conflicts:** Lack of concurrency locking leads to multiple agents claiming, running, and writing overlapping files for the same task simultaneously.
+   - *V3 Solution:* **Task Queue & Claim Discipline.** SQLite-based atomic row-level locks tracking task ownership via `claimed_by` and `claimed_at` fields, coupled with automatic stale-claim releases and synchronized Markdown status updates, ensuring absolute task exclusive-processing guarantees.
 
 ---
 
@@ -58,3 +60,6 @@ Coordinates recursive loops. Spawns ephemeral sandboxed explorers to test hypoth
 
 ### 4.5 Bounded Universal Control Plane (`bin/governance.js`)
 State-machine based circuit breaker tracking multi-agent interactions. Halts execution loops, generates failure diagnostics, and alerts human operators after 3 failed verification passes.
+
+### 4.6 Task Queue & Concurrency Locking (`bin/db.js` & `bin/veyra.js`)
+An atomic state machine and locking framework (`claim`, `release`, `start`, `complete`, `fail`, `reopen`) built inside SQLite WAL cache, synchronized JIT with physical Markdown bead documents to prevent dual-agent task assignment conflicts.

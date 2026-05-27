@@ -68,6 +68,10 @@ class BeadsDB {
       CREATE INDEX IF NOT EXISTS idx_status ON beads(status);
       CREATE INDEX IF NOT EXISTS idx_type ON beads(type);
     `);
+
+    // Migration: add task queue columns (SQLite has no ADD COLUMN IF NOT EXISTS)
+    try { this.db.exec(`ALTER TABLE beads ADD COLUMN claimed_by TEXT DEFAULT NULL`); } catch (e) {}
+    try { this.db.exec(`ALTER TABLE beads ADD COLUMN claimed_at TEXT DEFAULT NULL`); } catch (e) {}
   }
 
   /**
@@ -336,6 +340,175 @@ ${bead.description || ''}`;
     bead.dependencies = this.db.prepare(`SELECT dependency_id FROM dependencies WHERE bead_id = ?`).all(id).map(r => r.dependency_id);
     return bead;
   }
+
+  // ─── Task Queue Discipline ───────────────────────────────────
+
+  /**
+   * Atomically claim a bead for an agent. Uses optimistic locking via
+   * UPDATE ... WHERE to ensure only one agent owns it.
+   *
+   * @param {string} beadId - Bead ID to claim.
+   * @param {string} agentId - Agent claiming ownership.
+   * @returns {boolean} true if claimed, false if already owned by another agent.
+   */
+  claim(beadId, agentId) {
+    this._expireStaleClaims();
+    const now = new Date().toISOString();
+    const result = this.db.prepare(`
+      UPDATE beads SET claimed_by = ?, claimed_at = ?, status = 'claimed'
+      WHERE id = ? AND (claimed_by IS NULL OR claimed_by = ?) AND status IN ('open', 'failed')
+    `).run(agentId, now, beadId, agentId);
+    if (result.changes > 0) {
+      this._writeStatusToMarkdown(beadId, 'claimed');
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Release a claim. Only owning agent can release unless force=true.
+   * Sets status back to 'open', clears claim fields.
+   *
+   * @param {string} beadId - Bead ID.
+   * @param {string} agentId - Agent releasing.
+   * @param {boolean} [force=false] - Force release regardless of owner.
+   * @returns {boolean} true if released.
+   */
+  release(beadId, agentId, force = false) {
+    let sql, params;
+    if (force) {
+      sql = `UPDATE beads SET claimed_by = NULL, claimed_at = NULL, status = 'open' WHERE id = ? AND claimed_by IS NOT NULL`;
+      params = [beadId];
+    } else {
+      sql = `UPDATE beads SET claimed_by = NULL, claimed_at = NULL, status = 'open' WHERE id = ? AND claimed_by = ?`;
+      params = [beadId, agentId];
+    }
+    const result = this.db.prepare(sql).run(...params);
+    if (result.changes > 0) {
+      this._writeStatusToMarkdown(beadId, 'open');
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Transition claimed → in_progress. Only claiming agent can start.
+   *
+   * @param {string} beadId - Bead ID.
+   * @param {string} agentId - Agent that owns the claim.
+   * @returns {boolean} true if transitioned.
+   */
+  start(beadId, agentId) {
+    const result = this.db.prepare(`
+      UPDATE beads SET status = 'in_progress'
+      WHERE id = ? AND claimed_by = ? AND status = 'claimed'
+    `).run(beadId, agentId);
+    if (result.changes > 0) {
+      this._writeStatusToMarkdown(beadId, 'in_progress');
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Transition in_progress → resolved. Clears claim. Writes Markdown.
+   *
+   * @param {string} beadId - Bead ID.
+   * @param {string} agentId - Agent completing the work.
+   * @param {string} [evidence=''] - Evidence of completion.
+   * @returns {boolean} true if completed.
+   */
+  complete(beadId, agentId, evidence = '') {
+    const result = this.db.prepare(`
+      UPDATE beads SET status = 'resolved', claimed_by = NULL, claimed_at = NULL, evidence = ?
+      WHERE id = ? AND claimed_by = ? AND status = 'in_progress'
+    `).run(evidence, beadId, agentId);
+    if (result.changes > 0) {
+      this._writeStatusToMarkdown(beadId, 'resolved', { evidence });
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Transition in_progress → failed. Clears claim. Writes Markdown.
+   *
+   * @param {string} beadId - Bead ID.
+   * @param {string} agentId - Agent reporting failure.
+   * @param {string} [reason=''] - Failure reason.
+   * @returns {boolean} true if failed.
+   */
+  fail(beadId, agentId, reason = '') {
+    const result = this.db.prepare(`
+      UPDATE beads SET status = 'failed', claimed_by = NULL, claimed_at = NULL, evidence = ?
+      WHERE id = ? AND claimed_by = ? AND status IN ('claimed', 'in_progress')
+    `).run(reason, beadId, agentId);
+    if (result.changes > 0) {
+      this._writeStatusToMarkdown(beadId, 'failed', { evidence: reason });
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Reopen a resolved or failed bead. Clears any claim.
+   *
+   * @param {string} beadId - Bead ID.
+   * @returns {boolean} true if reopened.
+   */
+  reopen(beadId) {
+    const result = this.db.prepare(`
+      UPDATE beads SET status = 'open', claimed_by = NULL, claimed_at = NULL
+      WHERE id = ? AND status IN ('resolved', 'failed')
+    `).run(beadId);
+    if (result.changes > 0) {
+      this._writeStatusToMarkdown(beadId, 'open');
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Release claims older than maxAgeMs. Called lazily inside claim().
+   *
+   * @param {number} [maxAgeMs=1800000] - Max claim age (default 30 min).
+   * @returns {number} Number of expired claims released.
+   */
+  _expireStaleClaims(maxAgeMs = 1800000) {
+    const cutoff = new Date(Date.now() - maxAgeMs).toISOString();
+    const result = this.db.prepare(`
+      UPDATE beads SET claimed_by = NULL, claimed_at = NULL, status = 'open'
+      WHERE claimed_by IS NOT NULL AND claimed_at < ? AND status IN ('claimed')
+    `).run(cutoff);
+    return result.changes;
+  }
+
+  /**
+   * Write status change to Markdown bead file on disk.
+   * Reads → parses → updates status → writes back. Preserves body/tags.
+   *
+   * @param {string} beadId - Bead ID.
+   * @param {string} newStatus - New status value.
+   * @param {object} [extraFields={}] - Extra fields to update (e.g. evidence).
+   */
+  _writeStatusToMarkdown(beadId, newStatus, extraFields = {}) {
+    const beadsDir = path.join(process.cwd(), 'memory', 'beads');
+    const mdPath = path.join(beadsDir, `${beadId}.md`);
+    if (!fs.existsSync(mdPath)) return;
+
+    const raw = fs.readFileSync(mdPath, 'utf8');
+    const bead = this.parseFrontmatter(raw);
+    if (!bead) return;
+
+    bead.status = newStatus;
+    if (extraFields.evidence !== undefined) bead.evidence = extraFields.evidence;
+    const content = this.stringifyFrontmatter(bead);
+    fs.writeFileSync(mdPath, content, 'utf8');
+    // Invalidate mtime cache so next sync picks up the change
+    this._fileMtimes.delete(`${beadId}.md`);
+  }
+
+  // ─── ID Generation ──────────────────────────────────────────
 
   /**
    * Analyzes active bead items inside the synced SQLite database to determine the next incremental bd-XXXX ID.

@@ -39,8 +39,15 @@ const showHelp = () => {
   
   const headers = ['COMMAND', 'DESCRIPTION'];
   const rows = [
-    [`${ui.colors.green}bead list${ui.colors.reset}`, 'List all memory beads (SQLite JIT compiled)'],
+    [`${ui.colors.green}bead list${ui.colors.reset}`, 'List all memory beads with claim status'],
     [`${ui.colors.green}bead create <title>${ui.colors.reset}`, 'Create a new memory bead'],
+    [`${ui.colors.green}bead get <id>${ui.colors.reset}`, 'Show full bead details including claim state'],
+    [`${ui.colors.green}bead claim <id> <agent>${ui.colors.reset}`, 'Claim a bead for an agent (atomic lock)'],
+    [`${ui.colors.green}bead release <id> <agent>${ui.colors.reset}`, 'Release a claimed bead'],
+    [`${ui.colors.green}bead start <id> <agent>${ui.colors.reset}`, 'Transition claimed → in_progress'],
+    [`${ui.colors.green}bead complete <id> <agent>${ui.colors.reset}`, 'Transition in_progress → resolved'],
+    [`${ui.colors.green}bead fail <id> <agent>${ui.colors.reset}`, 'Transition → failed'],
+    [`${ui.colors.green}bead reopen <id>${ui.colors.reset}`, 'Reopen a resolved/failed bead'],
     [`${ui.colors.green}context assemble <task>${ui.colors.reset}`, 'Assemble hybrid context and write task manifest'],
     [`${ui.colors.green}context index${ui.colors.reset}`, 'Generate dynamic codebase repo map and dependency DAG'],
     [`${ui.colors.green}intent publish <ag> <tsk>${ui.colors.reset}`, 'Broadcast agent files, DB, routes, styles intents'],
@@ -90,17 +97,17 @@ const main = async () => {
         return;
       }
       
-      const headers = ['ID', 'TYPE', 'STATUS', 'TITLE'];
+      const headers = ['ID', 'STATUS', 'CLAIMED_BY', 'TITLE'];
       const rows = beads.map(b => {
         let statusStyled = b.status;
-        if (b.status === 'resolved') {
-          statusStyled = `${ui.colors.green}resolved${ui.colors.reset}`;
-        } else if (b.status === 'open') {
-          statusStyled = `${ui.colors.yellow}open${ui.colors.reset}`;
-        }
-        return [b.id, b.type, statusStyled, b.title];
+        if (b.status === 'resolved') statusStyled = `${ui.colors.green}resolved${ui.colors.reset}`;
+        else if (b.status === 'open') statusStyled = `${ui.colors.yellow}open${ui.colors.reset}`;
+        else if (b.status === 'claimed') statusStyled = `${ui.colors.cyan}claimed${ui.colors.reset}`;
+        else if (b.status === 'in_progress') statusStyled = `${ui.colors.bright}in_progress${ui.colors.reset}`;
+        else if (b.status === 'failed') statusStyled = `${ui.colors.red}failed${ui.colors.reset}`;
+        return [b.id, statusStyled, b.claimed_by || '—', b.title];
       });
-      const widths = [10, 15, 20, 45];
+      const widths = [10, 20, 18, 40];
       console.log(ui.drawTable(headers, rows, widths, 'cyan'));
       console.log();
     } else if (subcommand === 'create') {
@@ -118,6 +125,66 @@ const main = async () => {
       });
       console.log(ui.drawBox('MEMORY BEAD CREATION', [`✔ Bead created successfully!`, `ID:    ${newId}`, `Title: ${title}`], 50, 'green'));
       console.log();
+    } else if (subcommand === 'get') {
+      printHeader();
+      const id = rest[0];
+      if (!id) return console.log('Missing bead ID.');
+      const bead = beadsDB.get(id);
+      if (!bead) return console.log(`Bead '${id}' not found.`);
+      const lines = [
+        `ID:          ${bead.id}`,
+        `Type:        ${bead.type}`,
+        `Status:      ${bead.status}`,
+        `Title:       ${bead.title}`,
+        `Author:      ${bead.author || '—'}`,
+        `Timestamp:   ${bead.timestamp || '—'}`,
+        `Claimed By:  ${bead.claimed_by || '—'}`,
+        `Claimed At:  ${bead.claimed_at || '—'}`,
+        `Tags:        ${(bead.tags || []).join(', ') || '—'}`,
+        `Deps:        ${(bead.dependencies || []).join(', ') || '—'}`,
+        `Evidence:    ${bead.evidence || '—'}`,
+      ];
+      if (bead.description) { lines.push('', bead.description.substring(0, 200)); }
+      console.log(ui.drawBox('BEAD DETAILS', lines, 65, 'cyan'));
+      console.log();
+    } else if (subcommand === 'claim') {
+      const id = rest[0], agentId = rest[1];
+      if (!id || !agentId) return console.log('Usage: bead claim <id> <agentId>');
+      const ok = beadsDB.claim(id, agentId);
+      if (ok) console.log(`✔ Bead ${id} claimed by ${agentId}.`);
+      else console.log(`✘ Cannot claim ${id} — already owned or invalid status.`);
+    } else if (subcommand === 'release') {
+      const id = rest[0], agentId = rest[1];
+      if (!id || !agentId) return console.log('Usage: bead release <id> <agentId>');
+      const ok = beadsDB.release(id, agentId);
+      if (ok) console.log(`✔ Bead ${id} released.`);
+      else console.log(`✘ Cannot release ${id} — not owned by ${agentId}.`);
+    } else if (subcommand === 'start') {
+      const id = rest[0], agentId = rest[1];
+      if (!id || !agentId) return console.log('Usage: bead start <id> <agentId>');
+      const ok = beadsDB.start(id, agentId);
+      if (ok) console.log(`✔ Bead ${id} → in_progress.`);
+      else console.log(`✘ Cannot start ${id} — not claimed by ${agentId} or wrong status.`);
+    } else if (subcommand === 'complete') {
+      const id = rest[0], agentId = rest[1];
+      if (!id || !agentId) return console.log('Usage: bead complete <id> <agentId>');
+      const evidence = rest.slice(2).join(' ') || '';
+      const ok = beadsDB.complete(id, agentId, evidence);
+      if (ok) console.log(`✔ Bead ${id} → resolved.`);
+      else console.log(`✘ Cannot complete ${id} — not in_progress by ${agentId}.`);
+    } else if (subcommand === 'fail') {
+      const id = rest[0], agentId = rest[1];
+      if (!id || !agentId) return console.log('Usage: bead fail <id> <agentId>');
+      const reason = rest.slice(2).join(' ') || '';
+      const ok = beadsDB.fail(id, agentId, reason);
+      if (ok) console.log(`✔ Bead ${id} → failed.`);
+      else console.log(`✘ Cannot fail ${id} — not owned by ${agentId}.`);
+    } else if (subcommand === 'reopen') {
+      const id = rest[0];
+      if (!id) return console.log('Usage: bead reopen <id>');
+      const ok = beadsDB.reopen(id);
+      if (ok) console.log(`✔ Bead ${id} → open.`);
+      else console.log(`✘ Cannot reopen ${id} — not resolved or failed.`);
     } else {
       showHelp();
     }

@@ -3,7 +3,8 @@
 | Layer | Technology | Version |
 |---|---|---|
 | Runtime | Node.js | 20+ |
-| Package Manager | pnpm | latest |
-| Language | TypeScript | 5+ (strict, no `any`) |
-| Test Runner | Vitest | latest |
-| Linter | ESLint | latest |
+| Package Manager | npm | latest |
+| Language | JavaScript (CommonJS) | ES2022 |
+| Test Runner | Vitest | 4+ |
+| Database | SQLite (better-sqlite3) | WAL mode |
+| Validation | Zod | 4+ |

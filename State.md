@@ -10,10 +10,10 @@
 | Field | Value |
 |---|---|
 | **Current Phase** | Veyra V3 Production-Ready Swarm |
-| **Status** | 🟢 Stable / 77/77 Vitest Assertions Passed |
-| **Core Goal** | Address architectural critique via decoupled memory graphs, contract checks, hybrid context assembly, dual loops, and circuit breakers |
+| **Status** | 🟢 Stable / 105/105 Vitest Assertions Passed |
+| **Core Goal** | Address architectural critique via decoupled memory graphs, contract checks, hybrid context assembly, dual loops, task queue discipline, and circuit breakers |
 | **Started** | 2026-05-26 |
-| **Target Completion** | 2026-05-26 |
+| **Target Completion** | 2026-05-27 |
 
 ---
 
@@ -33,6 +33,8 @@
 | **Phase 11: Explorer-Architect Loop** | 🟢 Complete | Specified sandboxed speculation playground Explorer (`agents/explorer.md`) and routed speculative tasks dynamically through Explorer -> Architect speculative contract sweeps. |
 | **Phase 12: Governance Circuit Breaker** | 🟢 Complete | Attempt state governance (`bin/governance.js`) checking strike limit counters, tripping circuit breakers at 3 failures, and generating diagnostic human escalation reports. |
 | **Phase 13: Architectural Audit & Zoom-Out** | 🟢 Complete | Conducted detailed zoom-out audit responding to systemic flaws. Structured V3 dependency maps and formulated V4 architectural roadmap. |
+| **Phase 14: Task Queue & Claim Discipline** | 🟢 Complete | Added robust claim, release, start, complete, fail, and reopen methods to prevent dual-agent task collisions, with automatic stale claim expiry. |
+| **Phase 15: GitHub Actions CI Workflow** | 🟢 Complete | Deployed `.github/workflows/ci.yml` running Vitest suites on pull requests and branch merges to enforce real quality gates. |
 
 ---
 
@@ -51,8 +53,9 @@
 | `bin/verify.js` | 🟢 Active | Contract-proven programmatic checker. |
 | `bin/governance.js` | 🟢 Active | Swarm retry attempt state governance circuit breaker. |
 | `checklists/` | 🟢 Active | JSON programmatic verification contract templates. |
-| `tests/` | 🟢 Active | 77 Vitest test cases validating V3 core modules, databases, VFS patches, circuit breakers, and custom rules. |
+| `tests/` | 🟢 Active | 105 Vitest test cases validating V3 core modules, task queues, databases, VFS patches, circuit breakers, and custom rules. |
 | `context.md` | 🟢 Active | Central developer cheat sheet. |
+| `.github/workflows/ci.yml` | 🟢 Active | GitHub Actions CI configuration running Vitest tests on PRs/pushes. |
 | `veyra_zoom_out_analysis.md` | 🟢 Active | Detailed structural module maps and side-by-side critique responses. |
 
 ---
