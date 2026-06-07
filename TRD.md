@@ -1,8 +1,8 @@
 # Technical Requirements Document — Veyra
 
-**Version:** 3.0
+**Version:** 3.1
 **Author:** VEYRA-OS / ANTIGRAVITY
-**Date:** 2026-05-26
+**Date:** 2026-06-07
 **Status:** Active
 
 ---
@@ -104,6 +104,45 @@ SQLite-level runtime locking properties for high-concurrency swarms. Ephemeral f
 }
 ```
 
+### 2.5 Dashboard Telemetry Schema
+A unified runtime schema mapping active database locks, governance transactions, task completion progress, and active patch channels.
+```json
+{
+  "timestamp": "2026-06-07T12:00:00.000Z",
+  "beadStats": {
+    "total": 12,
+    "open": 2,
+    "claimed": 2,
+    "in_progress": 1,
+    "resolved": 6,
+    "failed": 1,
+    "completionRate": 50
+  },
+  "activeLocks": [
+    {
+      "id": "bd-0003",
+      "title": "Build User Profile View",
+      "status": "claimed",
+      "claimed_by": "frontend-engineer",
+      "claimed_at": "2026-05-27T15:00:00.000Z",
+      "durationMs": 900000
+    }
+  ],
+  "governanceTransactions": [
+    {
+      "transactionId": "tx-8891",
+      "taskId": "bd-0003",
+      "agents": ["frontend-engineer", "testing-engineer"],
+      "failedAttemptsCount": 2,
+      "maxThreshold": 3,
+      "status": "active",
+      "escalationReportExists": false
+    }
+  ],
+  "patchChannels": ["channel_alpha", "channel_beta"]
+}
+```
+
 ---
 
 ## 3. Directory Structure
@@ -118,7 +157,9 @@ veyra/
 │   ├── patch.js             # VFS patch applicator and collision scanner
 │   ├── verify.js            # Contract-proven compiler & Vitest validation run
 │   ├── governance.js        # State-machine circuit breaker & automatic escalations
-│   └── router.js            # Dual Explorer-Architect loop allocator
+│   ├── router.js            # Dual Explorer-Architect loop allocator
+│   ├── ui.js                # Procedural terminal styling primitives
+│   └── dashboard.js         # Swarm Status telemetry and UI dashboard
 ├── memory-mcp-server/       # MCP Graph Server Core
 │   ├── server.py            # Python MCP entrypoint
 │   ├── graph.py             # NetworkX + DuckDB graph database orchestrator
@@ -132,6 +173,8 @@ veyra/
 ├── checklists/              # Formal code contracts (*.json)
 ├── memory/                  # Direct message mailboxes (`memory/inbox/`)
 ├── tests/                   # Strict TDD Vitest suites
+│   └── bin/
+│       └── dashboard.test.js # Vitest test coverage for the dashboard
 ├── context.md               # Central developer cheat sheet
 ├── PRD.md                   # Product Requirements Document
 ├── TRD.md                   # Technical Requirements Document (this file)
@@ -166,3 +209,11 @@ Deterministic parsing combined with vector similarity:
    If the rows affected is `0`, the task has already been claimed by another worker (concurrency lock).
 2. **State Transitions**: The system transitions through `open -> claimed -> in_progress -> resolved | failed`. Transition triggers (`claim()`, `release()`, `start()`, `complete()`, `fail()`, `reopen()`) write to SQLite and JIT-synchronize `status` to the bead's physical JSON file.
 3. **Stale Claim Expiry**: Sweeps run dynamically during `claim()` calls to auto-release tasks stuck in a `claimed` state for more than 30 minutes back to `open`, preventing deadlocks from crashed agent processes.
+
+### 4.5 Swarm Dashboard Telemetry rendering
+1. **Data Aggregation**: Pulls JIT statistics from `BeadsDB`, scans `.agent/governance/tx-*.json` (alongside `escalation-*.md` checks), and reads the directories inside `patches/`.
+2. **Visual Layout Primitives**: Utilizes `bin/ui.js` modules:
+   - `progressBar` for task queue percentage completion.
+   - `drawBox` for task queue statistics block.
+   - `drawTable` for the concurrency lock registry and governance transaction tracker, using bright coloring rules for status transitions (`tripped` breaker colored bright red, `active` locks colored magenta).
+3. **CLI Invocation**: Integrated directly as a top-level command `dashboard` or `ui dashboard` in `bin/veyra.js`.

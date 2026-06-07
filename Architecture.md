@@ -1,8 +1,8 @@
 # Architecture — Veyra
 
-**Version:** 3.0
+**Version:** 3.1
 **Status:** Living Document
-**Last Updated:** 2026-05-26
+**Last Updated:** 2026-06-07
 
 ---
 
@@ -11,6 +11,7 @@
 The Veyra V3 architecture comprises a decentralized **AI-Native Flow State & Contract-Proven OS** operating layer. It resolves multi-agent coordination locks, infinite loops, and semantic conflicts through a decoupled control plane, external graph memory, and isolated integration verifications.
 
 **Plain-text summary:** The Human Orchestrator defines requirements. The Veyra engine uses a **Dual Explorer-Architect Loop** to eliminate rigid waterfall planning. An *Explorer* agent rapidly prototypes in an isolated playground. The *Architect* agent translates these learnings into concrete programmatic and mathematical **Contracts** (`checklists/contract-XXXX.json`). The *Implementer* agent writes the logic in a unified single branch utilizing the **VFS Patch System** (`bin/patch.js`). The **Verify Engine** (`bin/verify.js`) checks patches against the contract using automated test suites before commits. All agents claim their tasks from a centralized SQLite-based **Task Queue & Concurrency Lock** (`bin/db.js`) to prevent dual-agent race conditions or overlapping writes. All agents publish active plans to the JIT SQLite intent registry to intercept styling or logic collisions. An external **MCP Graph Memory Server** backed by DuckDB + NetworkX stores episodic context, which is dynamically summarized (compressed) to stay under context limits. If a task fails verification repeatedly, the **Governance State-Machine Circuit Breaker** (`bin/governance.js`) trips at 3 failures, halting execution and auto-escalating to the human.
+A central **Swarm Status Dashboard** (`bin/dashboard.js`) taps into the SQLite database, governance storage dir, and patches directory to render a live visual telemetry control plane of the entire system state back to the human developer.
 
 ```mermaid
 graph TD
@@ -19,6 +20,7 @@ graph TD
         H --> SPEC["📋 Specifications: PRD, TRD, Architecture"]
         VERIFY["🧪 Verify Engine: Contract proofs & tests"] -->|Merges atomic patch| GIT_HEAD["🔀 Git Repository Main Branch"]
         GOV["🛡️ Governance Circuit Breaker: 3 strikes policy"] -->|Trips & Alerts| H
+        DASHBOARD["📺 Swarm Dashboard CLI: status & locks"] -->|Render visual telemetry| H
     end
 
     subgraph AEE["Agent Execution Environment (VFS Flow State Workspace)"]
@@ -42,6 +44,9 @@ graph TD
     H --> DB_QUEUE
     DB_QUEUE -->|Exclusive task assignment| EXPLORER
     VERIFY -->|Failed attempts track| GOV
+    DB_QUEUE -.->|Extract locks & stats| DASHBOARD
+    GOV -.->|Extract retry strikes| DASHBOARD
+    PATCH -.->|List active channels| DASHBOARD
 ```
 
 ---
@@ -83,3 +88,15 @@ To scale memory to extremely large codebases without blowing out token budgets:
 - **Intent Registry:** Agents broadcast planned files, styling tokens, database columns, and endpoints to SQLite WAL cache.
 - **Formal Verification:** Proposed unified patch files (`patch.js`) are checked by the `verify.js` engine, running precise linters, TypeScript compilations, and Vitest test suites.
 - **Atomic Commits:** Patch is applied to the physical directory *only* after satisfying all contract proofs, keeping the main branch consistently green.
+
+---
+
+## 5. Swarm Telemetry & Observability Layer
+
+To monitor parallel executions and manage circuit breakers:
+- **Telemetry Aggregator (`bin/dashboard.js`):** Extends visual primitives from `bin/ui.js` to compile database states, active concurrency locks, governance strikes, and directory-based patch channels.
+- **Visual Primitives Mapping:**
+  - Database status summaries and progress are wrapped inside cyan double-bordered `drawBox` modules.
+  - Active concurrency locks are formatted inside a blue table (`drawTable`), demonstrating agent ownership, claim status, and holds duration.
+  - Governance transaction streams display current strike counts against thresholds (`X/3`), coloring `tripped` breakers in bright red ANSI style.
+  - Channels are parsed straight from the filesystem `patches/` folder and listed as active workspaces.

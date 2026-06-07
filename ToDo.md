@@ -1,6 +1,6 @@
 # Roadmap — Veyra
 
-**Last Updated:** 2026-05-26
+**Last Updated:** 2026-06-07
 
 ---
 
@@ -58,7 +58,7 @@
 
 ### ✅ Milestone 10: Dual Explorer-Architect Orchestration Loop (Phase 11)
 - [x] Define Explorer REPL sandbox specs in `agents/explorer.md`.
-- [x] Modify `bin/router.js` to route speculative requirements tasks through recursive Explorer -> Architect loops.
+- [x] Modify `bin/router.js` to route speculative requirements tasks through recursive Explorer -> Architect speculative contract sweeps.
 - [x] Create Architect formal spec translation scripts.
 
 ### ✅ Milestone 11: Governance State-Machine Circuit Breaker (Phase 12)
@@ -94,6 +94,16 @@
 - [x] Write Vitest test coverage for AST operations and conflict detection, pushing total assertions to 122.
 
 ---
+## Completed Swarm Telemetry Milestones
+
+### ✅ Milestone 19: Swarm Telemetry Dashboard (Phase D)
+- [x] Analyze codebase tracking and database locking metrics.
+- [x] Design data extraction functions in `bin/dashboard.js` retrieving SQLite locks, governance retry strike arrays, and patch channels.
+- [x] Design visual styling interface mapping using `bin/ui.js` primitives.
+- [x] Integrate CLI command `dashboard` / `ui dashboard` in `bin/veyra.js`.
+- [x] Design Vitest test suite in `tests/bin/dashboard.test.js` validating layout assembly and calculations.
+
+---
 ## Future V4 Strategic Milestones
 
 ### ⬜ Milestone 17: Multimodal VLM Layout Auditing
@@ -103,4 +113,3 @@
 ### ⬜ Milestone 18: Pub/Sub Swarm Worker Loop
 - [ ] Formulate a daemon microservice subscribing to an SQLite WAL event bus.
 - [ ] Allocate subagent tasks asynchronously as event bus dependency flags update.
-

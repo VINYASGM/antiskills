@@ -1,8 +1,8 @@
 # Product Requirements Document — Veyra
 
-**Version:** 3.0
+**Version:** 3.1
 **Author:** VEYRA-OS / ANTIGRAVITY
-**Date:** 2026-05-26
+**Date:** 2026-06-07
 **Status:** Active
 
 ---
@@ -27,7 +27,7 @@ Veyra V3 transitions from the rigid waterfall-like coordination of V2 to an **AI
 
 ## 3. Problem Statement & V3 Solutions
 
-AI coding agents suffer from five systemic architectural failures at scale, which Veyra OS V3 completely resolves:
+AI coding agents suffer from six systemic architectural failures at scale, which Veyra OS V3 completely resolves:
 
 1. **The Worktree Rebase & Semantic Conflict Bottleneck:** Sequential rebasing of multiple agent worktrees stalls parallel execution and leads to logical/semantic integration failures.
    - *V3 Solution:* **Contract-Proven Verification Check.** Instead of sequential rebase lockups, agents merge atomically into an integration branch only after satisfying automated, formal verification checks and proof-carrying tests (e.g. Vitest semantic compliance).
@@ -41,6 +41,8 @@ AI coding agents suffer from five systemic architectural failures at scale, whic
    - *V3 Solution:* **Bounded State-Machine Circuit Breaker.** Enforce strict transaction and retry bounds (e.g., 3-strikes limit) in the Universal Agent Control Plane, auto-escalating to the human operator with a clean failure diff when exceeded.
 6. **Concurrent Task Processing & Dual-Agent Conflicts:** Lack of concurrency locking leads to multiple agents claiming, running, and writing overlapping files for the same task simultaneously.
    - *V3 Solution:* **Task Queue & Claim Discipline.** SQLite-based atomic row-level locks tracking task ownership via `claimed_by` and `claimed_at` fields, coupled with automatic stale-claim releases and synchronized Markdown status updates, ensuring absolute task exclusive-processing guarantees.
+7. **Swarm Telemetry & System Observability Gaps:** Multi-agent swarms operate concurrently in the background, making it extremely difficult for developers or human operators to monitor database locks, retry strikes, patch channels, and overall progress in real-time.
+   - *V3 Solution:* **Terminal Swarm Dashboard.** A unified, high-performance terminal UI dashboard displaying JIT database locks, active governance transaction attempts, tripped circuit breaker escalations, and active patch channels, providing total swarm telemetry and execution transparency.
 
 ---
 
@@ -63,3 +65,6 @@ State-machine based circuit breaker tracking multi-agent interactions. Halts exe
 
 ### 4.6 Task Queue & Concurrency Locking (`bin/db.js` & `bin/veyra.js`)
 An atomic state machine and locking framework (`claim`, `release`, `start`, `complete`, `fail`, `reopen`) built inside SQLite WAL cache, synchronized JIT with physical Markdown bead documents to prevent dual-agent task assignment conflicts.
+
+### 4.7 Terminal Swarm Dashboard (`bin/dashboard.js`)
+A gorgeous terminal-based telemetry interface extracting SQLite concurrency locks, active governance transactions, circuit-breaker metrics, and patch directories to render real-time swarm operational states using double-bordered boxes, tables, and progress indicators.

@@ -28,6 +28,7 @@ Core Commands:
   bead update <id> <key=value...>
   worktree add <name>
   worktree remove <name>
+  dashboard | ui dashboard   Display swarm status, database locks, and active channels
 `);
 }
 
@@ -307,6 +308,11 @@ function parseOptions(argsList) {
           gov.resetTransaction(txId);
           console.log(`Reset transaction tx-${txId}`);
         }
+      }
+      else if (command === 'dashboard' || (command === 'ui' && subcommand === 'dashboard')) {
+        const SwarmDashboard = require('./dashboard');
+        const dashboard = new SwarmDashboard();
+        console.log(dashboard.render());
       }
       else if (command === 'visual-review') {
         const visualReview = require('./visual-review');

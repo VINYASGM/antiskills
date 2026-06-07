@@ -55,6 +55,25 @@ describe('CLI UI Helpers — Visual Styles', () => {
     expect(table).toContain('┤');
   });
 
+  test('drawTable() truncates long cell values and strips ANSI if exceeding width', () => {
+    const headers = ['AGENT', 'TASK'];
+    const rows = [
+      ['extremely-long-agent-name-here', 'Normal task'],
+      ['\x1b[31mcolor-agent\x1b[0m', 'Normal task']
+    ];
+    const widths = [10, 15];
+    const table = ui.drawTable(headers, rows, widths, 'green');
+
+    // 'extremely-long-agent-name-here' plain length is 30. Width is 10.
+    // 10 > 3, so limit = 10 - 3 = 7. Suffix = '...'. Result should be 'extreme...'
+    expect(table).toContain('extreme...');
+    expect(table).not.toContain('extremely-long-agent-name-here');
+
+    // '\x1b[31mcolor-agent\x1b[0m' plain length is 11. Width is 10.
+    // Result should strip ANSI code and truncate: 'color-a...'
+    expect(table).toContain('color-a...');
+  });
+
   test('progressBar() produces a stylized progress meter', () => {
     const bar50 = ui.progressBar(50, 20);
     const bar100 = ui.progressBar(100, 20);

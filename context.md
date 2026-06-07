@@ -12,6 +12,7 @@ Veyra is a reusable, AI-native engineering operating system repository framework
 - **Hybrid Context Assembly:** Combines local syntax-tree (AST) crawls with global similarity vector searches (RAG) to ensure maximum relevancy and zero token waste.
 - **Explorer-Architect Prototyping Loops:** A fast *Explorer* sandbox tests assumptions before the *Architect* formalizes specs, mitigating waterfall friction.
 - **Governance State-Machine Circuit Breakers:** Strict 3-strike retry bounds in `bin/governance.js` protect against infinite agent ping-pong loop token drain.
+- **Swarm Telemetry Observability:** Swarm dashboard (`bin/dashboard.js`) rendering database locks, retry states, and active patch channels to display live swarm status.
 
 ---
 
@@ -25,6 +26,8 @@ Veyra is a reusable, AI-native engineering operating system repository framework
   - [ast_transform.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/ast_transform.js) — AST Code-as-a-Graph Transformation Engine.
   - [verify.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/verify.js) — Formal contract and checklist validator.
   - [governance.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/governance.js) — Multi-agent state tracker and circuit breaker.
+  - [ui.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/ui.js) — Procedural terminal double-bordered box, table, and progress bar layout styles.
+  - [dashboard.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/dashboard.js) — Telemetry extraction, metrics compilation, and visual rendering dashboard.
   - [router.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/router.js) — Dual Explorer-Architect flow routing layer.
   - [veyra.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/veyra.js) — CLI Entrypoint bootloader.
 - [memory-mcp-server/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/memory-mcp-server) — MCP memory server running DuckDB + NetworkX graph operations.
@@ -48,11 +51,19 @@ graph TD
         
         PATCH_CHECK -->|Assemble Context| CONTEXT[Hybrid context AST + vector RAG]
         CONTEXT -->|Unified patch diff| VERIFY[🧪 Verify Engine: contract checks]
+        
+        subgraph Observability
+            DASHBOARD["📺 Swarm Dashboard CLI"]
+        end
     end
     
     VERIFY -->|3 strikes track| GOV[🛡️ Governance Circuit Breaker]
     GOV -->|Pass| COMMIT[Atomic merge to branch Git]
     GOV -->|Fail threshold| ALARM[🚨 Escalate to Human with Failure diff]
+    
+    DB_QUEUE["🔒 SQLite DB Locks"] -.-> DASHBOARD
+    GOV -.-> DASHBOARD
+    PATCH_CHECK -.-> DASHBOARD
 ```
 
 ---
@@ -81,4 +92,12 @@ node bin/veyra.js memory query <nodeId>
 Audit current circuit-breaker transition states:
 ```powershell
 node bin/veyra.js governance status <transactionId>
+```
+
+### Launch Swarm Dashboard
+Display database locks, retry strikes, and active patch channels visually:
+```powershell
+node bin/veyra.js dashboard
+# OR
+node bin/veyra.js ui dashboard
 ```

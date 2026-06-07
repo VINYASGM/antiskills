@@ -81,8 +81,20 @@ function drawTable(headers, rows, widths, themeColor = 'green') {
     table += color + '│' + reset;
     row.forEach((val, idx) => {
       const w = widths[idx];
-      const pad = Math.max(0, w - stripAnsi(String(val)).length);
-      table += ' ' + val + ' '.repeat(pad) + color + ' │' + reset;
+      let displayVal = String(val);
+      const plainLen = stripAnsi(displayVal).length;
+      if (plainLen > w) {
+        const limit = w > 3 ? w - 3 : w;
+        const suffix = w > 3 ? '...' : '';
+        if (!displayVal.includes('\u001b')) {
+          displayVal = displayVal.slice(0, limit) + suffix;
+        } else {
+          const stripped = stripAnsi(displayVal);
+          displayVal = stripped.slice(0, limit) + suffix;
+        }
+      }
+      const pad = Math.max(0, w - stripAnsi(displayVal).length);
+      table += ' ' + displayVal + ' '.repeat(pad) + color + ' │' + reset;
     });
     table += '\n';
 
