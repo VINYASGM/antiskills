@@ -88,17 +88,19 @@
 - [x] Rebuilt the main entrypoint CLI (`bin/veyra.js`) from scratch as a headless Node.js tool using a zero-dependency argument parser.
 - [x] Restructured Vitest test suite to cover Zod schemas, JSON persistence, and concurrency locks, increasing total tests to 112 assertions.
 
+### ✅ Milestone 16: AST Code-as-a-Graph Transformations
+- [x] Incorporate AST node manipulation pipelines (`addFunction`, `modifyFunction`, `updateVariableAssignment`, `updateObjectProperty`, `addMethod`, `addImport`).
+- [x] Integrate AST patching in `bin/patch.js` with semantic conflict resolution (checking overlap of exact method, function, or property keys instead of lines).
+- [x] Write Vitest test coverage for AST operations and conflict detection, pushing total assertions to 122.
+
 ---
 ## Future V4 Strategic Milestones
 
-### ⬜ Milestone 15: AST Code-as-a-Graph Transformations
-- [ ] Incorporate AST node manipulation pipelines (`add_node`, `modify_function`).
-- [ ] Eliminate raw line-based patch diff writes entirely to guarantee syntactic correctness.
-
-### ⬜ Milestone 16: Multimodal VLM Layout Auditing
+### ⬜ Milestone 17: Multimodal VLM Layout Auditing
 - [ ] Integrate Playwright snapshots with multimodal vision LLMs.
 - [ ] Execute automated assertions validating responsive visual layouts against Figma assets.
 
-### ⬜ Milestone 17: Pub/Sub Swarm Worker Loop
+### ⬜ Milestone 18: Pub/Sub Swarm Worker Loop
 - [ ] Formulate a daemon microservice subscribing to an SQLite WAL event bus.
 - [ ] Allocate subagent tasks asynchronously as event bus dependency flags update.
+

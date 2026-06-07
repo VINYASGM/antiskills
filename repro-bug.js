@@ -50,3 +50,38 @@ patched = applyPatch(patched, patchB);
 
 console.log("--- Final Code (Semantically invalid if overlapping blindly) ---");
 console.log(patched);
+
+console.log("\n==================================================");
+console.log("--- AST-based Patching (Milestone 15) ---");
+console.log("==================================================");
+
+// Agent A wants to add logger property to config object
+const astPatchA = JSON.stringify([
+  { type: 'updateObjectProperty', variableName: 'config', propertyKey: 'logger', propertyValue: true }
+]);
+
+// Agent B wants to add db property to config object
+const astPatchB = JSON.stringify([
+  { type: 'updateObjectProperty', variableName: 'config', propertyKey: 'db', propertyValue: true }
+]);
+
+console.log("--- AST Patch A ---");
+console.log(astPatchA);
+console.log("--- AST Patch B ---");
+console.log(astPatchB);
+
+const astWorkspace = createWorkspace();
+astWorkspace.addPatch('AgentA', 'config.js', astPatchA);
+astWorkspace.addPatch('AgentB', 'config.js', astPatchB);
+
+const astConflicts = astWorkspace.checkConflicts();
+console.log("--- AST Conflicts (Should be empty/false) ---");
+console.log(astConflicts);
+
+let astPatched = originalCode;
+astPatched = applyPatch(astPatched, astPatchA);
+astPatched = applyPatch(astPatched, astPatchB);
+
+console.log("--- Final Code under AST Patching (Both keys present and syntax clean) ---");
+console.log(astPatched);
+

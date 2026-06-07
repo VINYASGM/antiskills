@@ -1,10 +1,6 @@
-/**
- * 🔧 Patch System — Agent File Isolation Without Git Worktrees
- * Agents produce unified diffs. Orchestrator applies patches atomically.
- * Conflicts = rejected patches, not corrupted repos.
- */
-
 const fs = require('node:fs');
+const path = require('node:path');
+const astTransform = require('./ast_transform.js');
 
 /**
  * Creates a unified diff between original and modified content.
@@ -96,12 +92,11 @@ function createPatch(original, modified) {
  * @param {string} patch - Unified diff string.
  * @returns {string} Patched content.
  */
-function applyPatch(original, patch) {
+function applyLinePatch(original, patch) {
   if (!patch || patch.trim() === '') return original;
 
   const origLines = original.split('\n');
   const resultLines = [...origLines];
-  let offset = 0;
 
   // Parse hunks
   const hunkRegex = /@@ -(\d+),(\d+) \+(\d+),(\d+) @@/g;
@@ -111,7 +106,6 @@ function applyPatch(original, patch) {
   while ((match = hunkRegex.exec(patch)) !== null) {
     const origStart = parseInt(match[1], 10) - 1; // 0-indexed
     const origCount = parseInt(match[2], 10);
-    const modCount = parseInt(match[4], 10);
 
     // Extract removed and added lines after this hunk header
     const afterHeader = patch.slice(match.index + match[0].length);
@@ -139,28 +133,74 @@ function applyPatch(original, patch) {
 }
 
 /**
+ * Applies an AST-based JSON patch or falls back to a unified diff.
+ *
+ * @param {string} original - Original file content.
+ * @param {string} patch - JSON array of AST transformations, or unified diff.
+ * @returns {string} Patched content.
+ */
+function applyPatch(original, patch) {
+  if (!patch || patch.trim() === '') return original;
+
+  if (patch.trim().startsWith('[')) {
+    try {
+      const transforms = JSON.parse(patch);
+      if (Array.isArray(transforms)) {
+        return astTransform.applyTransformations(original, transforms);
+      }
+    } catch (err) {
+      // Fallback silently to line-based patching if parsing fails
+    }
+  }
+
+  return applyLinePatch(original, patch);
+}
+
+/**
  * Detects conflicts between multiple patches targeting the same files.
+ * Supports semantic AST resource conflict checking and mixed patch types.
  *
  * @param {Array<{agentId: string, filePath: string, patch: string}>} patches
  * @returns {{hasConflict: boolean, details: string[]}}
  */
 function detectConflicts(patches) {
-  const filePatches = new Map(); // filePath → [{agentId, patch, lines}]
+  const filePatches = new Map(); // filePath → [{agentId, isAST, lineRanges, resourceKeys}]
 
   for (const p of patches) {
     if (!filePatches.has(p.filePath)) filePatches.set(p.filePath, []);
 
-    // Extract line ranges from hunk headers
-    const lineRanges = [];
-    const hunkRegex = /@@ -(\d+),(\d+)/g;
-    let match;
-    while ((match = hunkRegex.exec(p.patch)) !== null) {
-      const start = parseInt(match[1], 10);
-      const count = parseInt(match[2], 10);
-      lineRanges.push({ start, end: start + count - 1 });
+    const isAST = p.patch && p.patch.trim().startsWith('[');
+    let lineRanges = [];
+    let resourceKeys = [];
+
+    if (isAST) {
+      try {
+        const transforms = JSON.parse(p.patch);
+        if (Array.isArray(transforms)) {
+          resourceKeys = getASTResourceKeys(transforms);
+        }
+      } catch (err) {
+        // Fallback to line-based parsing
+      }
     }
 
-    filePatches.get(p.filePath).push({ agentId: p.agentId, lineRanges });
+    // Fallback or legacy line extraction
+    if (resourceKeys.length === 0) {
+      const hunkRegex = /@@ -(\d+),(\d+)/g;
+      let match;
+      while ((match = hunkRegex.exec(p.patch)) !== null) {
+        const start = parseInt(match[1], 10);
+        const count = parseInt(match[2], 10);
+        lineRanges.push({ start, end: start + count - 1 });
+      }
+    }
+
+    filePatches.get(p.filePath).push({
+      agentId: p.agentId,
+      isAST: resourceKeys.length > 0,
+      lineRanges,
+      resourceKeys
+    });
   }
 
   const details = [];
@@ -168,26 +208,66 @@ function detectConflicts(patches) {
   for (const [filePath, agents] of filePatches) {
     if (agents.length < 2) continue;
 
-    // Check pairwise line range overlap
     for (let i = 0; i < agents.length; i++) {
       for (let j = i + 1; j < agents.length; j++) {
         const a = agents[i];
         const b = agents[j];
 
-        for (const rangeA of a.lineRanges) {
-          for (const rangeB of b.lineRanges) {
-            if (rangeA.start <= rangeB.end && rangeB.start <= rangeA.end) {
-              details.push(
-                `Conflict in ${filePath}: ${a.agentId} (lines ${rangeA.start}-${rangeA.end}) overlaps with ${b.agentId} (lines ${rangeB.start}-${rangeB.end})`
-              );
+        if (a.isAST && b.isAST) {
+          const overlap = a.resourceKeys.filter(k => b.resourceKeys.includes(k));
+          if (overlap.length > 0) {
+            details.push(
+              `Conflict in ${filePath}: ${a.agentId} and ${b.agentId} both modify the same AST resources: ${overlap.join(', ')}`
+            );
+          }
+        } else if (!a.isAST && !b.isAST) {
+          for (const rangeA of a.lineRanges) {
+            for (const rangeB of b.lineRanges) {
+              if (rangeA.start <= rangeB.end && rangeB.start <= rangeA.end) {
+                details.push(
+                  `Conflict in ${filePath}: ${a.agentId} (lines ${rangeA.start}-${rangeA.end}) overlaps with ${b.agentId} (lines ${rangeB.start}-${rangeB.end})`
+                );
+              }
             }
           }
+        } else {
+          details.push(
+            `Conflict in ${filePath}: Mixed patch types (AST vs Line-based) between ${a.agentId} and ${b.agentId}. Cannot safely merge.`
+          );
         }
       }
     }
   }
 
   return { hasConflict: details.length > 0, details };
+}
+
+/**
+ * Maps AST transformation types to semantic resource identifiers for conflict detection.
+ */
+function getASTResourceKeys(transforms) {
+  const keys = [];
+  for (const t of transforms) {
+    switch (t.type) {
+      case 'addImport':
+        keys.push(`import:${t.moduleSpecifier}:${t.importSpecifier}`);
+        break;
+      case 'addMethod':
+        keys.push(`method:${t.className}:${t.methodName}`);
+        break;
+      case 'updateObjectProperty':
+        keys.push(`prop:${t.variableName}:${t.propertyKey}`);
+        break;
+      case 'addFunction':
+      case 'modifyFunction':
+        keys.push(`func:${t.functionName}`);
+        break;
+      case 'updateVariableAssignment':
+        keys.push(`var:${t.variableName}`);
+        break;
+    }
+  }
+  return keys;
 }
 
 /**

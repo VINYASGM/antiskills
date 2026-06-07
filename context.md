@@ -21,7 +21,8 @@ Veyra is a reusable, AI-native engineering operating system repository framework
   - [db.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/db.js) — Memory cache with lazy-sync and timestamp checking.
   - [context.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/context.js) — Hybrid context assembly engine (AST + semantic vector search).
   - [intent.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/intent.js) — Ephemeral broadcast registry for style/API conflict isolation.
-  - [patch.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/patch.js) — Unified line-based VFS patch dry-run applier.
+  - [patch.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/patch.js) — Unified line-based and AST-based VFS patch engine.
+  - [ast_transform.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/ast_transform.js) — AST Code-as-a-Graph Transformation Engine.
   - [verify.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/verify.js) — Formal contract and checklist validator.
   - [governance.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/governance.js) — Multi-agent state tracker and circuit breaker.
   - [router.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/router.js) — Dual Explorer-Architect flow routing layer.

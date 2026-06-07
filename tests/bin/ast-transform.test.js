@@ -71,4 +71,32 @@ describe('AST Transform Engine', () => {
     expect(modified).toContain(`port: 8080`);
     expect(modified).toContain(`debug: true`);
   });
+
+  test('addFunction injects a top-level function', () => {
+    const original = `const a = 10;`;
+    const modified = astTransform.addFunction(original, 'calculate', ['x', 'y'], 'return x * y;', true);
+    expect(modified).toContain(`export function calculate(x, y) {`);
+    expect(modified).toContain(`return x * y;`);
+  });
+
+  test('addFunction skips duplicate functions', () => {
+    const original = `function greet() { console.log("hi"); }`;
+    const modified = astTransform.addFunction(original, 'greet', [], 'console.log("duplicate");');
+    expect(modified).not.toContain('duplicate');
+  });
+
+  test('modifyFunction updates function body block', () => {
+    const original = `function processData(data) {\n  console.log(data);\n}`;
+    const modified = astTransform.modifyFunction(original, 'processData', 'return data.map(x => x * 2);');
+    expect(modified).toContain(`return data.map(x => x * 2);`);
+    expect(modified).not.toContain(`console.log(data);`);
+  });
+
+  test('updateVariableAssignment updates simple variable assignment', () => {
+    const original = `const port = 8080;\nlet dev = false;`;
+    let modified = astTransform.updateVariableAssignment(original, 'port', 9000);
+    modified = astTransform.updateVariableAssignment(modified, 'dev', true);
+    expect(modified).toContain(`port = 9000`);
+    expect(modified).toContain(`dev = true`);
+  });
 });
