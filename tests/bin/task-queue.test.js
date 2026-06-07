@@ -142,13 +142,13 @@ describe('Task Queue — State Transitions', () => {
     expect(bead.evidence).toBe('tests pass');
   });
 
-  test('complete() writes status to Markdown file', () => {
+  test('complete() writes status to JSON file', () => {
     db.claim('bd-0001', 'agent-1');
     db.start('bd-0001', 'agent-1');
     db.complete('bd-0001', 'agent-1', 'verified');
-    const mdPath = path.join(tmpDir, 'memory', 'beads', 'bd-0001.md');
-    const content = fs.readFileSync(mdPath, 'utf8');
-    expect(content).toContain('status: resolved');
+    const jsonPath = path.join(tmpDir, 'memory', 'beads', 'bd-0001.json');
+    const content = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+    expect(content.status).toBe('resolved');
   });
 
   test('fail() transitions → failed, clears claim', () => {

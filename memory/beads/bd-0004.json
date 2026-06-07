@@ -1,0 +1,16 @@
+{
+  "id": "bd-0004",
+  "type": "task_state",
+  "status": "open",
+  "title": "Update Agent Constitution and Validate CLI",
+  "description": "Created via Veyra CLI bead command.",
+  "author": "human-orchestrator",
+  "timestamp": "2026-05-25T15:07:44.487Z",
+  "tags": [
+    "cli"
+  ],
+  "dependencies": [],
+  "claimed_by": null,
+  "claimed_at": null,
+  "evidence": null
+}

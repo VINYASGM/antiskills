@@ -78,7 +78,7 @@ ok  	veyra/visual-testing	73.046s
 ```
 $ npm test
 
- RUN  v4.1.7 C:/Users/Vinyas G M/OneDrive/Desktop/veyra
+ RUN  v4.1.7 <workspace_path>
 
  ✓ tests/bin/patch.test.js (10 tests) 28ms
  ✓ tests/bin/governance.test.js (4 tests) 30ms

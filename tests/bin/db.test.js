@@ -208,7 +208,7 @@ describe('BeadsDB — CRUD Operations', () => {
     delete require.cache[dbPath];
   });
 
-  test('create() writes Markdown file and returns bead ID', () => {
+  test('create() writes JSON file and returns bead ID', () => {
     const beadId = db.create({
       type: 'task_state',
       status: 'open',
@@ -221,7 +221,7 @@ describe('BeadsDB — CRUD Operations', () => {
 
     expect(beadId).toBe('bd-0001');
 
-    const filePath = path.join(tmpDir, 'memory', 'beads', 'bd-0001.md');
+    const filePath = path.join(tmpDir, 'memory', 'beads', 'bd-0001.json');
     expect(fs.existsSync(filePath)).toBe(true);
   });
 
@@ -285,20 +285,47 @@ describe('BeadsDB — Legacy Migration', () => {
     delete require.cache[dbPath];
   });
 
-  test('migrateLegacy() converts JSON bead to Markdown', () => {
-    // Write a legacy JSON bead
-    const legacyBead = {
-      id: 'bd-0001',
+  test('migrateLegacy() converts legacy Markdown and json.migrated to Zod JSON', () => {
+    // Write a legacy Markdown bead
+    const mdContent = `---
+id: bd-0001
+type: task_state
+status: open
+title: "Legacy Markdown Bead"
+author: human
+timestamp: 2026-01-01T00:00:00Z
+tags: [legacy, md]
+dependencies: []
+evidence: ""
+superseded_by: null
+---
+
+This is legacy md description.`;
+    fs.writeFileSync(
+      path.join(tmpDir, 'memory', 'beads', 'bd-0001.md'),
+      mdContent,
+      'utf8'
+    );
+
+    // Write a legacy json.migrated bead
+    const legacyMigrated = {
+      id: 'bd-0002',
       type: 'task_state',
-      status: 'open',
-      title: 'Legacy Bead',
-      description: 'From JSON.',
+      status: 'claimed',
+      title: 'Legacy Migrated JSON',
+      description: 'From migrated JSON.',
+      author: 'system',
+      timestamp: '2026-05-25T10:00:00.000Z',
       tags: ['legacy'],
       dependencies: [],
+      claimed_by: 'agent',
+      claimed_at: '2026-05-25T10:00:00.000Z',
+      evidence: null
     };
     fs.writeFileSync(
-      path.join(tmpDir, 'memory', 'beads', 'bd-0001.json'),
-      JSON.stringify(legacyBead),
+      path.join(tmpDir, 'memory', 'beads', 'bd-0002.json.migrated'),
+      JSON.stringify(legacyMigrated),
+      'utf8'
     );
 
     // Initialize DB (triggers migrateLegacy in constructor)
@@ -309,14 +336,23 @@ describe('BeadsDB — Legacy Migration', () => {
     if (require.cache[intentPath]) delete require.cache[intentPath];
     const db = require('../../bin/db.js');
 
-    // JSON should be renamed to .migrated
-    expect(fs.existsSync(path.join(tmpDir, 'memory', 'beads', 'bd-0001.json.migrated'))).toBe(true);
-    // Markdown should exist
-    expect(fs.existsSync(path.join(tmpDir, 'memory', 'beads', 'bd-0001.md'))).toBe(true);
-    // Should be queryable
-    const bead = db.get('bd-0001');
-    expect(bead).not.toBeNull();
-    expect(bead.title).toBe('Legacy Bead');
+    // Legacy Markdown and json.migrated should be unlinked/deleted
+    expect(fs.existsSync(path.join(tmpDir, 'memory', 'beads', 'bd-0001.md'))).toBe(false);
+    expect(fs.existsSync(path.join(tmpDir, 'memory', 'beads', 'bd-0002.json.migrated'))).toBe(false);
+
+    // Standard validated json files should exist
+    expect(fs.existsSync(path.join(tmpDir, 'memory', 'beads', 'bd-0001.json'))).toBe(true);
+    expect(fs.existsSync(path.join(tmpDir, 'memory', 'beads', 'bd-0002.json'))).toBe(true);
+
+    // Should be queryable in SQLite
+    const bead1 = db.get('bd-0001');
+    expect(bead1).not.toBeNull();
+    expect(bead1.title).toBe('Legacy Markdown Bead');
+
+    const bead2 = db.get('bd-0002');
+    expect(bead2).not.toBeNull();
+    expect(bead2.title).toBe('Legacy Migrated JSON');
+    expect(bead2.status).toBe('claimed');
 
     if (db && db.db) { try { db.db.close(); } catch (e) {} }
   });
@@ -371,9 +407,10 @@ describe('BeadsDB — Sync Optimization (Phase 2)', () => {
     expect(db._syncStats.filesSkipped).toBe(2); // Both unchanged since last sync
 
     // Modify one file
-    const filePath = path.join(tmpDir, 'memory', 'beads', 'bd-0001.md');
-    const content = fs.readFileSync(filePath, 'utf8');
-    fs.writeFileSync(filePath, content.replace('title: "A"', 'title: "A-modified"'));
+    const filePath = path.join(tmpDir, 'memory', 'beads', 'bd-0001.json');
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    data.title = 'A-modified';
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
 
     db.sync();
     expect(db._syncStats.filesScanned).toBe(2);

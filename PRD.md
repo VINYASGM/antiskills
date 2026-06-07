@@ -1,7 +1,7 @@
 # Product Requirements Document — Veyra
 
 **Version:** 3.0
-**Author:** VINYASGM / ANTIGRAVITY
+**Author:** VEYRA-OS / ANTIGRAVITY
 **Date:** 2026-05-26
 **Status:** Active
 

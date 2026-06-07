@@ -63,7 +63,7 @@ Every cross-agent transaction is monitored by `bin/governance.js`. If the *Imple
 ### Task Queue & Claim Locking
 Before performing any task (bead) operations, agents must atomically lease-lock the bead in the centralized SQLite queue to guarantee exclusive worker processing:
 - **Optimistic Locking:** Claim requests use atomic SQLite queries enforcing `claimed_by IS NULL` to prevent overlapping assignments.
-- **JIT Frontmatter Sync:** Lock transitions write to the SQLite database and immediately update the `status` field in the Markdown bead file's YAML frontmatter.
+- **JIT JSON Sync:** Lock transitions write to the SQLite database and immediately update the JSON memory bead file, which is validated JIT using a strict Zod schema.
 - **Stale Cleanups:** A 30-minute stale-lease sweeping algorithm executes on subsequent claim requests to automatically recover from crashed or stalled worker processes.
 
 ---

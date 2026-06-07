@@ -1,0 +1,14 @@
+{
+  "id": "bd-0007",
+  "type": "task_state",
+  "status": "claimed",
+  "title": "Updated CLI Title",
+  "description": "",
+  "author": "system",
+  "timestamp": "2026-06-07T06:21:34.008Z",
+  "tags": [],
+  "dependencies": [],
+  "claimed_by": null,
+  "claimed_at": null,
+  "evidence": null
+}

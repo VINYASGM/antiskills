@@ -1,0 +1,17 @@
+{
+  "id": "bd-0008",
+  "type": "task_state",
+  "status": "in_progress",
+  "title": "Review Test Bead Updated",
+  "description": "A test bead to check if CLI outputs match",
+  "author": "system",
+  "timestamp": "2026-06-07T06:24:57.360Z",
+  "tags": [
+    "test",
+    "cli"
+  ],
+  "dependencies": [],
+  "claimed_by": null,
+  "claimed_at": null,
+  "evidence": null
+}

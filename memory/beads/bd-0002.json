@@ -4,15 +4,16 @@
   "status": "open",
   "title": "Adopt Decentralized Beads",
   "description": "Adopted decentralized beads in memory/beads/*.json files to eliminate git merge conflicts.",
-  "dependencies": [
-    "bd-0001"
-  ],
   "author": "human-orchestrator",
   "timestamp": "2026-05-24T14:04:28.175Z",
   "tags": [
     "beads",
     "architecture"
   ],
-  "evidence": "",
-  "superseded_by": null
+  "dependencies": [
+    "bd-0001"
+  ],
+  "claimed_by": null,
+  "claimed_at": null,
+  "evidence": null
 }

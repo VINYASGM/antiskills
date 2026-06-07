@@ -74,13 +74,19 @@
 ### ✅ Milestone 13: Task Queue & Claim Discipline (Phase B)
 - [x] Added `claimed_by` and `claimed_at` runtime metadata to SQLite DB to prevent concurrent agent conflicts.
 - [x] Implemented atomic lock-acquisition (`claim()`), release, start, complete, fail, and reopen methods.
-- [x] Integrated auto-sync state updates to Markdown frontmatter (`status` tracking).
+- [x] Integrated JIT JSON database updates validated by strict Zod schema definition.
 - [x] Implemented automatic stale-claim expiration (>30 mins) to auto-recover stalled tasks.
 - [x] Verified full CLI integration (`bead claim/release/start/complete/fail/reopen`) and wrote 16 robust Vitest integration tests.
 
 ### ✅ Milestone 14: GitHub Actions CI Integration (Phase C)
 - [x] Deployed `.github/workflows/ci.yml` CI flow to automate testing.
 - [x] Configured Vitest test suite running on a standard Ubuntu-latest node runner for immediate feedback on branch integrations.
+
+### ✅ Milestone 15: Schema Standardization & Headless CLI
+- [x] Implemented strict Zod schema validation (`schema.js`) for all memory beads.
+- [x] Standardized memory database (`db.js`) to store, read, and write Zod-validated JSON beads, and migrated legacy files JIT via `migrateLegacy()`.
+- [x] Rebuilt the main entrypoint CLI (`bin/veyra.js`) from scratch as a headless Node.js tool using a zero-dependency argument parser.
+- [x] Restructured Vitest test suite to cover Zod schemas, JSON persistence, and concurrency locks, increasing total tests to 112 assertions.
 
 ---
 ## Future V4 Strategic Milestones

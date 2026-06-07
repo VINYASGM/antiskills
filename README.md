@@ -63,11 +63,11 @@ Each agent operates in an **isolated Git worktree**. Merges are sequential — r
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/VINYASGM/veyra.git
+git clone https://github.com/veyra-os/veyra.git
 cd veyra
 
 # 2. Verify the beads memory system is initialized
-cat memory/beads.json
+cat memory/beads/bd-*.json
 
 # 3. Read the agent constitution
 cat CLAUDE.md
@@ -88,7 +88,7 @@ Every feature starts with a spec (PRD → TRD → Architecture). Code is the **l
 Context is assembled from AST import graphs blended with constrained TF-IDF similarity scoring — scoped deterministic injection that reduces hallucination risk compared to open-ended RAG retrieval.
 
 ### 3. Beads Memory Pattern
-Every decision, bug fix, and task state is recorded as a **Bead** — a Markdown file with YAML frontmatter, JIT-synced to a local SQLite cache (`memory/beads/`). Agents query beads for context instead of relying on ephemeral chat history. Memory survives session boundaries.
+Every decision, bug fix, and task state is recorded as a **Bead** — a Zod-validated JSON file (`memory/beads/bd-*.json`), JIT-synced to a local SQLite cache. Agents query beads for context instead of relying on ephemeral chat history. Memory survives session boundaries.
 
 ### 4. Phase-Gated Execution
 Work proceeds through strict phases: **Spec → Plan → Implement → Test → Review → Merge**. No phase can be skipped. Each phase has explicit entry and exit criteria.
@@ -132,8 +132,8 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
-## Author
+## Maintainer
 
-**VINYASGM**
+**Veyra OS Maintainers**
 
 Built for engineers who treat AI agents as first-class team members, not autocomplete.

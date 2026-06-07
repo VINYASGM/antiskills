@@ -179,7 +179,6 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   ├── architecture-overview.md
 │   ├── getting-started.md
 │   ├── subsystems
-│   │   └── claude-mem-worker.md
 │   └── vibecoding-playbook.md
 ├── governance
 │   ├── data-retention.md

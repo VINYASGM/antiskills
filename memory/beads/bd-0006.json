@@ -1,0 +1,16 @@
+{
+  "id": "bd-0006",
+  "type": "task_state",
+  "status": "resolved",
+  "title": "Legacy JSON Migrated",
+  "description": "Flat format with done status.",
+  "author": "system",
+  "timestamp": "2026-05-25T10:00:00.000Z",
+  "tags": [],
+  "dependencies": [
+    "bd-0001"
+  ],
+  "claimed_by": "agent-1",
+  "claimed_at": "2026-05-25T10:00:00.000Z",
+  "evidence": null
+}

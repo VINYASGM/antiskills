@@ -68,3 +68,7 @@ memory/*.db-wal
 .agent/*.db*
 .agent/*.duckdb*
 .agent/governance/
+
+# Teamwork agents and prompts
+.agents/
+ORIGINAL_REQUEST.md

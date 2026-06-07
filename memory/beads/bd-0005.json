@@ -1,0 +1,17 @@
+{
+  "id": "bd-0005",
+  "type": "task_state",
+  "status": "open",
+  "title": "Legacy MD Test Bead",
+  "description": "This is a description body.",
+  "author": "human",
+  "timestamp": "2026-05-25T10:00:00.000Z",
+  "tags": [
+    "legacy",
+    "test"
+  ],
+  "dependencies": [],
+  "claimed_by": null,
+  "claimed_at": null,
+  "evidence": null
+}

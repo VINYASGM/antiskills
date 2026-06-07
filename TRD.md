@@ -1,7 +1,7 @@
 # Technical Requirements Document — Veyra
 
 **Version:** 3.0
-**Author:** VINYASGM / ANTIGRAVITY
+**Author:** VEYRA-OS / ANTIGRAVITY
 **Date:** 2026-05-26
 **Status:** Active
 
@@ -164,5 +164,5 @@ Deterministic parsing combined with vector similarity:
 1. **Atomic Locking (`claim`)**: Agents claim a bead by executing:
    `UPDATE beads SET claimed_by = ?, claimed_at = ? WHERE id = ? AND claimed_by IS NULL AND status IN ('open', 'failed')`
    If the rows affected is `0`, the task has already been claimed by another worker (concurrency lock).
-2. **State Transitions**: The system transitions through `open -> claimed -> in_progress -> resolved | failed`. Transition triggers (`claim()`, `release()`, `start()`, `complete()`, `fail()`, `reopen()`) write to SQLite and JIT-synchronize `status` to the YAML frontmatter of the bead's physical Markdown file.
+2. **State Transitions**: The system transitions through `open -> claimed -> in_progress -> resolved | failed`. Transition triggers (`claim()`, `release()`, `start()`, `complete()`, `fail()`, `reopen()`) write to SQLite and JIT-synchronize `status` to the bead's physical JSON file.
 3. **Stale Claim Expiry**: Sweeps run dynamically during `claim()` calls to auto-release tasks stuck in a `claimed` state for more than 30 minutes back to `open`, preventing deadlocks from crashed agent processes.

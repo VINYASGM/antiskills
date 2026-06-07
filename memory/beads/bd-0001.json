@@ -4,9 +4,14 @@
   "status": "resolved",
   "title": "Initialize Veyra AI-Native Engineering OS",
   "description": "Created the repository structure for the AI-native engineering operating system. Established agent definitions, rules, memory system, workflows, and orchestration protocols.",
-  "dependencies": [],
   "author": "human-orchestrator",
-  "timestamp": "2026-05-24T18:00:00Z",
-  "tags": ["infrastructure", "initialization"],
+  "timestamp": "2026-05-24T18:00:00.000Z",
+  "tags": [
+    "infrastructure",
+    "initialization"
+  ],
+  "dependencies": [],
+  "claimed_by": null,
+  "claimed_at": null,
   "evidence": "Repository structure created with all directories and configuration files."
 }
