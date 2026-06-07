@@ -236,7 +236,8 @@ class ContextAssembler {
     if (task) {
       try {
         const { execSync } = require('node:child_process');
-        const output = execSync(`py bin/vector_search.py "${task.replace(/"/g, '\\"')}"`, { encoding: 'utf8' });
+        const scriptPath = path.join(__dirname, 'vector_search.py');
+        const output = execSync(`py "${scriptPath}" "${task.replace(/"/g, '\\"')}"`, { encoding: 'utf8' });
         vectorScores = JSON.parse(output.trim());
       } catch (err) {
         // Fallback silently if py fails
