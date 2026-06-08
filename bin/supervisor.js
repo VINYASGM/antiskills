@@ -39,7 +39,7 @@ class Supervisor {
     console.log(`\nYour isolated Git worktree has been created at: ../${worktreePath}`);
     console.log(`You MUST ` + `cd` + ` into this directory before running any commands or editing files.\n`);
     console.log(contextStr);
-    console.log(`\nRead CLAUDE.md for your constitution. Once tests pass, notify the human orchestrator to run the 'veyra worktree merge' command.`);
+    console.log(`\nRead AGENT.md for your constitution. Once tests pass, notify the human orchestrator to run the 'veyra worktree merge' command.`);
     console.log(`-----------------------------------------------------------------\n`);
   }
 }

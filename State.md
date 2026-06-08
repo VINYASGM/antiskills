@@ -69,3 +69,8 @@
 
 1. **Transition to V4 Code-as-a-Graph Architecture**
    - Further expand AST transformations to support more syntax tree manipulations (e.g., classes, decorators, JSX/TSX elements) and roll out across all subagents.
+2. **Implement Graphify Enrichment Core (Milestone 20)**
+   - Port sensitive file/credential screening and zip-bomb check triggers to `bin/context.js`.
+   - Port D3.js and Mermaid-based visualizers to generate interactive `context/tree.html` and `context/graph.html` browser maps.
+   - Run centrality/modularity graph calculations in `memory-mcp-server/graph.py` to identify "God Nodes" and "Surprising Connections".
+

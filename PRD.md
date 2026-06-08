@@ -43,10 +43,12 @@ AI coding agents suffer from six systemic architectural failures at scale, which
    - *V3 Solution:* **Task Queue & Claim Discipline.** SQLite-based atomic row-level locks tracking task ownership via `claimed_by` and `claimed_at` fields, coupled with automatic stale-claim releases and synchronized Markdown status updates, ensuring absolute task exclusive-processing guarantees.
 7. **Swarm Telemetry & System Observability Gaps:** Multi-agent swarms operate concurrently in the background, making it extremely difficult for developers or human operators to monitor database locks, retry strikes, patch channels, and overall progress in real-time.
    - *V3 Solution:* **Terminal Swarm Dashboard.** A unified, high-performance terminal UI dashboard displaying JIT database locks, active governance transaction attempts, tripped circuit breaker escalations, and active patch channels, providing total swarm telemetry and execution transparency.
+8. **Static Code Indexing & Graph Intelligence Gaps:** Single-language AST parsing, lack of non-code knowledge capture (PDFs, docs), absence of graph topology metrics (God Nodes, Surprising Connections), lack of security filters (secrets leaking, zip-bombs), and raw text outputs restrict context richness and swarm safety.
+   - *V4 Solution:* **Graphify Enrichment Core.** Porting Graphify-style capabilities including secrets/zip-bomb screening, multi-language parser fallbacks, NetworkX graph metrics, and interactive browser HTML trees/flowcharts to optimize swarm context and safety.
 
 ---
 
-## 4. Key V3 Features
+## 4. Key V3/V4 Features
 
 ### 4.1 Contract-Proven Integration Engine (`bin/patch.js` & `bin/verify.js`)
 Validates that proposed VFS patches satisfy programmatic and mathematical contract proofs before merge. Runs atomic integration validations inside isolated memory spaces.
@@ -68,3 +70,7 @@ An atomic state machine and locking framework (`claim`, `release`, `start`, `com
 
 ### 4.7 Terminal Swarm Dashboard (`bin/dashboard.js`)
 A gorgeous terminal-based telemetry interface extracting SQLite concurrency locks, active governance transactions, circuit-breaker metrics, and patch directories to render real-time swarm operational states using double-bordered boxes, tables, and progress indicators.
+
+### 4.8 Graphify Enrichment Core (`bin/context.js`, `memory-mcp-server/graph.py`)
+Enhances Veyra's static code indexing and context assembly with secrets/sensitive path skipping, zip-bomb checks for documents, topological metrics (centrality and cross-community edges), extensionless shebang interpretation, and collapsible HTML visualizations (D3 hierarchy tree and Mermaid callflow report).
+

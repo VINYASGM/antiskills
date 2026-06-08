@@ -100,3 +100,15 @@ To monitor parallel executions and manage circuit breakers:
   - Active concurrency locks are formatted inside a blue table (`drawTable`), demonstrating agent ownership, claim status, and holds duration.
   - Governance transaction streams display current strike counts against thresholds (`X/3`), coloring `tripped` breakers in bright red ANSI style.
   - Channels are parsed straight from the filesystem `patches/` folder and listed as active workspaces.
+
+---
+
+## 6. Graphify Enrichment Core & Security
+
+To enhance Veyra's static code indexing and context assembly with Graphify-style intelligence:
+- **JIT Input Security Screening:** The hybrid context plane (`bin/context.js`) filters all files through an `isSensitive` block to skip credential repositories,NETRC files, and private keys. Zip files are checked for decompression safety ratios before extraction.
+- **Modularity Modifiers:** Graph memory (`memory-mcp-server/graph.py`) calculates NetworkX degree centrality to isolate "God Nodes", and maps "Surprising Connections" by looking for edges that cross Louvain/Leiden modularity communities or language family limits (e.g. Python connecting to Rust).
+- **Interactive Browser Maps:** In addition to markdown files, Veyra generates:
+  - `context/tree.html`: A collapsible hierarchical D3.js visualization presenting files and their symbols.
+  - `context/graph.html`: A self-contained Mermaid.js architecture flow visualization showing community-grouped module interactions.
+

@@ -217,3 +217,20 @@ Deterministic parsing combined with vector similarity:
    - `drawBox` for task queue statistics block.
    - `drawTable` for the concurrency lock registry and governance transaction tracker, using bright coloring rules for status transitions (`tripped` breaker colored bright red, `active` locks colored magenta).
 3. **CLI Invocation**: Integrated directly as a top-level command `dashboard` or `ui dashboard` in `bin/veyra.js`.
+
+### 4.6 Graphify Enrichment Core
+1. **Security & Sensitive Paths Screening (`bin/context.js`)**:
+   - Screen files and folder segments JIT before AST parsing or vector scoring.
+   - Exclude paths containing sensitive patterns (e.g. `.git`, `.ssh`, `credentials`, `secrets`, `.env`, private keys).
+   - Integrate decompressed ratio checks (cap at 200:1) on zip/XML-based Office documents to prevent zip-bomb exploits.
+2. **Multi-Language AST Parsing Fallback (`bin/context.js`)**:
+   - Extend `resolveImports()` and file discovery to scan non-JS/TS codebases.
+   - Use regex-based symbol and import parsers for Apex (`.cls`/`.trigger`), Python (`.py`), Go (`.go`), Rust (`.rs`), and SQL (`.sql`).
+   - Parse extensionless scripts by inspecting shebang lines (e.g., tokenizing `env -S python3 -u` SYNOPIS).
+3. **Topological Graph Metrics (`memory-mcp-server/graph.py`)**:
+   - Run NetworkX Degree Centrality and PageRank on memory graphs (filtering out stubs, builtins, and mocks) to compute "God Nodes".
+   - Compute "Surprising Connections" between nodes by checking cross-community modularity (Louvain/Leiden) and cross-language boundaries.
+4. **Interactive HTML Rendering (`bin/context.js`)**:
+   - Generate `context/tree.html` presenting a D3.js collapsible hierarchical file-to-symbol tree.
+   - Generate `context/graph.html` presenting a self-contained Mermaid-based callflow architecture report with cross-community edge mapping.
+

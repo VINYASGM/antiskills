@@ -70,11 +70,11 @@ cd veyra
 cat memory/beads/bd-*.json
 
 # 3. Read the agent constitution
-cat CLAUDE.md
+cat AGENT.md
 
 # 4. Start your first project by copying this framework
 cp -r veyra/ my-project/
-# Then customize CLAUDE.md, agents/, and workflows/ for your stack.
+# Then customize AGENT.md, agents/, and workflows/ for your stack.
 ```
 
 ---
@@ -117,7 +117,7 @@ These are **hard failures** in Veyra. If you see them, stop and fix the process.
 
 | File | Purpose |
 |---|---|
-| `CLAUDE.md` | Agent constitution — hard rules, stack, commands, coordination protocols |
+| `AGENT.md` | Agent constitution — hard rules, stack, commands, coordination protocols |
 | `PRD.md` | Product Requirements Document for Veyra itself |
 | `TRD.md` | Technical Requirements Document — schemas, integrations, specs |
 | `Architecture.md` | Living architecture with mermaid diagrams |

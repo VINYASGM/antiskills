@@ -113,3 +113,12 @@
 ### ⬜ Milestone 18: Pub/Sub Swarm Worker Loop
 - [ ] Formulate a daemon microservice subscribing to an SQLite WAL event bus.
 - [ ] Allocate subagent tasks asynchronously as event bus dependency flags update.
+
+### ⬜ Milestone 20: Graphify Enrichment Core (Security Ingest, Graph Topology, and HTML Visualizers)
+- [ ] Add JIT secrets, netrc, and key skipping patterns to `bin/context.js`.
+- [ ] Implement decompression ratio screening on zip/XML-based Office documents to prevent zip-bomb exploits in `bin/context.js`.
+- [ ] Implement shebang interpreter parser for extensionless scripts in `bin/context.js`.
+- [ ] Extend import crawling to support multi-language fallbacks (Python, Rust, Go, Apex, SQL).
+- [ ] Update `memory-mcp-server/graph.py` to calculate degree centrality ("God Nodes") and Modular connections crossing communities / language barriers ("Surprising Connections").
+- [ ] Build interactive HTML outputs: a collapsible tree using D3.js (`context/tree.html`) and an architecture Mermaid callflow diagram (`context/graph.html`).
+

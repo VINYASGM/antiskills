@@ -5,6 +5,9 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 ## Directory Topology
 ```
 ├── .agent
+│   ├── governance
+│   ├── memory_graph.duckdb
+│   ├── memory_graph.duckdb.wal
 │   └── skills
 │       ├── agenttrace-session-audit
 │       │   └── SKILL.md
@@ -127,7 +130,140 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │       │   └── SKILL.md
 │       └── zoom-out
 │           └── SKILL.md
+├── .agents
+│   ├── auditor_1_cli_schema
+│   │   ├── audit.md
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   └── progress.md
+│   ├── auditor_dashboard_1
+│   │   ├── BRIEFING.md
+│   │   ├── challenge_report.md
+│   │   ├── forensic_audit_report.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   └── progress.md
+│   ├── challenger_1
+│   │   ├── BRIEFING.md
+│   │   ├── challenge_report.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   └── progress.md
+│   ├── explorer_1
+│   │   ├── analysis.md
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   └── progress.md
+│   ├── orchestrator
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   ├── plan.md
+│   │   ├── progress.md
+│   │   └── PROJECT.md
+│   ├── orchestrator_dashboard
+│   │   ├── .gitkeep
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   ├── progress.md
+│   │   └── PROJECT.md
+│   ├── original_prompt.md
+│   ├── reviewer_1
+│   │   ├── BRIEFING.md
+│   │   ├── challenge.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   ├── progress.md
+│   │   └── review.md
+│   ├── reviewer_1_cli_schema
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   ├── progress.md
+│   │   └── review_1.md
+│   ├── reviewer_2
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   └── progress.md
+│   ├── reviewer_2_cli_schema
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   ├── progress.md
+│   │   └── review_2.md
+│   ├── sentinel
+│   │   ├── BRIEFING.md
+│   │   └── handoff.md
+│   ├── teamwork_preview_explorer_dashboard_1
+│   │   ├── analysis.md
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   ├── progress.md
+│   │   ├── proposed_Architecture.md
+│   │   ├── proposed_context.md
+│   │   ├── proposed_dashboard.js
+│   │   ├── proposed_dashboard.test.js
+│   │   ├── proposed_PRD.md
+│   │   ├── proposed_State.md
+│   │   ├── proposed_ToDo.md
+│   │   ├── proposed_TRD.md
+│   │   └── proposed_veyra.js.patch
+│   ├── victory_auditor
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   └── progress.md
+│   ├── victory_auditor_dashboard
+│   │   ├── .gitkeep
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   ├── progress.md
+│   │   └── victory_audit_report.md
+│   ├── worker_cli_schema_1
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   └── progress.md
+│   ├── worker_dashboard_1
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   └── progress.md
+│   ├── worker_dashboard_fix_1
+│   │   ├── Architecture.md
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   ├── PRD.md
+│   │   ├── progress.md
+│   │   ├── State.md
+│   │   ├── ToDo.md
+│   │   └── TRD.md
+│   ├── worker_docs_1
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   └── progress.md
+│   ├── worker_update_project_md
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   └── progress.md
+│   └── worker_update_project_md_2
+│       ├── BRIEFING.md
+│       ├── handoff.md
+│       ├── original_prompt.md
+│       └── progress.md
+├── .github
+│   └── workflows
+│       └── ci.yml
 ├── .gitignore
+├── AGENT.md
 ├── agents
 │   ├── architect.md
 │   ├── backend-engineer.md
@@ -135,6 +271,7 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   ├── context-compressor.md
 │   ├── debugging-specialist.md
 │   ├── documentation-writer.md
+│   ├── explorer.md
 │   ├── frontend-engineer.md
 │   ├── memory-manager.md
 │   ├── orchestrator.md
@@ -145,12 +282,22 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   └── vlm-ui-reviewer.md
 ├── Architecture.md
 ├── bin
+│   ├── ast_transform.js
 │   ├── context.js
+│   ├── dashboard.js
 │   ├── db.js
+│   ├── event_bus.js
+│   ├── governance.js
 │   ├── intent.js
 │   ├── linter.js
+│   ├── patch.js
+│   ├── router.js
+│   ├── schema.js
 │   ├── skills.js
 │   ├── supervisor.js
+│   ├── ui.js
+│   ├── vector_search.py
+│   ├── verify.js
 │   ├── veyra.js
 │   ├── visual-review.js
 │   ├── workflow.js
@@ -160,7 +307,6 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   ├── pre-merge.md
 │   ├── ui-delivery.md
 │   └── visual-audit.md
-├── CLAUDE.md
 ├── context
 │   ├── dependency-graph.md
 │   ├── file-manifests
@@ -168,12 +314,12 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   ├── glossary.md
 │   ├── README.md
 │   └── repo-map.md
-├── create_all.js
-├── create_files.py
+├── context.md
 ├── debugging
 │   ├── incident-template.md
 │   ├── README.md
 │   └── root-cause-loop.md
+├── demo-ast-patching.js
 ├── docs
 │   ├── agent-guide.md
 │   ├── architecture-overview.md
@@ -184,13 +330,19 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   ├── data-retention.md
 │   └── security-policy.md
 ├── memory-mcp-server
+│   ├── __pycache__
+│   │   ├── compress.cpython-313.pyc
+│   │   └── graph.cpython-313.pyc
 │   ├── .gitignore
 │   ├── Cargo.lock
 │   ├── Cargo.toml
+│   ├── compress.py
+│   ├── graph.py
 │   ├── models
 │   │   ├── bge-small-en-v1.5.onnx
 │   │   └── tokenizer.json
 │   ├── README.md
+│   ├── server.py
 │   ├── src
 │   │   ├── actors
 │   │   │   ├── coordinator.rs
@@ -2068,9 +2220,12 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   ├── merge-strategy.md
 │   ├── spawn-rules.md
 │   └── worktree-protocol.md
+├── ORIGINAL_REQUEST.md
 ├── package-lock.json
 ├── package.json
+├── patches
 ├── PRD.md
+├── PROJECT.md
 ├── prompts
 │   ├── base
 │   │   ├── critique.md
@@ -2097,11 +2252,42 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   ├── CRP.md
 │   ├── PR.md
 │   └── SPEC.md
+├── tests
+│   └── bin
+│       ├── ast-transform.test.js
+│       ├── context.test.js
+│       ├── dashboard-stress.test.js
+│       ├── dashboard.test.js
+│       ├── db.test.js
+│       ├── event-bus.test.js
+│       ├── governance.test.js
+│       ├── intent.test.js
+│       ├── patch.test.js
+│       ├── router.test.js
+│       ├── schema.test.js
+│       ├── task-queue.test.js
+│       ├── ui.test.js
+│       ├── verify.test.js
+│       ├── visual-review.test.js
+│       └── worktree.test.js
 ├── ToDo.md
 ├── TRD.md
 ├── veyra
 ├── veyra.cmd
 ├── veyra.ps1
+├── visual-testing
+│   ├── audit_test.go
+│   ├── audit.go
+│   ├── diff_test.go
+│   ├── diff.go
+│   ├── go.mod
+│   ├── go.sum
+│   ├── main.go
+│   ├── snapshot_test.go
+│   ├── snapshot.go
+│   └── visual-testing.exe
+├── vitest.config.js
+├── walkthrough.md
 └── workflows
     ├── bug-fixing.yaml
     ├── documentation-generation.yaml
@@ -2112,4 +2298,4 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
     └── testing-generation.yaml
 ```
 
-*Indexed at: 2026-05-25T14:55:03.084Z*
+*Indexed at: 2026-06-07T18:01:27.021Z*

@@ -101,3 +101,15 @@ node bin/veyra.js dashboard
 # OR
 node bin/veyra.js ui dashboard
 ```
+
+### JIT Context Indexing (with Graphify Enhancements)
+Scan the repository structure, perform secrets/zip-bomb checks, and build static ASCII + D3 HTML trees and Mermaid flowcharts:
+```powershell
+node bin/veyra.js context index
+```
+Outputs:
+- `context/repo-map.md`: Flat ASCII tree structure.
+- `context/dependency-graph.md`: Module dependency matrix & Mermaid DAG.
+- `context/tree.html`: Collapsible interactive D3.js filesystem tree.
+- `context/graph.html`: Collapsible visual Mermaid callflow architecture map.
+
