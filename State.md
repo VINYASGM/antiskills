@@ -1,7 +1,7 @@
 # Project State — Veyra
 
 **Last Updated:** 2026-06-13
-**Phase:** Milestone 20: Graphify Enrichment Core
+**Phase:** Milestone 17: Multimodal VLM Layout Auditing
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Field | Value |
 |---|---|
-| **Current Phase** | Milestone 20: Graphify Enrichment Core (Security Ingest, Graph Topology, and HTML Visualizers) |
-| **Status** | 🟢 COMPLETE |
-| **Core Goal** | Implement JIT security screening, zip-bomb protections, shebang script interpreters, multi-language parser regexes, NetworkX centrality/modularity analytics, and collapsible HTML visualizations. |
+| **Current Phase** | Milestone 17: Multimodal VLM Layout Auditing |
+| **Status** | 🟢 Complete |
+| **Core Goal** | Implement visual regression and responsive layout verification using vision-language models (Gemini 1.5 Flash) and local fallback coordinate checks. |
 | **Started** | 2026-06-13 |
 | **Target Completion** | 2026-06-13 |
-| **Active Milestones** | - None (Milestone 20 Complete) |
+| **Active Milestones** | None |
 
 
 ---
@@ -41,6 +41,7 @@
 | **Phase D: Swarm Telemetry Dashboard** | 🟢 Complete | Designed and formulated dashboard telemetry extraction module, CLI routing integrations, and automated test plans. |
 | **Milestone 20: Graphify Enrichment Core** | 🟢 Complete | Ported JIT security filters, zip-bomb screening, shebang interpret-mapping, multi-language import crawling, NetworkX centrality/modularity metrics, and D3/Mermaid browser visualizations. |
 | **Milestone 21: AST Expansion & Agent Integration** | 🟢 Complete | Expanded AST transform engine to support classes/decorators, JSX, and interfaces/types, and wired to CLI/conflict checking/agent prompts. |
+| **Milestone 17: Multimodal VLM Layout Auditing** | 🟢 Complete | Added Figma design placeholder generation, Gemini API integration, and fallback coordinate & contrast auditing. |
 
 ---
 
@@ -72,5 +73,4 @@
 ## 4. Next Actions
 
 1. **Implement Future V4 Strategic Milestones**
-   - Integrate multimodal VLM layout auditing with Playwright snapshots.
-   - Formulate daemon worker microservice subscribing to WAL event bus.
+   - Formulate daemon worker microservice subscribing to WAL event bus (Milestone 18).

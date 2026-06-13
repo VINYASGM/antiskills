@@ -21,6 +21,9 @@ Veyra uses plain-text Markdown, JSON, SQLite, and Python/Node graph adapters, ma
 | **Markdown** | System specifications, governance checklist logs, and constitutional rules. |
 | **JSON** | Broadcasted intents, proof-carrying contract files, and direct mail messages. |
 | **Go + Playwright** | Headless browser execution, visual viewport capturing, and responsive DOM audits. |
+| **Gemini VLM API** | Multimodal Layout Auditing (via `gemini-1.5-flash` model). |
+| **Base64 Encoding** | Converts screenshots and Figma design mockups to base64 data URIs for vision model ingestion. |
+| **JSON Reports** | Formats visual regression, coordinate, contrast, and layout alignment audit results into structured reports. |
 
 ---
 
@@ -143,6 +146,46 @@ A unified runtime schema mapping active database locks, governance transactions,
 }
 ```
 
+### 2.6 Visual Review Audit Report Schema (`memory/evidence/visual/vlm_audit_report.json`)
+Consolidates layout, responsive formatting, and contrast verification results across viewports using vision models or fallback local engines.
+```json
+{
+  "timestamp": "2026-06-13T14:18:05.000Z",
+  "targetUrl": "http://localhost:3000",
+  "geminiApiActive": true,
+  "viewports": {
+    "desktop": {
+      "viewport": "1440x900",
+      "status": "PASS",
+      "apiCallTimeMs": 2450,
+      "violations": []
+    },
+    "tablet": {
+      "viewport": "768x1024",
+      "status": "PASS",
+      "apiCallTimeMs": 1980,
+      "violations": []
+    },
+    "mobile": {
+      "viewport": "375x667",
+      "status": "FAIL",
+      "apiCallTimeMs": 2100,
+      "violations": [
+        {
+          "id": "low-contrast-text",
+          "selector": "div.hero > p.description",
+          "description": "Text color contrast ratio is 2.4:1, which is below the WCAG AA minimum threshold of 4.5:1."
+        }
+      ]
+    }
+  },
+  "summary": {
+    "totalViolations": 1,
+    "status": "FAILED"
+  }
+}
+```
+
 ---
 
 ## 3. Directory Structure
@@ -159,7 +202,9 @@ veyra/
 │   ├── governance.js        # State-machine circuit breaker & automatic escalations
 │   ├── router.js            # Dual Explorer-Architect loop allocator
 │   ├── ui.js                # Procedural terminal styling primitives
-│   └── dashboard.js         # Swarm Status telemetry and UI dashboard
+│   ├── dashboard.js         # Swarm Status telemetry and UI dashboard
+│   └── visual-review.js     # Multimodal VLM responsive layout auditor
+
 ├── memory-mcp-server/       # MCP Graph Server Core
 │   ├── server.py            # Python MCP entrypoint
 │   ├── graph.py             # NetworkX + DuckDB graph database orchestrator

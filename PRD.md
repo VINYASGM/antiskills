@@ -101,3 +101,12 @@ Enhances Veyra's static code indexing and context assembly with secrets/sensitiv
 
 ### 4.9 AST Expansion & Agent Integration (Milestone 21)
 Extends the AST transformation engine (`bin/ast_transform.js`) to support programmatic operations for classes, decorators, JSX/TSX elements, and interface/type declarations. Wires AST manipulations into CLI commands, semantic conflict detectors, and agent swarm prompt instructions.
+
+### 4.10 Multimodal VLM Layout Auditing (Milestone 22)
+Provides automated visual regression and responsive layout verification using vision-language models (VLMs) and headless browsers. Key aspects:
+- **Placeholder PNG Mockups Auto-Generation:** Automatically generates default design mockup images under `memory/design/figma_desktop.png`, `memory/design/figma_tablet.png`, and `memory/design/figma_mobile.png` if they are missing, ensuring stable comparison baselines.
+- **Base64 Responsive Payload Encoding:** Loads current runtime screenshots (`viewport_desktop.png`, `viewport_tablet.png`, `viewport_mobile.png`) alongside their corresponding Figma design mockups, converting both sets into base64 data URIs for vision model ingestion.
+- **Gemini VLM Layout Auditing:** Submits responsive screenshots and Figma mockups side-by-side to the Gemini API (`gemini-1.5-flash`) for comprehensive structural, alignment, typographic, and contrast audits, provided `GEMINI_API_KEY` is configured in the environment.
+- **Deterministic Coordinate and Failover Audits:** Executes a fallback local check against `dom_structure.json` if the VLM is unreachable or disabled, checking coordinates, inspecting elements for forbidden IDs (such as `'low-contrast-text'`), and checking the `MOCK_VLM_FAIL=true` override flag.
+- **Comprehensive Visual Report Output:** Generates structured execution reports inside `memory/evidence/visual/vlm_audit_report.json`, along with separate viewport-specific breakdown report files.
+- **Automated CI Assertions:** Implements strict automated verification; returns exit code 1 if layout violations or contrast issues are detected, and logs success details and returns exit code 0 if the visual audit passes.

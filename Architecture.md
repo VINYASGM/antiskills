@@ -159,3 +159,46 @@ flowchart TD
 The system enforces semantic integrity by replacing line-based text transformations with AST node manipulations.
 - **Synthesized AST Nodes:** When code modification is requested, `bin/ast_transform.js` parses the target file as `ts.ScriptKind.TSX`, traverses it using TypeScript Compiler API visitors, constructs or updates target syntax nodes (classes, decorators, methods, JSX elements, interfaces, types), strips positions via recursive coordinate removal, and prints the result.
 - **Semantic Conflict Detection:** `bin/patch.js` computes semantic keys (e.g., `class:ClassName`, `jsx-element:Tag:Attr`) for active patches, which are checked for overlap against concurrently executing tasks to prevent conflict merges before verification.
+
+## 8. Multimodal VLM Layout Auditing (Milestone 22)
+The visual review system (`bin/visual-review.js`) provides automated, responsive layout validation using vision-language models (VLMs) and fallback local validation engines.
+
+### Data Flow Diagram
+
+```mermaid
+flowchart TD
+    RUN["🚀 VisualReviewRunner (bin/visual-review.js)"] -->|1. Generate Mockups| MOCK_GEN["Figma Mockups Auto-Generator"]
+    MOCK_GEN -->|Save| FIGMA_PNG["Figma Mockups:<br>figma_desktop/tablet/mobile.png (memory/design/)"]
+    
+    RUN -->|2. Load Screenshots & Mockups| LOAD_ASSETS["Screenshot & Mockup Loader"]
+    SCREENSHOTS["Screenshots:<br>viewport_desktop/tablet/mobile.png"] --> LOAD_ASSETS
+    FIGMA_PNG --> LOAD_ASSETS
+    
+    LOAD_ASSETS -->|3. Convert to Base64| BASE64["Base64 Data URIs"]
+    
+    RUN -->|4. Check API Key| KEY_CHECK{Is GEMINI_API_KEY set?}
+    
+    KEY_CHECK -->|Yes| GEMINI_VLM["Gemini API (gemini-1.5-flash)"]
+    BASE64 --> GEMINI_VLM
+    GEMINI_VLM -->|Audits Layout & Contrast| VLM_RESULT[VLM Audit Result]
+    
+    KEY_CHECK -->|No / Failover| FALLBACK["Fallback Coordinate Auditor"]
+    DOM["dom_structure.json"] --> FALLBACK
+    FALLBACK -->|Checks Low Contrast ID / MOCK_VLM_FAIL| FALLBACK_RESULT[Fallback Audit Result]
+    
+    VLM_RESULT & FALLBACK_RESULT -->|5. Compile Reports| REPORTS["Report Generator"]
+    REPORTS -->|Save| SUMMARY_JSON["vlm_audit_report.json<br>(memory/evidence/visual/)"]
+    REPORTS -->|Save| VIEWPORT_JSON["Viewport reports:<br>vlm_audit_desktop/tablet/mobile.json"]
+    
+    REPORTS -->|6. Assert Layout Quality| ASSERT{Violations Found?}
+    ASSERT -->|Yes| EXIT_1["Exit Code 1 (Fail CI)"]
+    ASSERT -->|No| EXIT_0["Exit Code 0 & Write Log (Pass CI)"]
+```
+
+### Component Details
+- **Figma Mockup Auto-Generator:** Automatically checks if Figma design mockups (`figma_desktop.png`, `figma_tablet.png`, and `figma_mobile.png`) exist in `memory/design/`. If missing, it dynamically generates placeholder images to ensure consistent comparison data is available.
+- **Base64 Responsive Loader:** Reads the captured responsive screenshots (`viewport_desktop.png`, `viewport_tablet.png`, `viewport_mobile.png`) alongside the Figma mockups and encodes them into base64 format for payload transport.
+- **Gemini API Integration:** When a `GEMINI_API_KEY` is present, screenshots and mockups are transmitted to the `gemini-1.5-flash` model with visual layout and contrast check instructions.
+- **Fallback Coordinate Auditor:** Provides a deterministic fallback path. If the VLM check fails or is disabled (or if the `MOCK_VLM_FAIL=true` flag is set), the auditor inspects coordinates in `dom_structure.json` and flags failures if forbidden IDs such as `'low-contrast-text'` are found.
+- **CI Assertions & Report Generator:** Compiles audit results into `memory/evidence/visual/vlm_audit_report.json` and viewport-specific breakdown files. If violations or contrast problems are found, it triggers a non-zero exit status (`exit 1`) to block CI builds. On success, it logs audit output and exits cleanly (`exit 0`).
+

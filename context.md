@@ -30,10 +30,12 @@ Veyra is a reusable, AI-native engineering operating system repository framework
   - [dashboard.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/dashboard.js) — Telemetry extraction, metrics compilation, and visual rendering dashboard.
   - [router.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/router.js) — Dual Explorer-Architect flow routing layer.
   - [veyra.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/veyra.js) — CLI Entrypoint bootloader.
+  - [visual-review.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/visual-review.js) — Multimodal VLM responsive layout auditor.
 - [memory-mcp-server/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/memory-mcp-server) — MCP memory server running DuckDB + NetworkX graph operations.
 - [agents/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/agents) — Definitions for Orchestrator, Explorer, Architect, and Implementer roles.
 - [checklists/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/checklists) — JSON structured code contracts.
 - [tests/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/tests) — Regression Vitest suites.
+  - [bin/visual-review.test.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/tests/bin/visual-review.test.js) — Unit/mock visual review runner test suite.
 - [context/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/context) — Generated context index outputs.
   - [tree.html](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/context/tree.html) — Collapsible D3.js interactive hierarchical file-to-symbol tree.
   - [graph.html](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/context/graph.html) — Collapsible Mermaid/D3.js callflow community-grouped architecture graph map.
@@ -78,6 +80,12 @@ graph TD
 To run full regression Vitest checks:
 ```powershell
 npm test
+```
+
+### Responsive Visual Layout Auditing
+Execute responsive screenshots and visual alignment reviews:
+```powershell
+node bin/veyra.js visual-review
 ```
 
 ### Checking Contracts

@@ -109,12 +109,19 @@
 - [x] Mandate AST-based patching in agent prompt markdown files under `agents/`.
 - [x] Add comprehensive test coverage in `tests/bin/ast-transform.test.js` and `tests/bin/patch.test.js` and ensure all pass.
 
----
-## Future V4 Strategic Milestones
+### ✅ Milestone 17: Multimodal VLM Layout Auditing
+- [x] Auto-generation of placeholder PNG mockups in `memory/design/figma_desktop/tablet/mobile.png` if missing.
+- [x] Responsive screenshot and mockup asset loading and base64 payload conversion.
+- [x] Gemini API (`gemini-1.5-flash`) multimodal visual layout and contrast auditing.
+- [x] Fallback coordinate and selector audit via `dom_structure.json` checking for low-contrast text element IDs or checking environment variable.
+- [x] Generation of structured JSON reports (`vlm_audit_report.json` and viewport-specific files).
+- [x] Automated assertions and exit codes integration in CI/CD pipeline.
 
-### ⬜ Milestone 17: Multimodal VLM Layout Auditing
-- [ ] Integrate Playwright snapshots with multimodal vision LLMs.
-- [ ] Execute automated assertions validating responsive visual layouts against Figma assets.
+---
+## Active / In-Progress Milestones
+
+None
+## Future V4 Strategic Milestones
 
 ### ⬜ Milestone 18: Pub/Sub Swarm Worker Loop
 - [ ] Formulate a daemon microservice subscribing to an SQLite WAL event bus.
