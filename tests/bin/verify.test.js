@@ -1,23 +1,25 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { parseContract, verifyContract } from '../../bin/verify';
 import { createPatch } from '../../bin/patch';
 
 describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
-  const tempDir = path.join(process.cwd(), 'tests', 'temp_verify_test');
-  const contractPath = path.join(tempDir, 'contract.json');
-  const patchPath = path.join(tempDir, 'patch.diff');
-  const targetFilePath = path.join(tempDir, 'source.js');
+  let tempDir;
+  let contractPath;
+  let patchPath;
+  let targetFilePath;
 
   beforeEach(() => {
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-    }
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'veyra-verify-test-'));
+    contractPath = path.join(tempDir, 'contract.json');
+    patchPath = path.join(tempDir, 'patch.diff');
+    targetFilePath = path.join(tempDir, 'source.js');
   });
 
   afterEach(() => {
-    if (fs.existsSync(tempDir)) {
+    if (tempDir && fs.existsSync(tempDir)) {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
   });
@@ -26,7 +28,7 @@ describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
     const validData = {
       contractId: 'ct-100',
       taskId: 'bd-100',
-      targetFiles: ['tests/temp_verify_test/source.js'],
+      targetFiles: [targetFilePath],
       rules: {
         noConsoleLogs: true,
         maxFileSizeLines: 15

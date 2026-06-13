@@ -253,7 +253,7 @@ function getASTResourceKeys(transforms) {
         keys.push(`import:${t.moduleSpecifier}:${t.importSpecifier}`);
         break;
       case 'addMethod':
-        keys.push(`method:${t.className}:${t.methodName}`);
+        keys.push(`class-method:${t.className}:${t.methodName}`);
         break;
       case 'updateObjectProperty':
         keys.push(`prop:${t.variableName}:${t.propertyKey}`);
@@ -264,6 +264,33 @@ function getASTResourceKeys(transforms) {
         break;
       case 'updateVariableAssignment':
         keys.push(`var:${t.variableName}`);
+        break;
+      case 'addClass':
+        keys.push(`class:${t.className}`);
+        break;
+      case 'addClassDecorator':
+        keys.push(`class-decorator:${t.className}:${t.decoratorName}`);
+        break;
+      case 'addClassMethod':
+        keys.push(`class-method:${t.className}:${t.methodName}`);
+        break;
+      case 'addClassProperty':
+        keys.push(`class-property:${t.className}:${t.propertyName}`);
+        break;
+      case 'addJsxElement':
+        keys.push(`jsx-element:${t.targetSelector.tagName || ''}:${t.targetSelector.attributeName || ''}:${t.targetSelector.attributeValue || ''}`);
+        break;
+      case 'updateJsxAttribute':
+        keys.push(`jsx-attribute:${t.targetSelector.tagName || ''}:${t.attrName}`);
+        break;
+      case 'addInterface':
+        keys.push(`interface:${t.interfaceName}`);
+        break;
+      case 'addInterfaceProperty':
+        keys.push(`interface-property:${t.interfaceName}:${t.propertyName}`);
+        break;
+      case 'addTypeAlias':
+        keys.push(`type-alias:${t.typeName}`);
         break;
     }
   }
@@ -293,21 +320,39 @@ function createWorkspace() {
         return { applied: 0, rejected: patches.length, errors: conflicts.details };
       }
 
-      let applied = 0;
+      const virtualCache = new Map();
       const errors = [];
 
       for (const p of patches) {
         try {
-          const original = fs.readFileSync(p.filePath, 'utf8');
-          const result = applyPatch(original, p.patch);
-          fs.writeFileSync(p.filePath, result, 'utf8');
-          applied++;
+          const original = virtualCache.has(p.filePath)
+            ? virtualCache.get(p.filePath)
+            : fs.readFileSync(p.filePath, 'utf8');
+
+          let result;
+          if (p.patch && p.patch.trim().startsWith('[')) {
+            const transforms = JSON.parse(p.patch);
+            result = astTransform.applyTransformations(original, transforms);
+          } else {
+            result = applyPatch(original, p.patch);
+          }
+          virtualCache.set(p.filePath, result);
         } catch (err) {
           errors.push(`Failed to apply patch from ${p.agentId} to ${p.filePath}: ${err.message}`);
+          break;
         }
       }
 
-      return { applied, rejected: errors.length, errors };
+      if (errors.length > 0) {
+        return { applied: 0, rejected: patches.length, errors };
+      }
+
+      // Write all updated files to disk
+      for (const [filePath, content] of virtualCache.entries()) {
+        fs.writeFileSync(filePath, content, 'utf8');
+      }
+
+      return { applied: patches.length, rejected: 0, errors: [] };
     },
   };
 }

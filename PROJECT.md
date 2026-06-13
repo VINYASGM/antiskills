@@ -16,6 +16,7 @@ The terminal-based dashboard aggregates real-time swarm telemetry, displaying ov
 | 2 | Implement Dashboard | Create bin/dashboard.js and integrate CLI routing in bin/veyra.js | M1 | COMPLETED |
 | 3 | Implement Tests | Write tests/bin/dashboard.test.js and run Vitest suite | M2 | COMPLETED |
 | 4 | Verification & Audit | Review correctness and execute forensic integrity audit | M3 | COMPLETED |
+| 21 | AST Expansion & Agent Integration | Implement classes, decorators, JSX, interfaces/types AST APIs, wire to CLI/patch, and update agent markdown prompts | none | COMPLETED |
 
 ## Interface Contracts
 ### SwarmDashboard (`bin/dashboard.js`)

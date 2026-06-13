@@ -161,7 +161,113 @@ class MemoryGraph:
     def remove_nodes(self, node_ids):
         if not node_ids:
             return
-        id_list = ",".join([f"'{i}'" for i in node_ids])
-        self.conn.execute(f"DELETE FROM nodes WHERE id IN ({id_list})")
-        self.conn.execute(f"DELETE FROM edges WHERE source IN ({id_list}) OR target IN ({id_list})")
+        node_ids_list = list(node_ids)
+        placeholders = ",".join(["?"] * len(node_ids_list))
+        self.conn.execute(f"DELETE FROM nodes WHERE id IN ({placeholders})", node_ids_list)
+        self.conn.execute(
+            f"DELETE FROM edges WHERE source IN ({placeholders}) OR target IN ({placeholders})",
+            node_ids_list + node_ids_list
+        )
         self._sync_nx_graph()
+
+    def get_god_nodes(self, limit=10):
+        # Filter stubs, mocks, and builtins
+        filtered_nodes = [
+            node for node, data in self.nx_graph.nodes(data=True)
+            if data.get('type') != 'stub'
+            and not any(term in node.lower() for term in ['mock', 'stub', 'test_utils', 'builtin'])
+        ]
+        subgraph = self.nx_graph.subgraph(filtered_nodes)
+        
+        if len(subgraph) < 2:
+            results = []
+            for node in filtered_nodes:
+                n_data = self.nx_graph.nodes[node]
+                results.append({
+                    "node_id": node,
+                    "in_centrality": 0.0,
+                    "out_centrality": 0.0,
+                    "title": n_data.get("title", "Untitled"),
+                    "summary": n_data.get("summary", "")
+                })
+            return results[:limit]
+
+        in_centrality = nx.in_degree_centrality(subgraph)
+        out_centrality = nx.out_degree_centrality(subgraph)
+        
+        results = []
+        for node in filtered_nodes:
+            n_data = self.nx_graph.nodes[node]
+            results.append({
+                "node_id": node,
+                "in_centrality": float(in_centrality.get(node, 0.0)),
+                "out_centrality": float(out_centrality.get(node, 0.0)),
+                "title": n_data.get("title", "Untitled"),
+                "summary": n_data.get("summary", "")
+            })
+        
+        results.sort(key=lambda x: x["in_centrality"], reverse=True)
+        return results[:limit]
+
+    def calculate_degree_centrality(self, top_n=10):
+        return self.get_god_nodes(limit=top_n)
+
+    def get_surprising_connections(self, limit=10):
+        g = self.nx_graph.to_undirected()
+        if len(g.nodes) < 2:
+            return []
+            
+        from networkx.algorithms import community
+        try:
+            communities = list(community.label_propagation_communities(g))
+        except Exception:
+            try:
+                communities = list(community.louvain_communities(g))
+            except Exception:
+                communities = list(nx.connected_components(g))
+            
+        node_to_community = {}
+        for i, comm in enumerate(communities):
+            for node in comm:
+                node_to_community[node] = i
+
+        def get_language(node_id):
+            _, ext = os.path.splitext(node_id.lower())
+            if ext in ['.js', '.jsx', '.ts', '.tsx']:
+                return 'javascript/typescript'
+            elif ext == '.py':
+                return 'python'
+            elif ext == '.rs':
+                return 'rust'
+            elif ext == '.go':
+                return 'go'
+            elif ext in ['.sql', '.db']:
+                return 'sql'
+            elif ext in ['.cls', '.apex']:
+                return 'apex'
+            return 'unknown'
+
+        surprising_edges = []
+        for u, v, data in self.nx_graph.edges(data=True):
+            u_comm = node_to_community.get(u)
+            v_comm = node_to_community.get(v)
+            u_lang = get_language(u)
+            v_lang = get_language(v)
+            
+            is_community_crossing = (u_comm is not None and v_comm is not None and u_comm != v_comm)
+            is_language_crossing = (u_lang != 'unknown' and v_lang != 'unknown' and u_lang != v_lang)
+            
+            if is_community_crossing or is_language_crossing:
+                surprising_edges.append({
+                    "source": u,
+                    "target": v,
+                    "relation": data.get("relation", "depends_on"),
+                    "is_community_crossing": is_community_crossing,
+                    "is_language_crossing": is_language_crossing,
+                    "source_lang": u_lang,
+                    "target_lang": v_lang,
+                    "source_community": u_comm,
+                    "target_community": v_comm
+                })
+                
+        return surprising_edges[:limit]

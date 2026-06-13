@@ -332,7 +332,49 @@ function parseOptions(argsList) {
         } else if (action === 'method') {
           modifiedContent = astTransform.addMethod(originalContent, target, name, (params[0] || '').split(','), params.slice(1).join(' '));
         } else if (action === 'property') {
-          modifiedContent = astTransform.updateObjectProperty(originalContent, target, name, params[0]);
+          let parsedValue = params[0];
+          if (parsedValue !== undefined) {
+            try {
+              parsedValue = JSON.parse(params[0]);
+            } catch (e) {
+              // fallback to raw string
+            }
+          }
+          modifiedContent = astTransform.updateObjectProperty(originalContent, target, name, parsedValue);
+        } else if (action === 'class') {
+          modifiedContent = astTransform.addClass(originalContent, target, name === 'true');
+        } else if (action === 'class-decorator') {
+          modifiedContent = astTransform.addClassDecorator(originalContent, target, name, params[0] ? JSON.parse(params[0]) : undefined);
+        } else if (action === 'class-method') {
+          modifiedContent = astTransform.addClassMethod(
+            originalContent,
+            target,
+            name,
+            (params[0] || '').split(',').map(s => s.trim()).filter(Boolean),
+            params[1] || '',
+            params[2] ? JSON.parse(params[2]) : [],
+            params[3] ? JSON.parse(params[3]) : []
+          );
+        } else if (action === 'class-property') {
+          modifiedContent = astTransform.addClassProperty(
+            originalContent,
+            target,
+            name,
+            params[0],
+            params[1] || undefined,
+            params[2] ? JSON.parse(params[2]) : [],
+            params[3] ? JSON.parse(params[3]) : []
+          );
+        } else if (action === 'jsx-element') {
+          modifiedContent = astTransform.addJsxElement(originalContent, JSON.parse(target), name);
+        } else if (action === 'jsx-attribute') {
+          modifiedContent = astTransform.updateJsxAttribute(originalContent, JSON.parse(target), name, params[0]);
+        } else if (action === 'interface') {
+          modifiedContent = astTransform.addInterface(originalContent, target, name ? name.split(',').map(s => s.trim()).filter(Boolean) : []);
+        } else if (action === 'interface-property') {
+          modifiedContent = astTransform.addInterfaceProperty(originalContent, target, name, params[0] === 'true', params[1]);
+        } else if (action === 'type-alias') {
+          modifiedContent = astTransform.addTypeAlias(originalContent, target, name);
         }
         fs.writeFileSync(filePath, modifiedContent, 'utf8');
         console.log(`Applied AST transform to ${filePath}`);

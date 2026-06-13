@@ -103,6 +103,12 @@
 - [x] Integrate CLI command `dashboard` / `ui dashboard` in `bin/veyra.js`.
 - [x] Design Vitest test suite in `tests/bin/dashboard.test.js` validating layout assembly and calculations.
 
+### ✅ Milestone 21: AST Expansion & Agent Integration
+- [x] Extend `bin/ast_transform.js` to support classes, decorators, JSX/TSX elements, and interfaces/types.
+- [x] Integrate new AST APIs in CLI (`bin/veyra.js`) and conflict detector (`bin/patch.js`).
+- [x] Mandate AST-based patching in agent prompt markdown files under `agents/`.
+- [x] Add comprehensive test coverage in `tests/bin/ast-transform.test.js` and `tests/bin/patch.test.js` and ensure all pass.
+
 ---
 ## Future V4 Strategic Milestones
 
@@ -114,11 +120,12 @@
 - [ ] Formulate a daemon microservice subscribing to an SQLite WAL event bus.
 - [ ] Allocate subagent tasks asynchronously as event bus dependency flags update.
 
-### ⬜ Milestone 20: Graphify Enrichment Core (Security Ingest, Graph Topology, and HTML Visualizers)
-- [ ] Add JIT secrets, netrc, and key skipping patterns to `bin/context.js`.
-- [ ] Implement decompression ratio screening on zip/XML-based Office documents to prevent zip-bomb exploits in `bin/context.js`.
-- [ ] Implement shebang interpreter parser for extensionless scripts in `bin/context.js`.
-- [ ] Extend import crawling to support multi-language fallbacks (Python, Rust, Go, Apex, SQL).
-- [ ] Update `memory-mcp-server/graph.py` to calculate degree centrality ("God Nodes") and Modular connections crossing communities / language barriers ("Surprising Connections").
-- [ ] Build interactive HTML outputs: a collapsible tree using D3.js (`context/tree.html`) and an architecture Mermaid callflow diagram (`context/graph.html`).
+### ✅ Milestone 20: Graphify Enrichment Core (Security Ingest, Graph Topology, and HTML Visualizers)
+- [x] Add JIT secrets, netrc, and key skipping patterns to `bin/context.js`.
+- [x] Implement decompression ratio screening on zip/XML-based Office documents to prevent zip-bomb exploits in `bin/context.js`.
+- [x] Implement shebang script parser for extensionless scripts in `bin/context.js`.
+- [x] Extend import crawling to support multi-language fallbacks (Python, Rust, Go, Apex, SQL).
+- [x] Update `memory-mcp-server/graph.py` to calculate degree centrality ("God Nodes") and Modular connections crossing communities / language barriers ("Surprising Connections").
+- [x] Build interactive HTML outputs: a collapsible tree using D3.js (`context/tree.html`) and an architecture Mermaid callflow diagram (`context/graph.html`).
+
 

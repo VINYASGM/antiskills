@@ -34,6 +34,10 @@ Veyra is a reusable, AI-native engineering operating system repository framework
 - [agents/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/agents) — Definitions for Orchestrator, Explorer, Architect, and Implementer roles.
 - [checklists/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/checklists) — JSON structured code contracts.
 - [tests/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/tests) — Regression Vitest suites.
+- [context/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/context) — Generated context index outputs.
+  - [tree.html](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/context/tree.html) — Collapsible D3.js interactive hierarchical file-to-symbol tree.
+  - [graph.html](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/context/graph.html) — Collapsible Mermaid/D3.js callflow community-grouped architecture graph map.
+
 
 ---
 
@@ -102,6 +106,25 @@ node bin/veyra.js dashboard
 node bin/veyra.js ui dashboard
 ```
 
+### Programmatic AST Transformation CLI
+Modify file structure using TypeScript syntax AST engine:
+```powershell
+# Classes & Decorators
+node bin/veyra.js ast apply <filePath> class <className> [isExported: true/false]
+node bin/veyra.js ast apply <filePath> class-decorator <className> <decoratorName> [decoratorArgsJson]
+node bin/veyra.js ast apply <filePath> class-method <className> <methodName> [paramsCommaSeparated] [methodBody] [decoratorsJson] [modifiersJson]
+node bin/veyra.js ast apply <filePath> class-property <className> <propertyName> <propertyType> [initializerText] [decoratorsJson] [modifiersJson]
+
+# JSX/TSX Markup
+node bin/veyra.js ast apply <filePath> jsx-element <targetSelectorJson> <jsxString>
+node bin/veyra.js ast apply <filePath> jsx-attribute <targetSelectorJson> <attrName> <attrValueExpression>
+
+# Interfaces & Types
+node bin/veyra.js ast apply <filePath> interface <interfaceName> [extendsNamesCommaSeparated]
+node bin/veyra.js ast apply <filePath> interface-property <interfaceName> <propertyName> [isOptional: true/false] <propertyType>
+node bin/veyra.js ast apply <filePath> type-alias <typeName> <typeValueText>
+```
+
 ### JIT Context Indexing (with Graphify Enhancements)
 Scan the repository structure, perform secrets/zip-bomb checks, and build static ASCII + D3 HTML trees and Mermaid flowcharts:
 ```powershell
@@ -113,3 +136,23 @@ Outputs:
 - `context/tree.html`: Collapsible interactive D3.js filesystem tree.
 - `context/graph.html`: Collapsible visual Mermaid callflow architecture map.
 
+---
+
+## 5. Graphify Visualizations Integration Details
+
+The interactive HTML reports generated in the `context/` folder integrate with the codebase crawlers and the memory server to provide a visual interface for both human developers and agents:
+
+### 5.1 Collapsible File-to-Symbol Tree (`context/tree.html`)
+- **Structure:** Contains a self-contained HTML page embedding the D3.js library (v7) and a JSON representation of the file hierarchy.
+- **Dynamic Behaviors:**
+  - **Collapsible Nodes:** Clicking directory nodes toggles visibility of children using standard D3 node data manipulation (`d3.hierarchy` / transition animation).
+  - **Symbol Display:** File leaf nodes are decorated with syntax-highlighted badges indicating class declarations, exported functions, and interface properties parsed by the AST system.
+  - **Tooltips:** Hovering displays size on disk (bytes), line count (LOC), and last modified time.
+
+### 5.2 Clustered Architecture Callflow Map (`context/graph.html`)
+- **Structure:** Combines D3 force-directed nodes with Mermaid.js flowchart syntax to render modular coupling.
+- **Community Clustering:** Node positions and border/background colors are bound to the Louvain modularity community IDs calculated by `memory-mcp-server/graph.py`.
+- **Topological Highlighting:**
+  - **God Nodes:** Highlighted with bright warning borders and larger radiuses proportional to their degree/PageRank centrality.
+  - **Bridge Edges (Surprising Connections):** Rendered as thick, dashed lines in bright red. Indicates coupling across modular communities or programming languages.
+- **Developer / Swarm Integration:** Developers can run `node bin/veyra.js context index` to refresh these maps instantly and review active workspaces via any standard web browser.

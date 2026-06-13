@@ -105,10 +105,57 @@ To monitor parallel executions and manage circuit breakers:
 
 ## 6. Graphify Enrichment Core & Security
 
-To enhance Veyra's static code indexing and context assembly with Graphify-style intelligence:
-- **JIT Input Security Screening:** The hybrid context plane (`bin/context.js`) filters all files through an `isSensitive` block to skip credential repositories,NETRC files, and private keys. Zip files are checked for decompression safety ratios before extraction.
-- **Modularity Modifiers:** Graph memory (`memory-mcp-server/graph.py`) calculates NetworkX degree centrality to isolate "God Nodes", and maps "Surprising Connections" by looking for edges that cross Louvain/Leiden modularity communities or language family limits (e.g. Python connecting to Rust).
-- **Interactive Browser Maps:** In addition to markdown files, Veyra generates:
+The Graphify Enrichment Core integrates security, multi-language intelligence, graph theory metrics, and rich browser visualizers.
+
+### Component Interaction Flow
+
+```mermaid
+flowchart TD
+    FS[Workspace Filesystem] -->|1. JIT Crawl Scan| SEC{JIT Security Ingest}
+    
+    subgraph JIT_Sec["JIT Security Screening (bin/context.js)"]
+        SEC -->|Exclusion Check| ENV[".env / .git / SSH / Keys / netrc blocklist"]
+        SEC -->|Content Regex| SEC_KEY["Secrets & API Keys Matcher"]
+        SEC -->|Pre-flight Audit| ZB["Zip-Bomb Ratio Check (200:1 / 50MB limit)"]
+    end
+    
+    SEC_KEY -->|Pass Safety Checks| PARSER{Parser Selector}
+    ENV -->|Skip File| SKIP[File Excluded]
+    ZB -->|Ratio Exceeded / Aborted| SKIP
+    
+    subgraph Multi_Lang["Multi-Language Parsing & Crawling (bin/context.js)"]
+        PARSER -->|Standard Extension| EXT["JS/TS, PY, GO, RS, SQL, APEX Parser"]
+        PARSER -->|Extensionless Script| SB["Shebang Parser (Tokenize interpreter)"]
+        EXT & SB -->|Regex-based AST Crawl| IMP["Imports & Call Graph Extraction"]
+    end
+    
+    IMP -->|2. Raw Dependency Map| MCP["memory-mcp-server/graph.py"]
+    
+    subgraph Analytics["Graph Topology Analytics (DuckDB + NetworkX)"]
+        MCP -->|Degree & PageRank Centrality| GOD["God Nodes Identification"]
+        MCP -->|Louvain Modularity| COMM["Community Clustering"]
+        MCP -->|Cross-boundary edges| SURP["Surprising Connections Mapping"]
+    end
+    
+    GOD & COMM & SURP -->|3. Rich Context Metrics| DATA[Context Data Bundle]
+    DATA -->|4. Generate Visual Maps| HTML["HTML Visualizer Generation"]
+    
+    subgraph Viz["Interactive Visualizers (context/)"]
+        HTML -->|Collapsible File-to-Symbol Tree| TREE["context/tree.html (D3.js Tree)"]
+        HTML -->|Louvain Clustered Callflow| GRAPH["context/graph.html (Mermaid/D3.js Graph)"]
+    end
+```
+
+### Component Details
+- **JIT Input Security Screening:** The hybrid context plane (`bin/context.js`) filters all files through an `isSensitive` block to skip credential repositories, NETRC files, and private keys. Compressed zip/XML archives are audited pre-decompression to block zip-bombs exceeding a 200:1 ratio.
+- **Multi-Language Parsing & shebang Handling:** Handles JS/TS, Python, Go, Rust, SQL, and Apex. Extensionless scripts are evaluated by reading the shebang line to identify the underlying engine runtime (Python, Node, Bash).
+- **Modularity Modifiers & NetworkX Analytics:** The memory graph (`memory-mcp-server/graph.py`) calculates NetworkX degree centrality to isolate "God Nodes", and maps "Surprising Connections" by looking for edges that cross Louvain community boundaries or language family limits (e.g., Python connecting to Rust via binary bindings).
+- **Interactive Browser Maps:** Dynamically outputs interactive visualizations:
   - `context/tree.html`: A collapsible hierarchical D3.js visualization presenting files and their symbols.
   - `context/graph.html`: A self-contained Mermaid.js architecture flow visualization showing community-grouped module interactions.
 
+
+## 7. AST Code-as-a-Graph Expansion (Milestone 21)
+The system enforces semantic integrity by replacing line-based text transformations with AST node manipulations.
+- **Synthesized AST Nodes:** When code modification is requested, `bin/ast_transform.js` parses the target file as `ts.ScriptKind.TSX`, traverses it using TypeScript Compiler API visitors, constructs or updates target syntax nodes (classes, decorators, methods, JSX elements, interfaces, types), strips positions via recursive coordinate removal, and prints the result.
+- **Semantic Conflict Detection:** `bin/patch.js` computes semantic keys (e.g., `class:ClassName`, `jsx-element:Tag:Attr`) for active patches, which are checked for overlap against concurrently executing tasks to prevent conflict merges before verification.

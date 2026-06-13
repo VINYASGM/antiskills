@@ -1,7 +1,7 @@
 # Project State — Veyra
 
-**Last Updated:** 2026-06-07
-**Phase:** Veyra V3: Swarm Telemetry & Telemetry Dashboards
+**Last Updated:** 2026-06-13
+**Phase:** Milestone 20: Graphify Enrichment Core
 
 ---
 
@@ -9,11 +9,13 @@
 
 | Field | Value |
 |---|---|
-| **Current Phase** | Veyra V3 Telemetry Dashboard Integration |
-| **Status** | 🟢 Stable / 140/140 Vitest Tests Passed |
-| **Core Goal** | Formulate visual telemetry dashboard design and tests to monitor DB locks, governance transactions, and patch apply channels |
-| **Started** | 2026-06-07 |
-| **Target Completion** | 2026-06-07 |
+| **Current Phase** | Milestone 20: Graphify Enrichment Core (Security Ingest, Graph Topology, and HTML Visualizers) |
+| **Status** | 🟢 COMPLETE |
+| **Core Goal** | Implement JIT security screening, zip-bomb protections, shebang script interpreters, multi-language parser regexes, NetworkX centrality/modularity analytics, and collapsible HTML visualizations. |
+| **Started** | 2026-06-13 |
+| **Target Completion** | 2026-06-13 |
+| **Active Milestones** | - None (Milestone 20 Complete) |
+
 
 ---
 
@@ -37,6 +39,8 @@
 | **Phase 15: GitHub Actions CI Workflow** | 🟢 Complete | Deployed `.github/workflows/ci.yml` running Vitest tests on PRs/pushes. |
 | **Phase 16: AST Code-as-a-Graph Transformations** | 🟢 Complete | Developed a pure AST node manipulation pipeline (`bin/ast_transform.js`) and integrated it into the patch workspace to bypass line-based textual diff errors. |
 | **Phase D: Swarm Telemetry Dashboard** | 🟢 Complete | Designed and formulated dashboard telemetry extraction module, CLI routing integrations, and automated test plans. |
+| **Milestone 20: Graphify Enrichment Core** | 🟢 Complete | Ported JIT security filters, zip-bomb screening, shebang interpret-mapping, multi-language import crawling, NetworkX centrality/modularity metrics, and D3/Mermaid browser visualizations. |
+| **Milestone 21: AST Expansion & Agent Integration** | 🟢 Complete | Expanded AST transform engine to support classes/decorators, JSX, and interfaces/types, and wired to CLI/conflict checking/agent prompts. |
 
 ---
 
@@ -58,7 +62,7 @@
 | `bin/ui.js` | 🟢 Active | Terminal visual primitives (boxes, tables, and progress bars). |
 | `bin/dashboard.js` | 🟢 Active | Swarm telemetry extraction and formatting dashboard engine. |
 | `checklists/` | 🟢 Active | JSON programmatic verification contract templates. |
-| `tests/` | 🟢 Active | 140 Vitest test cases validating schemas, core modules, task queues, databases, VFS patches, circuit breakers, and custom rules. |
+| `tests/` | 🟢 Active | 166 Vitest test cases validating schemas, core modules, task queues, databases, VFS patches, circuit breakers, custom rules, and crawler enrichment visualizers. |
 | `tests/bin/dashboard.test.js` | 🟢 Active | Vitest unit tests verifying dashboard rendering and calculations. |
 | `context.md` | 🟢 Active | Central developer cheat sheet. |
 | `.github/workflows/ci.yml` | 🟢 Active | GitHub Actions CI configuration running Vitest tests on PRs/pushes. |
@@ -67,10 +71,6 @@
 
 ## 4. Next Actions
 
-1. **Transition to V4 Code-as-a-Graph Architecture**
-   - Further expand AST transformations to support more syntax tree manipulations (e.g., classes, decorators, JSX/TSX elements) and roll out across all subagents.
-2. **Implement Graphify Enrichment Core (Milestone 20)**
-   - Port sensitive file/credential screening and zip-bomb check triggers to `bin/context.js`.
-   - Port D3.js and Mermaid-based visualizers to generate interactive `context/tree.html` and `context/graph.html` browser maps.
-   - Run centrality/modularity graph calculations in `memory-mcp-server/graph.py` to identify "God Nodes" and "Surprising Connections".
-
+1. **Implement Future V4 Strategic Milestones**
+   - Integrate multimodal VLM layout auditing with Playwright snapshots.
+   - Formulate daemon worker microservice subscribing to WAL event bus.

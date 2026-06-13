@@ -10,5 +10,6 @@ Constraints:
 - ALWAYS review responsive visual screenshots in frontend changes to ensure no layout degradation.
 - NEVER rewrite code — provide specific, actionable comments in choreographic review threads.
 - ALWAYS check for modular boundary isolation and typings.
+- ALWAYS verify that AST transforms are applied via AST transform CLI (`node bin/veyra.js ast apply`) or AST patches rather than line diffs for classes, decorators, JSX, interfaces, types, imports, or variable assignments.
 Escalation: Intent deadlock -> Orchestrator. Visual layout failure -> VLM UI Reviewer.
 Output: Architectural audit report, approval or specific revision requests.

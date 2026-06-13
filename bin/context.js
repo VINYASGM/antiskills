@@ -9,6 +9,230 @@ const path = require('node:path');
  * that compiler-level AST traversals are blind to.
  */
 class ContextAssembler {
+
+  isSensitivePath(filePath) {
+    const relativePath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
+    const parts = relativePath.split('/');
+    
+    // 1. Directory Blacklist
+    const dirBlacklist = new Set([
+      '.git', 'node_modules', 'dist', 'build', '.next', '.venv', 'venv', 
+      'env', '.aws', '.ssh', 'tmp', 'certs', 'credentials', 'secrets'
+    ]);
+    if (parts.some(part => dirBlacklist.has(part))) return true;
+
+    const fileName = path.basename(filePath).toLowerCase();
+
+    // 2. Sensitive File Extensions
+    const secretExtensions = new Set([
+      '.pem', '.key', '.crt', '.cer', '.pfx', '.p12', '.keystore', '.jks', 
+      '.der', '.pkcs12', '.sqlite', '.db', '.duckdb', '.sqlitedb'
+    ]);
+    if (secretExtensions.has(path.extname(fileName))) return true;
+
+    // 3. Secrets / Private Key Name Keywords
+    const secretKeywords = [
+      'id_rsa', 'id_dsa', 'id_ecdsa', 'id_ed25519', 'secret', 'token', 
+      'credential', 'password', 'private_key', 'auth_key', 'netrc'
+    ];
+    if (secretKeywords.some(keyword => fileName.includes(keyword))) return true;
+
+    // 4. Env file patterns
+    if (/^\.env(\..*)?$/i.test(fileName)) return true;
+
+    return false;
+  }
+
+  isZipBomb(filePath) {
+    let fd;
+    try {
+      fd = fs.openSync(filePath, 'r');
+      const stat = fs.statSync(filePath);
+      const fileSize = stat.size;
+      
+      let offset = 0;
+      let totalCompressed = 0;
+      let totalUncompressed = 0;
+      
+      while (offset < fileSize) {
+        const headerBuf = Buffer.alloc(30);
+        const bytesRead = fs.readSync(fd, headerBuf, 0, 30, offset);
+        if (bytesRead < 30) break;
+        
+        const signature = headerBuf.readUInt32LE(0);
+        if (signature !== 0x04034b50) break; // Reached central directory
+        
+        const compressedSize = headerBuf.readUInt32LE(18);
+        const uncompressedSize = headerBuf.readUInt32LE(22);
+        const fileNameLength = headerBuf.readUInt16LE(26);
+        const extraFieldLength = headerBuf.readUInt16LE(28);
+        
+        totalCompressed += compressedSize;
+        totalUncompressed += uncompressedSize;
+        
+        offset += 30 + fileNameLength + extraFieldLength + compressedSize;
+      }
+      
+      if (totalCompressed === 0 && totalUncompressed > 0) return true; // Anomalous zip
+      
+      const ratio = totalUncompressed / (totalCompressed || 1);
+      if (ratio > 200) return true;
+      if (totalUncompressed > 500 * 1024 * 1024) return true; // 500MB safety limit
+      
+      return false;
+    } catch (e) {
+      return true; // Exclude if unreadable
+    } finally {
+      if (fd !== undefined) fs.closeSync(fd);
+    }
+  }
+
+  detectShebangLanguage(filePath) {
+    let fd;
+    try {
+      fd = fs.openSync(filePath, 'r');
+      const buffer = Buffer.alloc(128);
+      const bytesRead = fs.readSync(fd, buffer, 0, 128, 0);
+      if (bytesRead < 2) return null;
+      
+      const content = buffer.toString('utf8', 0, bytesRead);
+      if (!content.startsWith('#!')) return null;
+      
+      const firstLine = content.split('\n')[0].trim();
+      if (firstLine.includes('node')) return '.js';
+      if (firstLine.includes('python') || firstLine.includes('py')) return '.py';
+      if (firstLine.includes('rust') || firstLine.includes('cargo')) return '.rs';
+      if (firstLine.includes('go')) return '.go';
+      if (firstLine.includes('bash') || firstLine.includes('sh')) return '.sh';
+      
+      return null;
+    } catch (e) {
+      return null;
+    } finally {
+      if (fd !== undefined) fs.closeSync(fd);
+    }
+  }
+
+  resolveForeignImports(filePath, content) {
+    let ext = path.extname(filePath);
+    if (!ext) {
+      ext = this.detectShebangLanguage(filePath) || '';
+    }
+    const dirname = path.dirname(filePath);
+    const imports = [];
+
+    switch (ext) {
+      case '.py': {
+        const directRegex = /^\s*import\s+([\w\.,\s]+)/gm;
+        let match;
+        while ((match = directRegex.exec(content)) !== null) {
+          const modules = match[1].split(',').map(m => m.trim());
+          imports.push(...modules);
+        }
+        const fromRegex = /^\s*from\s+([\w\.]+)\s+import/gm;
+        while ((match = fromRegex.exec(content)) !== null) {
+          imports.push(match[1]);
+        }
+        break;
+      }
+      case '.rs': {
+        const useRegex = /^\s*(?:pub\s+)?use\s+([\w\::\{\},\s\*]+);/gm;
+        let match;
+        while ((match = useRegex.exec(content)) !== null) {
+          const pathPart = match[1].split('::')[0].trim();
+          imports.push(pathPart);
+        }
+        const modRegex = /^\s*(?:pub\s+)?mod\s+(\w+);/gm;
+        while ((match = modRegex.exec(content)) !== null) {
+          imports.push(`./${match[1]}`);
+        }
+        break;
+      }
+      case '.go': {
+        const blockRegex = /import\s+\(\s*([\s\S]*?)\s*\)/g;
+        let blockMatch;
+        while ((blockMatch = blockRegex.exec(content)) !== null) {
+          const lineRegex = /"([^"]+)"/g;
+          let lineMatch;
+          while ((lineMatch = lineRegex.exec(blockMatch[1])) !== null) {
+            imports.push(lineMatch[1]);
+          }
+        }
+        const singleRegex = /import\s+(?:_|\w+\s+)?\"([^\"]+)\"/g;
+        let match;
+        while ((match = singleRegex.exec(content)) !== null) {
+          imports.push(match[1]);
+        }
+        break;
+      }
+      case '.sql': {
+        const sqlRegex = /--#\s*import\s+["']?([\w\-./\\]+)["']?/g;
+        let match;
+        while ((match = sqlRegex.exec(content)) !== null) {
+          imports.push(match[1]);
+        }
+        break;
+      }
+      case '.cls': {
+        const classRegex = /(?:class|interface)\s+\w+\s+(?:extends|implements)\s+(\w+)/gi;
+        let match;
+        while ((match = classRegex.exec(content)) !== null) {
+          imports.push(match[1]);
+        }
+        const newRegex = /\bnew\s+(\w+)\s*\(/g;
+        while ((match = newRegex.exec(content)) !== null) {
+          imports.push(match[1]);
+        }
+        break;
+      }
+    }
+
+    const resolvedPaths = [];
+    for (const rel of imports) {
+      let resolved = '';
+      if (['os', 'sys', 'path', 'fmt', 'std'].includes(rel)) continue;
+
+      if (rel.startsWith('.')) {
+        const baseName = path.join(dirname, rel);
+        const candidates = [ext, `/mod${ext}`, `/index${ext}`];
+        for (const cand of candidates) {
+          const full = baseName.endsWith(cand) ? baseName : baseName + cand;
+          if (fs.existsSync(full)) {
+            resolved = full;
+            break;
+          }
+        }
+      } else {
+        // Try relative to dirname first
+        const relativeCand = path.join(dirname, rel);
+        if (fs.existsSync(relativeCand)) {
+          resolved = relativeCand;
+        } else if (fs.existsSync(relativeCand + ext)) {
+          resolved = relativeCand + ext;
+        } else {
+          const searchName = rel.replace(/\./g, '/');
+          const candidates = [
+            path.join(process.cwd(), searchName + ext),
+            path.join(process.cwd(), 'src', searchName + ext),
+            path.join(process.cwd(), 'lib', searchName + ext),
+            path.join(process.cwd(), rel),
+            path.join(process.cwd(), rel + ext)
+          ];
+          for (const cand of candidates) {
+            if (fs.existsSync(cand)) {
+              resolved = cand;
+              break;
+            }
+          }
+        }
+      }
+
+      if (resolved && !resolvedPaths.includes(resolved)) {
+        resolvedPaths.push(resolved);
+      }
+    }
+    return resolvedPaths;
+  }
   
   /**
    * Resolves explicit static import, export, and CommonJS require path strings using TypeScript AST.
@@ -21,6 +245,16 @@ class ContextAssembler {
    * const imports = contextAssembler.resolveImports('/path/to/main.ts', sourceFile);
    */
   resolveImports(filePath, sourceFile) {
+    const ext = path.extname(filePath);
+    if (!['.ts', '.tsx', '.js', '.jsx'].includes(ext)) {
+      try {
+        const content = fs.readFileSync(filePath, 'utf8');
+        return this.resolveForeignImports(filePath, content);
+      } catch (e) {
+        return [];
+      }
+    }
+
     const imports = [];
     const dirname = path.dirname(filePath);
 
@@ -44,7 +278,15 @@ class ContextAssembler {
       ts.forEachChild(node, visit);
     };
 
-    visit(sourceFile);
+    if (sourceFile) {
+      visit(sourceFile);
+    } else {
+      try {
+        const content = fs.readFileSync(filePath, 'utf8');
+        const parsed = ts.createSourceFile(filePath, content, ts.ScriptTarget.Latest, true);
+        visit(parsed);
+      } catch (e) {}
+    }
 
     // Resolve paths accurately
     const resolvedPaths = [];
@@ -128,23 +370,31 @@ class ContextAssembler {
     const fileSemanticKeys = new Map();
     const semanticIndex = new Map(); // key -> [files]
 
-    // Step 1: Deterministic AST Traversal
+    // Step 1: Deterministic AST / Regex Traversal
     while (queue.length > 0) {
       const file = queue.shift();
       const absPath = path.resolve(file);
+      if (this.isSensitivePath(absPath)) continue;
+      if (this.isZipBomb(absPath)) continue;
       if (visited.has(absPath) || !fs.existsSync(absPath)) continue;
       visited.add(absPath);
 
       try {
-        const content = fs.readFileSync(absPath, 'utf8');
-        const sourceFile = ts.createSourceFile(
-          absPath,
-          content,
-          ts.ScriptTarget.Latest,
-          true
-        );
+        const ext = path.extname(absPath);
+        let deps = [];
+        if (['.ts', '.tsx', '.js', '.jsx'].includes(ext)) {
+          const content = fs.readFileSync(absPath, 'utf8');
+          const sourceFile = ts.createSourceFile(
+            absPath,
+            content,
+            ts.ScriptTarget.Latest,
+            true
+          );
+          deps = this.resolveImports(absPath, sourceFile);
+        } else {
+          deps = this.resolveImports(absPath);
+        }
 
-        const deps = this.resolveImports(absPath, sourceFile);
         for (const dep of deps) {
           const absDep = path.resolve(dep);
           if (!visited.has(absDep)) queue.push(absDep);
@@ -170,13 +420,24 @@ class ContextAssembler {
       try {
         const items = fs.readdirSync(dir, { withFileTypes: true });
         for (const item of items) {
+          const fullPath = path.join(dir, item.name);
+          if (this.isSensitivePath(fullPath)) continue;
+          
           if (item.isDirectory()) {
             if (['node_modules', '.git', 'dist', 'build', '.next', 'scratch', 'memory'].includes(item.name)) continue;
-            scanDir(path.join(dir, item.name), depth + 1);
+            scanDir(fullPath, depth + 1);
           } else {
+            if (this.isZipBomb(fullPath)) continue;
+            
             const ext = path.extname(item.name);
-            if (['.ts', '.tsx', '.js', '.jsx', '.css', '.json'].includes(ext)) {
-              allProjFiles.push(path.join(dir, item.name));
+            let resolvedExt = ext;
+            if (!ext) {
+              const shebangExt = this.detectShebangLanguage(fullPath);
+              if (shebangExt) resolvedExt = shebangExt;
+            }
+
+            if (['.ts', '.tsx', '.js', '.jsx', '.css', '.json', '.py', '.rs', '.go', '.sql', '.cls'].includes(resolvedExt)) {
+              allProjFiles.push(fullPath);
             }
           }
         }
@@ -376,13 +637,24 @@ class ContextAssembler {
       try {
         const items = fs.readdirSync(dir, { withFileTypes: true });
         for (const item of items) {
+          const fullPath = path.join(dir, item.name);
+          if (this.isSensitivePath(fullPath)) continue;
+
           if (item.isDirectory()) {
             if (['node_modules', '.git', 'dist', 'build', '.next', 'scratch', 'memory'].includes(item.name)) continue;
-            scanDir(path.join(dir, item.name), depth + 1);
+            scanDir(fullPath, depth + 1);
           } else {
+            if (this.isZipBomb(fullPath)) continue;
+
             const ext = path.extname(item.name);
-            if (['.ts', '.tsx', '.js', '.jsx'].includes(ext)) {
-              files.push(path.resolve(path.join(dir, item.name)));
+            let resolvedExt = ext;
+            if (!ext) {
+              const shebangExt = this.detectShebangLanguage(fullPath);
+              if (shebangExt) resolvedExt = shebangExt;
+            }
+
+            if (['.ts', '.tsx', '.js', '.jsx', '.py', '.rs', '.go', '.sql', '.cls'].includes(resolvedExt)) {
+              files.push(path.resolve(fullPath));
             }
           }
         }
@@ -400,14 +672,21 @@ class ContextAssembler {
 
     for (const file of files) {
       try {
-        const content = fs.readFileSync(file, 'utf8');
-        const sourceFile = ts.createSourceFile(
-          file,
-          content,
-          ts.ScriptTarget.Latest,
-          true
-        );
-        const resolved = this.resolveImports(file, sourceFile);
+        const ext = path.extname(file);
+        let resolved = [];
+        if (['.ts', '.tsx', '.js', '.jsx'].includes(ext)) {
+          const content = fs.readFileSync(file, 'utf8');
+          const sourceFile = ts.createSourceFile(
+            file,
+            content,
+            ts.ScriptTarget.Latest,
+            true
+          );
+          resolved = this.resolveImports(file, sourceFile);
+        } else {
+          resolved = this.resolveImports(file);
+        }
+
         for (const r of resolved) {
           const absR = path.resolve(r);
           if (dependencies.has(file) && !dependencies.get(file).includes(absR)) {
@@ -491,11 +770,91 @@ class ContextAssembler {
    * @returns {void}
    * @throws {Error} If filesystem writes encounter access issues.
    */
+  generateRepoJSON() {
+    const root = process.cwd();
+    
+    const buildNode = (dirName, dirPath) => {
+      const node = { name: dirName, children: [] };
+      try {
+        const items = fs.readdirSync(dirPath, { withFileTypes: true })
+          .filter(item => !['node_modules', '.git', 'dist', 'build', '.next', 'scratch', 'memory'].includes(item.name))
+          .sort((a, b) => a.name.localeCompare(b.name));
+          
+        for (const item of items) {
+          const fullPath = path.join(dirPath, item.name);
+          if (this.isSensitivePath(fullPath)) continue;
+          if (item.isDirectory()) {
+            node.children.push(buildNode(item.name, fullPath));
+          } else {
+            let size = 0;
+            try { size = fs.statSync(fullPath).size; } catch(e) {}
+            node.children.push({ name: item.name, size });
+          }
+        }
+      } catch (e) {}
+      return node;
+    };
+
+    return buildNode(path.basename(root) || "root", root);
+  }
+
+  generateMermaidGraph(files, dependencies) {
+    const communities = new Map();
+    for (const file of files) {
+      const relPath = path.relative(process.cwd(), file).replace(/\\/g, '/');
+      const dirName = path.dirname(relPath);
+      const groupName = dirName === '.' ? 'Root' : dirName;
+      if (!communities.has(groupName)) {
+        communities.set(groupName, []);
+      }
+      communities.get(groupName).push({ file, relPath });
+    }
+
+    let mermaid = 'graph TD\n';
+    const fileToId = new Map();
+
+    for (const [group, groupFiles] of communities.entries()) {
+      const safeGroupName = group.replace(/[^a-zA-Z0-9]/g, '_');
+      mermaid += `  subgraph Community_${safeGroupName} ["${group}"]\n`;
+      for (const item of groupFiles) {
+        const fileId = item.relPath.replace(/[^a-zA-Z0-9]/g, '_');
+        fileToId.set(item.file, fileId);
+        mermaid += `    ${fileId}["${item.relPath}"]\n`;
+      }
+      mermaid += '  end\n';
+    }
+
+    let linkCount = 0;
+    for (const file of files) {
+      const fromId = fileToId.get(file);
+      const deps = dependencies.get(file) || [];
+      for (const dep of deps) {
+        const toId = fileToId.get(dep);
+        if (fromId && toId) {
+          mermaid += `  ${fromId} --> ${toId}\n`;
+          linkCount++;
+        }
+      }
+    }
+
+    if (linkCount === 0) {
+      mermaid += '  A["No module imports resolved yet"]\n';
+    }
+
+    return mermaid;
+  }
+
   generateIndex() {
     console.log('⚡ Indexing repository...');
     
+    // Ensure context dir exists
+    const contextDir = path.join(process.cwd(), 'context');
+    if (!fs.existsSync(contextDir)) {
+      fs.mkdirSync(contextDir, { recursive: true });
+    }
+
     // 1. Repo Map
-    const mapPath = path.join(process.cwd(), 'context', 'repo-map.md');
+    const mapPath = path.join(contextDir, 'repo-map.md');
     const asciiTree = this.generateRepoMap();
     const mapContent = `# Repository Structure Map — Veyra OS
 
@@ -511,7 +870,7 @@ ${asciiTree}\`\`\`
     console.log('✔ Repository index map written to context/repo-map.md');
 
     // 2. Dependency Graph
-    const graphPath = path.join(process.cwd(), 'context', 'dependency-graph.md');
+    const graphPath = path.join(contextDir, 'dependency-graph.md');
     const { files, dependencies, dependedBy } = this.generateDependencyGraph();
     
     let table = '| Module | Depends On | Depended By |\n| :--- | :--- | :--- |\n';
@@ -553,6 +912,167 @@ ${table}
 `;
     fs.writeFileSync(graphPath, graphContent, 'utf8');
     console.log('✔ Module dependency graph written to context/dependency-graph.md');
+
+    // 3. Collapsible Hierarchical Tree (context/tree.html)
+    const treeHtmlPath = path.join(contextDir, 'tree.html');
+    const repoJSON = this.generateRepoJSON();
+    const treeHtmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Veyra OS - Hierarchy Tree</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body { font-family: monospace; background: #0d1117; color: #c9d1d9; margin: 0; overflow: hidden; }
+    .node circle { fill: #58a6ff; stroke: #c9d1d9; stroke-width: 1.5px; cursor: pointer; }
+    .node text { font-size: 12px; fill: #adbac7; }
+    .link { fill: none; stroke: #30363d; stroke-width: 1.5px; }
+  </style>
+</head>
+<body>
+  <svg width="100vw" height="100vh"></svg>
+  <script>
+    const data = ${JSON.stringify(repoJSON, null, 2)};
+
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const svg = d3.select("svg").call(d3.zoom().on("zoom", (e) => g.attr("transform", e.transform)));
+    const g = svg.append("g").attr("transform", "translate(120,40)");
+
+    const tree = d3.tree().size([height - 80, width - 240]);
+    const root = d3.hierarchy(data, d => d.children);
+
+    root.x0 = height / 2;
+    root.y0 = 0;
+
+    let nodeIndex = 0;
+
+    function collapse(d) {
+      if (d.children) {
+        d._children = d.children;
+        d._children.forEach(collapse);
+        d.children = null;
+      }
+    }
+    root.descendants().forEach(d => {
+      if (d.depth > 1) {
+        collapse(d);
+      }
+    });
+
+    function click(event, d) {
+      if (d.children) {
+        d._children = d.children;
+        d.children = null;
+      } else {
+        d.children = d._children;
+        d._children = null;
+      }
+      update(d);
+    }
+
+    function update(source) {
+      const nodes = root.descendants();
+      const links = root.links();
+      tree(root);
+
+      const link = g.selectAll(".link")
+        .data(links, d => d.target.id);
+
+      link.enter().insert("path", "g")
+        .attr("class", "link")
+        .attr("d", d => {
+          const o = {x: source.x0, y: source.y0};
+          return d3.linkHorizontal().x(d => d.y).y(d => d.x)({source: o, target: o});
+        })
+        .merge(link)
+        .transition().duration(500)
+        .attr("d", d3.linkHorizontal().x(d => d.y).y(d => d.x));
+
+      link.exit().transition().duration(500)
+        .attr("d", d => {
+          const o = {x: source.x, y: source.y};
+          return d3.linkHorizontal().x(d => d.y).y(d => d.x)({source: o, target: o});
+        })
+        .remove();
+
+      const node = g.selectAll(".node")
+        .data(nodes, d => d.id || (d.id = ++nodeIndex));
+
+      const nodeEnter = node.enter().append("g")
+        .attr("class", "node")
+        .attr("transform", d => \`translate(\${source.y0},\${source.x0})\`)
+        .on("click", click);
+
+      nodeEnter.append("circle")
+        .attr("r", 1e-6)
+        .style("fill", d => d._children ? "#58a6ff" : "#2f81f7");
+
+      nodeEnter.append("text")
+        .attr("dy", ".35em")
+        .attr("x", d => d._children || d.children ? -13 : 13)
+        .attr("text-anchor", d => d._children || d.children ? "end" : "start")
+        .text(d => d.data.name);
+
+      const nodeUpdate = nodeEnter.merge(node);
+
+      nodeUpdate.transition().duration(500)
+        .attr("transform", d => \`translate(\${d.y},\${d.x})\`);
+
+      nodeUpdate.select("circle")
+        .attr("r", 6)
+        .style("fill", d => d._children ? "#58a6ff" : "#adbac7");
+
+      nodeUpdate.select("text")
+        .style("fill-opacity", 1);
+
+      const nodeExit = node.exit().transition().duration(500)
+        .attr("transform", d => \`translate(\${source.y},\${source.x})\`)
+        .remove();
+
+      nodeExit.select("circle").attr("r", 1e-6);
+      nodeExit.select("text").style("fill-opacity", 1e-6);
+
+      nodes.forEach(d => {
+        d.x0 = d.x;
+        d.y0 = d.y;
+      });
+    }
+
+    update(root);
+  </script>
+</body>
+</html>`;
+    fs.writeFileSync(treeHtmlPath, treeHtmlContent, 'utf8');
+    console.log('✔ Collapsible hierarchical tree map written to context/tree.html');
+
+    // 4. Modularity Callflow Diagram (context/graph.html)
+    const graphHtmlPath = path.join(contextDir, 'graph.html');
+    const mermaidCode = this.generateMermaidGraph(files, dependencies);
+    const graphHtmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Veyra OS - Community Modularity Callflow</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+  </script>
+  <style>
+    body { background-color: #0d1117; color: #c9d1d9; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    h1 { margin-bottom: 20px; }
+    .mermaid { width: 90vw; }
+  </style>
+</head>
+<body>
+  <h1>Community Modularity Callflow Diagram</h1>
+  <div class="mermaid">
+    ${mermaidCode}
+  </div>
+</body>
+</html>`;
+    fs.writeFileSync(graphHtmlPath, graphHtmlContent, 'utf8');
+    console.log('✔ Modularity callflow diagram written to context/graph.html');
   }
 }
 

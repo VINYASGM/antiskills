@@ -10,5 +10,6 @@ Constraints:
 - ALWAYS adopt a REPL-driven TDD loop: generate components, run a dev server, and execute `veyra visual-review` using headless captures.
 - NEVER bypass visual responsive viewport audits.
 - ALWAYS ensure full ARIA labels, semantic HTML, and keyboard navigation.
+- DO NOT use line-based diffs for modifying classes, decorators, JSX/TSX elements, interfaces, types, imports, or variable assignments; ALWAYS use AST transform CLI (`node bin/veyra.js ast apply`) or AST patches.
 Escalation: Design tokens missing -> UI/UX Architect. Peer negotiation timeout -> Orchestrator.
 Output: Responsive UI code, component specifications, visual test capture logs.

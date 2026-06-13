@@ -15,6 +15,52 @@ function stripPositions(node) {
 }
 
 /**
+ * Helper to recursively extract the tag name text from a JSX tag name node (e.g. Form.Item or div).
+ */
+function getTagNameText(tagNameNode) {
+  if (!tagNameNode) return '';
+  if (ts.isIdentifier(tagNameNode)) return tagNameNode.text;
+  if (ts.isPropertyAccessExpression(tagNameNode)) {
+    return `${getTagNameText(tagNameNode.expression)}.${tagNameNode.name.text}`;
+  }
+  return '';
+}
+
+/**
+ * Helper to serialize a complex or primitive value into a TypeScript AST node.
+ */
+function serializeValueToAST(value) {
+  if (value === null || value === undefined) {
+    return ts.factory.createNull();
+  }
+  if (typeof value === 'string') {
+    return ts.factory.createStringLiteral(value);
+  }
+  if (typeof value === 'number') {
+    return ts.factory.createNumericLiteral(String(value));
+  }
+  if (typeof value === 'boolean') {
+    return value ? ts.factory.createTrue() : ts.factory.createFalse();
+  }
+  if (typeof value === 'object') {
+    const jsonStr = JSON.stringify(value);
+    const tempSource = ts.createSourceFile('temp_val.ts', `const temp = ${jsonStr};`, ts.ScriptTarget.Latest, true);
+    let parsedExpr;
+    ts.forEachChild(tempSource, (child) => {
+      if (ts.isVariableStatement(child)) {
+        const decl = child.declarationList.declarations[0];
+        if (decl && decl.initializer) parsedExpr = decl.initializer;
+      }
+    });
+    if (parsedExpr) {
+      stripPositions(parsedExpr);
+      return parsedExpr;
+    }
+  }
+  return ts.factory.createNull();
+}
+
+/**
  * 📐 AST Code-as-a-Graph Transformation Engine
  * Provides structured programmatic APIs to manipulate the syntax tree directly.
  * Prevents syntax errors, structural conflicts, and formatting debates entirely.
@@ -29,7 +75,7 @@ class ASTTransformEngine {
       content,
       ts.ScriptTarget.Latest,
       true,
-      ts.ScriptKind.TS
+      ts.ScriptKind.TSX
     );
   }
 
@@ -51,27 +97,114 @@ class ASTTransformEngine {
    */
   addImport(sourceText, importSpecifier, moduleSpecifier) {
     const sourceFile = this._parse('temp.ts', sourceText);
-    
-    // Check if duplicate import already exists
-    let duplicate = false;
+
+    // Parse the new import specifier
+    const isNamed = importSpecifier.startsWith('{') && importSpecifier.endsWith('}');
+    let newNames = [];
+    let newDefault = null;
+    if (isNamed) {
+      newNames = importSpecifier.slice(1, -1).split(',').map(s => s.trim()).filter(Boolean);
+    } else {
+      newDefault = importSpecifier.trim();
+    }
+
+    // Helper functions for checking covering and mergeability
+    const isFullyCovered = (node) => {
+      if (!node.importClause) return false;
+      if (isNamed) {
+        if (node.importClause.namedBindings && ts.isNamedImports(node.importClause.namedBindings)) {
+          const existingNames = node.importClause.namedBindings.elements.map(el => el.name.text);
+          return newNames.every(name => existingNames.includes(name));
+        }
+        return false;
+      } else {
+        return node.importClause.name && node.importClause.name.text === newDefault;
+      }
+    };
+
+    const canMerge = (node) => {
+      if (!node.importClause) {
+        return true;
+      }
+      if (isNamed) {
+        if (node.importClause.namedBindings && ts.isNamespaceImport(node.importClause.namedBindings)) {
+          return false;
+        }
+        return true;
+      } else {
+        if (node.importClause.name) {
+          return node.importClause.name.text === newDefault;
+        }
+        return true;
+      }
+    };
+
+    // Scan all existing import declarations with matching module specifier
+    const matchingImports = [];
     ts.forEachChild(sourceFile, (node) => {
       if (ts.isImportDeclaration(node)) {
         if (ts.isStringLiteral(node.moduleSpecifier) && node.moduleSpecifier.text === moduleSpecifier) {
-          duplicate = true;
+          matchingImports.push(node);
         }
       }
     });
 
-    if (duplicate) return sourceText;
+    if (matchingImports.length > 0) {
+      // 1. If any matching import fully covers the new import, do nothing
+      if (matchingImports.some(isFullyCovered)) {
+        return sourceText;
+      }
 
-    // Build the ImportDeclaration AST node
-    // Simple parsing of imports
-    const isNamed = importSpecifier.startsWith('{') && importSpecifier.endsWith('}');
+      // 2. Find the first matching import that can be merged
+      const targetNodeToMerge = matchingImports.find(canMerge);
+      if (targetNodeToMerge) {
+        const transformer = (context) => {
+          const visit = (node) => {
+            if (node === targetNodeToMerge) {
+              let newImportClause;
+              if (isNamed) {
+                const elements = [];
+                if (node.importClause && node.importClause.namedBindings && ts.isNamedImports(node.importClause.namedBindings)) {
+                  elements.push(...node.importClause.namedBindings.elements);
+                }
+                const existingNames = elements.map(el => el.name.text);
+                const missingNames = newNames.filter(name => !existingNames.includes(name));
+                for (const name of missingNames) {
+                  elements.push(
+                    ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(name))
+                  );
+                }
+                const namedBindings = ts.factory.createNamedImports(elements);
+                const defaultName = node.importClause ? node.importClause.name : undefined;
+                newImportClause = ts.factory.createImportClause(false, defaultName, namedBindings);
+              } else {
+                const defaultName = ts.factory.createIdentifier(newDefault);
+                const namedBindings = node.importClause ? node.importClause.namedBindings : undefined;
+                newImportClause = ts.factory.createImportClause(false, defaultName, namedBindings);
+              }
+              const updatedImport = ts.factory.createImportDeclaration(
+                undefined,
+                newImportClause,
+                node.moduleSpecifier,
+                undefined
+              );
+              stripPositions(updatedImport);
+              return updatedImport;
+            }
+            return ts.visitEachChild(node, visit, context);
+          };
+          return (rootNode) => ts.visitNode(rootNode, visit);
+        };
+
+        const result = ts.transform(sourceFile, [transformer]);
+        return this._print(result.transformed[0]);
+      }
+    }
+
+    // 3. Fallback: Create and prepend a new import declaration
     let importClause;
-
     if (isNamed) {
-      const names = importSpecifier.slice(1, -1).split(',').map(s => s.trim()).filter(Boolean);
-      const elements = names.map(name => 
+      const elements = newNames.map(name =>
         ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier(name))
       );
       importClause = ts.factory.createImportClause(
@@ -80,10 +213,9 @@ class ASTTransformEngine {
         ts.factory.createNamedImports(elements)
       );
     } else {
-      // Default import
       importClause = ts.factory.createImportClause(
         false,
-        ts.factory.createIdentifier(importSpecifier),
+        ts.factory.createIdentifier(newDefault),
         undefined
       );
     }
@@ -95,7 +227,6 @@ class ASTTransformEngine {
       undefined
     );
 
-    // Insert new import node at index 0
     const updatedStatements = [newImport, ...sourceFile.statements];
     const updatedSourceFile = ts.factory.updateSourceFile(sourceFile, updatedStatements);
     return this._print(updatedSourceFile);
@@ -201,16 +332,7 @@ class ASTTransformEngine {
             const objectLiteral = node.initializer;
             
             // Build the new value node
-            let valueNode;
-            if (typeof propertyValue === 'string') {
-              valueNode = ts.factory.createStringLiteral(propertyValue);
-            } else if (typeof propertyValue === 'number') {
-              valueNode = ts.factory.createNumericLiteral(String(propertyValue));
-            } else if (typeof propertyValue === 'boolean') {
-              valueNode = propertyValue ? ts.factory.createTrue() : ts.factory.createFalse();
-            } else {
-              valueNode = ts.factory.createNull();
-            }
+            const valueNode = serializeValueToAST(propertyValue);
 
             // Exists? Update it. Else, append.
             let updatedProperties = [];
@@ -394,16 +516,7 @@ class ASTTransformEngine {
     const transformer = (context) => {
       const visit = (node) => {
         if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.name.text === variableName) {
-          let valueNode;
-          if (typeof value === 'string') {
-            valueNode = ts.factory.createStringLiteral(value);
-          } else if (typeof value === 'number') {
-            valueNode = ts.factory.createNumericLiteral(String(value));
-          } else if (typeof value === 'boolean') {
-            valueNode = value ? ts.factory.createTrue() : ts.factory.createFalse();
-          } else {
-            valueNode = ts.factory.createNull();
-          }
+          const valueNode = serializeValueToAST(value);
 
           return ts.factory.updateVariableDeclaration(
             node,
@@ -421,6 +534,633 @@ class ASTTransformEngine {
     const result = ts.transform(sourceFile, [transformer]);
     const transformedFile = result.transformed[0];
     return this._print(transformedFile);
+  }
+
+  /**
+   * Adds a new ClassDeclaration if it doesn't already exist.
+   *
+   * @param {string} sourceText
+   * @param {string} className
+   * @param {boolean} [isExported=false]
+   * @returns {string}
+   */
+  addClass(sourceText, className, isExported = false) {
+    const sourceFile = this._parse('temp.ts', sourceText);
+    
+    let exists = false;
+    ts.forEachChild(sourceFile, (node) => {
+      if (ts.isClassDeclaration(node) && node.name && node.name.text === className) {
+        exists = true;
+      }
+    });
+    if (exists) return sourceText;
+
+    const modifiers = isExported 
+      ? [ts.factory.createModifier(ts.SyntaxKind.ExportKeyword)]
+      : undefined;
+
+    const newClass = ts.factory.createClassDeclaration(
+      modifiers,
+      ts.factory.createIdentifier(className),
+      undefined, // typeParameters
+      undefined, // heritageClauses
+      []         // members
+    );
+    stripPositions(newClass);
+
+    const updatedStatements = [...sourceFile.statements, newClass];
+    const updatedSourceFile = ts.factory.updateSourceFile(sourceFile, updatedStatements);
+    return this._print(updatedSourceFile);
+  }
+
+  /**
+   * Adds a decorator to an existing ClassDeclaration.
+   *
+   * @param {string} sourceText
+   * @param {string} className
+   * @param {string} decoratorName
+   * @param {any[]} [decoratorArgs=undefined]
+   * @returns {string}
+   */
+  addClassDecorator(sourceText, className, decoratorName, decoratorArgs = undefined) {
+    const sourceFile = this._parse('temp.ts', sourceText);
+
+    const transformer = (context) => {
+      const visit = (node) => {
+        if (ts.isClassDeclaration(node) && node.name && node.name.text === className) {
+          // Construct decorator call expression
+          let expression = ts.factory.createIdentifier(decoratorName);
+          if (decoratorArgs !== undefined) {
+            const argNodes = decoratorArgs.map(arg => serializeValueToAST(arg));
+            expression = ts.factory.createCallExpression(expression, undefined, argNodes);
+          }
+          const newDecorator = ts.factory.createDecorator(expression);
+          stripPositions(newDecorator);
+
+          // Avoid duplicates
+          const hasDecorator = node.modifiers?.some(mod => {
+            if (ts.isDecorator(mod)) {
+              const expr = mod.expression;
+              if (ts.isIdentifier(expr) && expr.text === decoratorName) return true;
+              if (ts.isCallExpression(expr) && ts.isIdentifier(expr.expression) && expr.expression.text === decoratorName) return true;
+            }
+            return false;
+          });
+          if (hasDecorator) return node;
+
+          const updatedModifiers = [newDecorator, ...(node.modifiers || [])];
+          return ts.factory.updateClassDeclaration(
+            node,
+            updatedModifiers,
+            node.name,
+            node.typeParameters,
+            node.heritageClauses,
+            node.members
+          );
+        }
+        return ts.visitEachChild(node, visit, context);
+      };
+      return (rootNode) => ts.visitNode(rootNode, visit);
+    };
+
+    const result = ts.transform(sourceFile, [transformer]);
+    return this._print(result.transformed[0]);
+  }
+
+  /**
+   * Adds or updates a method in a targeted ClassDeclaration.
+   */
+  addClassMethod(sourceText, className, methodName, parameters, methodBodyText, decorators = [], modifiers = []) {
+    const sourceFile = this._parse('temp.ts', sourceText);
+
+    const transformer = (context) => {
+      const visit = (node) => {
+        if (ts.isClassDeclaration(node) && node.name && node.name.text === className) {
+          // Build parameters
+          const paramNodes = parameters.map(p => 
+            ts.factory.createParameterDeclaration(
+              undefined,
+              undefined,
+              ts.factory.createIdentifier(p),
+              undefined,
+              undefined,
+              undefined
+            )
+          );
+
+          // Parse body
+          const tempSource = ts.createSourceFile('temp_body.ts', `function temp() { ${methodBodyText} }`, ts.ScriptTarget.Latest, true);
+          let parsedBlock;
+          ts.forEachChild(tempSource, (child) => {
+            if (ts.isFunctionDeclaration(child) && child.body) parsedBlock = child.body;
+          });
+          if (!parsedBlock) parsedBlock = ts.factory.createBlock([], true);
+          stripPositions(parsedBlock);
+
+          // Build decorators
+          const decoratorNodes = decorators.map(dec => {
+            let expr = ts.factory.createIdentifier(dec.name);
+            if (dec.args !== undefined) {
+              const argNodes = dec.args.map(arg => serializeValueToAST(arg));
+              expr = ts.factory.createCallExpression(expr, undefined, argNodes);
+            }
+            const decoratorNode = ts.factory.createDecorator(expr);
+            stripPositions(decoratorNode);
+            return decoratorNode;
+          });
+
+          // Build modifiers
+          const modifierNodes = modifiers.map(m => {
+            if (m === 'public') return ts.factory.createModifier(ts.SyntaxKind.PublicKeyword);
+            if (m === 'private') return ts.factory.createModifier(ts.SyntaxKind.PrivateKeyword);
+            if (m === 'protected') return ts.factory.createModifier(ts.SyntaxKind.ProtectedKeyword);
+            if (m === 'static') return ts.factory.createModifier(ts.SyntaxKind.StaticKeyword);
+            if (m === 'async') return ts.factory.createModifier(ts.SyntaxKind.AsyncKeyword);
+          }).filter(Boolean);
+
+          const allModifiers = [...decoratorNodes, ...modifierNodes];
+
+          const newMethod = ts.factory.createMethodDeclaration(
+            allModifiers.length > 0 ? allModifiers : undefined,
+            undefined,
+            ts.factory.createIdentifier(methodName),
+            undefined,
+            undefined,
+            paramNodes,
+            undefined,
+            parsedBlock
+          );
+
+          const filteredMembers = node.members.filter(member => 
+            !(ts.isMethodDeclaration(member) && ts.isIdentifier(member.name) && member.name.text === methodName)
+          );
+
+          return ts.factory.updateClassDeclaration(
+            node,
+            node.modifiers,
+            node.name,
+            node.typeParameters,
+            node.heritageClauses,
+            [...filteredMembers, newMethod]
+          );
+        }
+        return ts.visitEachChild(node, visit, context);
+      };
+      return (rootNode) => ts.visitNode(rootNode, visit);
+    };
+
+    const result = ts.transform(sourceFile, [transformer]);
+    return this._print(result.transformed[0]);
+  }
+
+  /**
+   * Adds or updates a property in a targeted ClassDeclaration.
+   */
+  addClassProperty(sourceText, className, propertyName, propertyType, initializerText, decorators = [], modifiers = []) {
+    const sourceFile = this._parse('temp.ts', sourceText);
+
+    // Parse the type signature from string if provided
+    let parsedTypeNode;
+    if (propertyType) {
+      const tempSource = ts.createSourceFile('temp_type.ts', `type Temp = ${propertyType};`, ts.ScriptTarget.Latest, true);
+      ts.forEachChild(tempSource, (child) => {
+        if (ts.isTypeAliasDeclaration(child)) {
+          parsedTypeNode = child.type;
+        }
+      });
+      if (parsedTypeNode) {
+        stripPositions(parsedTypeNode);
+      }
+    }
+
+    // Parse the initializer expression if provided
+    let initializerNode;
+    if (initializerText) {
+      const tempSource = ts.createSourceFile('temp_init.ts', `const temp = ${initializerText};`, ts.ScriptTarget.Latest, true);
+      ts.forEachChild(tempSource, (child) => {
+        if (ts.isVariableStatement(child)) {
+          const decl = child.declarationList.declarations[0];
+          if (decl && decl.initializer) {
+            initializerNode = decl.initializer;
+          }
+        }
+      });
+      if (initializerNode) {
+        stripPositions(initializerNode);
+      }
+    }
+
+    const transformer = (context) => {
+      const visit = (node) => {
+        if (ts.isClassDeclaration(node) && node.name && node.name.text === className) {
+          // Build decorators
+          const decoratorNodes = decorators.map(dec => {
+            let expr = ts.factory.createIdentifier(dec.name);
+            if (dec.args !== undefined) {
+              const argNodes = dec.args.map(arg => serializeValueToAST(arg));
+              expr = ts.factory.createCallExpression(expr, undefined, argNodes);
+            }
+            const decoratorNode = ts.factory.createDecorator(expr);
+            stripPositions(decoratorNode);
+            return decoratorNode;
+          });
+
+          // Build modifiers
+          const modifierNodes = modifiers.map(m => {
+            if (m === 'public') return ts.factory.createModifier(ts.SyntaxKind.PublicKeyword);
+            if (m === 'private') return ts.factory.createModifier(ts.SyntaxKind.PrivateKeyword);
+            if (m === 'protected') return ts.factory.createModifier(ts.SyntaxKind.ProtectedKeyword);
+            if (m === 'static') return ts.factory.createModifier(ts.SyntaxKind.StaticKeyword);
+          }).filter(Boolean);
+
+          const allModifiers = [...decoratorNodes, ...modifierNodes];
+
+          const newProperty = ts.factory.createPropertyDeclaration(
+            allModifiers.length > 0 ? allModifiers : undefined,
+            ts.factory.createIdentifier(propertyName),
+            undefined, // questionOrExclamationToken
+            parsedTypeNode,
+            initializerNode
+          );
+
+          const filteredMembers = node.members.filter(member => 
+            !(ts.isPropertyDeclaration(member) && ts.isIdentifier(member.name) && member.name.text === propertyName)
+          );
+
+          return ts.factory.updateClassDeclaration(
+            node,
+            node.modifiers,
+            node.name,
+            node.typeParameters,
+            node.heritageClauses,
+            [...filteredMembers, newProperty]
+          );
+        }
+        return ts.visitEachChild(node, visit, context);
+      };
+      return (rootNode) => ts.visitNode(rootNode, visit);
+    };
+
+    const result = ts.transform(sourceFile, [transformer]);
+    return this._print(result.transformed[0]);
+  }
+
+  /**
+   * Appends a JSX element inside target JSX containers.
+   *
+   * @param {string} sourceText
+   * @param {{tagName?: string, attributeName?: string, attributeValue?: string}} targetSelector
+   * @param {string} jsxString
+   */
+  addJsxElement(sourceText, targetSelector, jsxString) {
+    if (!targetSelector || (!targetSelector.tagName && !targetSelector.attributeName)) {
+      return sourceText;
+    }
+    const sourceFile = this._parse('temp.tsx', sourceText);
+
+    // Parse the JSX string
+    const tempSource = ts.createSourceFile('temp_jsx.tsx', `const temp = ${jsxString};`, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+    let jsxNode;
+    ts.forEachChild(tempSource, (child) => {
+      if (ts.isVariableStatement(child)) {
+        const decl = child.declarationList.declarations[0];
+        if (decl && decl.initializer) jsxNode = decl.initializer;
+      }
+    });
+    if (!jsxNode) throw new Error("Invalid JSX string.");
+    stripPositions(jsxNode);
+
+    // Select matching elements helper
+    const matchSelector = (node) => {
+      if (!node) return false;
+      if (!targetSelector || (!targetSelector.tagName && !targetSelector.attributeName)) return false;
+      const tagNameText = getTagNameText(node.tagName);
+      if (targetSelector.tagName && tagNameText !== targetSelector.tagName) return false;
+      if (targetSelector.attributeName) {
+        const properties = node.attributes?.properties || [];
+        return properties.some(attr => {
+          if (ts.isJsxAttribute(attr) && attr.name.text === targetSelector.attributeName) {
+            if (targetSelector.attributeValue) {
+              const val = attr.initializer ? (
+                ts.isStringLiteral(attr.initializer) ? attr.initializer.text : 
+                (ts.isJsxExpression(attr.initializer) && attr.initializer.expression && ts.isStringLiteral(attr.initializer.expression) ? attr.initializer.expression.text : null)
+              ) : null;
+              return val === targetSelector.attributeValue;
+            }
+            return true;
+          }
+          return false;
+        });
+      }
+      return true;
+    };
+
+    const transformer = (context) => {
+      const visit = (node) => {
+        if (ts.isJsxElement(node) && matchSelector(node.openingElement)) {
+          const updatedChildren = [...node.children, jsxNode];
+          return ts.factory.updateJsxElement(
+            node,
+            node.openingElement,
+            updatedChildren,
+            node.closingElement
+          );
+        }
+
+        // Convert self-closing element if it's the target
+        if (ts.isJsxSelfClosingElement(node) && matchSelector(node)) {
+          const opening = ts.factory.createJsxOpeningElement(node.tagName, node.typeArguments, node.attributes);
+          const closing = ts.factory.createJsxClosingElement(node.tagName);
+          return ts.factory.createJsxElement(opening, [jsxNode], closing);
+        }
+
+        return ts.visitEachChild(node, visit, context);
+      };
+      return (rootNode) => ts.visitNode(rootNode, visit);
+    };
+
+    const result = ts.transform(sourceFile, [transformer]);
+    return this._print(result.transformed[0]);
+  }
+
+  /**
+   * Adds or replaces an attribute on a targeted JSX element.
+   *
+   * @param {string} sourceText
+   * @param {{tagName?: string}} targetSelector
+   * @param {string} attrName
+   * @param {string} attrValueExpression - e.g. "my-class" or "{handleClick}"
+   */
+  updateJsxAttribute(sourceText, targetSelector, attrName, attrValueExpression) {
+    if (!targetSelector || (!targetSelector.tagName && !targetSelector.attributeName)) {
+      return sourceText;
+    }
+    const sourceFile = this._parse('temp.tsx', sourceText);
+
+    // Parse attribute values
+    let initializer;
+    if (typeof attrValueExpression === 'string' && !attrValueExpression.startsWith('{')) {
+      initializer = ts.factory.createStringLiteral(attrValueExpression);
+    } else {
+      const rawExpr = attrValueExpression.startsWith('{') && attrValueExpression.endsWith('}') 
+        ? attrValueExpression.slice(1, -1) 
+        : attrValueExpression;
+      
+      const tempSource = ts.createSourceFile('temp_expr.tsx', `const temp = ${rawExpr};`, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+      let parsedExpr;
+      ts.forEachChild(tempSource, (child) => {
+        if (ts.isVariableStatement(child)) {
+          const decl = child.declarationList.declarations[0];
+          if (decl && decl.initializer) parsedExpr = decl.initializer;
+        }
+      });
+      if (!parsedExpr) parsedExpr = ts.factory.createNull();
+      stripPositions(parsedExpr);
+      initializer = ts.factory.createJsxExpression(undefined, parsedExpr);
+    }
+
+    const newAttr = ts.factory.createJsxAttribute(ts.factory.createIdentifier(attrName), initializer);
+
+    const matchSelector = (node) => {
+      if (!node) return false;
+      if (!targetSelector || (!targetSelector.tagName && !targetSelector.attributeName)) return false;
+      
+      const tagNameText = getTagNameText(node.tagName);
+      if (targetSelector.tagName && tagNameText !== targetSelector.tagName) return false;
+      
+      if (targetSelector.attributeName) {
+        const attributes = node.attributes?.properties || [];
+        return attributes.some(attr => {
+          if (ts.isJsxAttribute(attr) && attr.name.text === targetSelector.attributeName) {
+            if (targetSelector.attributeValue) {
+              const val = attr.initializer ? (
+                ts.isStringLiteral(attr.initializer) ? attr.initializer.text : 
+                (ts.isJsxExpression(attr.initializer) && attr.initializer.expression && ts.isStringLiteral(attr.initializer.expression) ? attr.initializer.expression.text : null)
+              ) : null;
+              return val === targetSelector.attributeValue;
+            }
+            return true;
+          }
+          return false;
+        });
+      }
+      return true;
+    };
+
+    const transformer = (context) => {
+      const visit = (node) => {
+        let match = false;
+        if (ts.isJsxElement(node)) {
+          match = matchSelector(node.openingElement);
+        } else if (ts.isJsxSelfClosingElement(node)) {
+          match = matchSelector(node);
+        }
+
+        if (match) {
+          const attributes = ts.isJsxElement(node) ? node.openingElement.attributes : node.attributes;
+          let updatedProps = [];
+          let found = false;
+          for (const prop of attributes.properties) {
+            if (ts.isJsxAttribute(prop) && prop.name.text === attrName) {
+              updatedProps.push(ts.factory.updateJsxAttribute(prop, prop.name, initializer));
+              found = true;
+            } else {
+              updatedProps.push(prop);
+            }
+          }
+          if (!found) updatedProps.push(newAttr);
+          const updatedAttributes = ts.factory.createJsxAttributes(updatedProps);
+
+          if (ts.isJsxElement(node)) {
+            const updatedOpening = ts.factory.updateJsxOpeningElement(
+              node.openingElement,
+              node.openingElement.tagName,
+              node.openingElement.typeArguments,
+              updatedAttributes
+            );
+            return ts.factory.updateJsxElement(node, updatedOpening, node.children, node.closingElement);
+          } else {
+            return ts.factory.updateJsxSelfClosingElement(
+              node,
+              node.tagName,
+              node.typeArguments,
+              updatedAttributes
+            );
+          }
+        }
+        return ts.visitEachChild(node, visit, context);
+      };
+      return (rootNode) => ts.visitNode(rootNode, visit);
+    };
+
+    const result = ts.transform(sourceFile, [transformer]);
+    return this._print(result.transformed[0]);
+  }
+
+
+
+  /**
+   * Adds a new InterfaceDeclaration if it doesn't already exist.
+   *
+   * @param {string} sourceText
+   * @param {string} interfaceName
+   * @param {string[]} [extendsNames=[]]
+   * @returns {string}
+   */
+  addInterface(sourceText, interfaceName, extendsNames = []) {
+    const sourceFile = this._parse('temp.ts', sourceText);
+
+    let exists = false;
+    ts.forEachChild(sourceFile, (node) => {
+      if (ts.isInterfaceDeclaration(node) && node.name.text === interfaceName) {
+        exists = true;
+      }
+    });
+    if (exists) return sourceText;
+
+    // Build heritage clauses (extends list)
+    let heritageClauses;
+    if (extendsNames.length > 0) {
+      const types = extendsNames.map(name => 
+        ts.factory.createExpressionWithTypeArguments(
+          ts.factory.createIdentifier(name),
+          undefined
+        )
+      );
+      heritageClauses = [
+        ts.factory.createHeritageClause(
+          ts.SyntaxKind.ExtendsKeyword,
+          types
+        )
+      ];
+    }
+
+    const newInterface = ts.factory.createInterfaceDeclaration(
+      undefined, // modifiers
+      ts.factory.createIdentifier(interfaceName),
+      undefined, // typeParameters
+      heritageClauses,
+      []         // members
+    );
+    stripPositions(newInterface);
+
+    const updatedStatements = [...sourceFile.statements, newInterface];
+    const updatedSourceFile = ts.factory.updateSourceFile(sourceFile, updatedStatements);
+    return this._print(updatedSourceFile);
+  }
+
+  /**
+   * Adds or updates a property in a targeted InterfaceDeclaration.
+   *
+   * @param {string} sourceText
+   * @param {string} interfaceName
+   * @param {string} propertyName
+   * @param {boolean} isOptional
+   * @param {string} propertyType
+   * @returns {string}
+   */
+  addInterfaceProperty(sourceText, interfaceName, propertyName, isOptional, propertyType) {
+    const sourceFile = this._parse('temp.ts', sourceText);
+
+    // Parse the type signature from string
+    const tempSource = ts.createSourceFile('temp_type.ts', `type Temp = ${propertyType};`, ts.ScriptTarget.Latest, true);
+    let parsedTypeNode;
+    ts.forEachChild(tempSource, (child) => {
+      if (ts.isTypeAliasDeclaration(child)) {
+        parsedTypeNode = child.type;
+      }
+    });
+    if (!parsedTypeNode) parsedTypeNode = ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
+    stripPositions(parsedTypeNode);
+
+    const questionToken = isOptional ? ts.factory.createToken(ts.SyntaxKind.QuestionToken) : undefined;
+
+    const newProperty = ts.factory.createPropertySignature(
+      undefined, // modifiers
+      ts.factory.createIdentifier(propertyName),
+      questionToken,
+      parsedTypeNode
+    );
+    stripPositions(newProperty);
+
+    const transformer = (context) => {
+      const visit = (node) => {
+        if (ts.isInterfaceDeclaration(node) && node.name.text === interfaceName) {
+          // Filter out existing property signature with same name to support updates
+          const filteredMembers = node.members.filter(member => 
+            !(ts.isPropertySignature(member) && ts.isIdentifier(member.name) && member.name.text === propertyName)
+          );
+
+          return ts.factory.updateInterfaceDeclaration(
+            node,
+            node.modifiers,
+            node.name,
+            node.typeParameters,
+            node.heritageClauses,
+            [...filteredMembers, newProperty]
+          );
+        }
+        return ts.visitEachChild(node, visit, context);
+      };
+      return (rootNode) => ts.visitNode(rootNode, visit);
+    };
+
+    const result = ts.transform(sourceFile, [transformer]);
+    return this._print(result.transformed[0]);
+  }
+
+  /**
+   * Adds a new TypeAliasDeclaration or updates an existing one.
+   *
+   * @param {string} sourceText
+   * @param {string} typeName
+   * @param {string} typeValueText
+   * @returns {string}
+   */
+  addTypeAlias(sourceText, typeName, typeValueText) {
+    const sourceFile = this._parse('temp.ts', sourceText);
+
+    // Parse typeValueText into a TypeNode
+    const tempSource = ts.createSourceFile('temp_type.ts', `type Temp = ${typeValueText};`, ts.ScriptTarget.Latest, true);
+    let parsedTypeNode;
+    ts.forEachChild(tempSource, (child) => {
+      if (ts.isTypeAliasDeclaration(child)) {
+        parsedTypeNode = child.type;
+      }
+    });
+    if (!parsedTypeNode) parsedTypeNode = ts.factory.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword);
+    stripPositions(parsedTypeNode);
+
+    const newTypeAlias = ts.factory.createTypeAliasDeclaration(
+      undefined, // modifiers
+      ts.factory.createIdentifier(typeName),
+      undefined, // typeParameters
+      parsedTypeNode
+    );
+    stripPositions(newTypeAlias);
+
+    let exists = false;
+    const transformer = (context) => {
+      const visit = (node) => {
+        if (ts.isTypeAliasDeclaration(node) && node.name.text === typeName) {
+          exists = true;
+          return newTypeAlias;
+        }
+        return ts.visitEachChild(node, visit, context);
+      };
+      return (rootNode) => ts.visitNode(rootNode, visit);
+    };
+
+    const result = ts.transform(sourceFile, [transformer]);
+    
+    if (exists) {
+      return this._print(result.transformed[0]);
+    } else {
+      // Append if it doesn't exist
+      const updatedStatements = [...sourceFile.statements, newTypeAlias];
+      const updatedSourceFile = ts.factory.updateSourceFile(sourceFile, updatedStatements);
+      return this._print(updatedSourceFile);
+    }
   }
 
   /**
@@ -451,6 +1191,33 @@ class ASTTransformEngine {
           break;
         case 'updateVariableAssignment':
           currentText = this.updateVariableAssignment(currentText, t.variableName, t.value);
+          break;
+        case 'addClass':
+          currentText = this.addClass(currentText, t.className, t.isExported);
+          break;
+        case 'addClassDecorator':
+          currentText = this.addClassDecorator(currentText, t.className, t.decoratorName, t.decoratorArgs);
+          break;
+        case 'addClassMethod':
+          currentText = this.addClassMethod(currentText, t.className, t.methodName, t.parameters, t.methodBodyText, t.decorators, t.modifiers);
+          break;
+        case 'addClassProperty':
+          currentText = this.addClassProperty(currentText, t.className, t.propertyName, t.propertyType, t.initializerText, t.decorators, t.modifiers);
+          break;
+        case 'addJsxElement':
+          currentText = this.addJsxElement(currentText, t.targetSelector, t.jsxString);
+          break;
+        case 'updateJsxAttribute':
+          currentText = this.updateJsxAttribute(currentText, t.targetSelector, t.attrName, t.attrValueExpression);
+          break;
+        case 'addInterface':
+          currentText = this.addInterface(currentText, t.interfaceName, t.extendsNames);
+          break;
+        case 'addInterfaceProperty':
+          currentText = this.addInterfaceProperty(currentText, t.interfaceName, t.propertyName, t.isOptional, t.propertyType);
+          break;
+        case 'addTypeAlias':
+          currentText = this.addTypeAlias(currentText, t.typeName, t.typeValueText);
           break;
         default:
           throw new Error(`Unknown AST transformation type: ${t.type}`);

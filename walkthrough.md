@@ -1,81 +1,47 @@
-# Veyra OS V3 — Swarm Telemetry Dashboard & Architecture Walkthrough
+# Veyra OS V4 — Swarm Telemetry Dashboard & Architecture Walkthrough
 
 ## Summary
 
-Successfully designed, implemented, and verified the Veyra OS V3 Swarm Telemetry Dashboard. All 140 Vitest test cases and Go browser-automated tests are passing green. The CLI command `node bin/veyra.js dashboard` executes cleanly, rendering beautiful double-bordered status blocks and tabular lock information.
+Successfully designed, implemented, and verified the Swarm Telemetry Dashboard (Phase D) and the Graphify Enrichment Core (Milestone 20). All 196 Vitest tests and 15 pytest assertions pass successfully. The CLI command `node bin/veyra.js context index` executes cleanly, generating both a hierarchical collapsible D3 tree and a modular Mermaid callflow graph.
 
 ---
 
-## Completed Milestones & Telemetry Additions
+## Completed Milestones & Additions
 
 ### Phase D: Swarm Telemetry Dashboard — [dashboard.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/dashboard.js)
-- **Data Aggregation Layer:** Queries task stats from SQLite via `db.js`, active concurrency locks and claim durations, active governance transaction streams (`.agent/governance/tx-*.json`), tripped circuit-breaker metrics, and patch directory channels.
-- **Visual Terminal Layout:** Styled using `bin/ui.js` primitives (colors, double-bordered box structures, tables, and loaders).
-- **CLI Subcommand Integration:** Integrated `node bin/veyra.js dashboard` (and `node bin/veyra.js ui dashboard`) directly inside [veyra.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/veyra.js) command routing.
+- **Data Aggregation Layer:** Queries task stats from SQLite via `db.js`, active concurrency locks, active governance transaction streams, tripped circuit-breakers, and patch directory channels.
+- **Visual Terminal Layout:** Styled using double-bordered box structures, tables, and loaders.
+- **CLI Subcommand Integration:** Integrated `node bin/veyra.js dashboard` directly inside [veyra.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/veyra.js).
 
-### Automated Testing — [dashboard.test.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/tests/bin/dashboard.test.js)
-- Developed a comprehensive test suite covering:
-  - Task queue statistics calculations (`getBeadStats`).
-  - Active lock filtering and duration formats (`getActiveLocks`).
-  - Governance transaction reads and escalation warnings (`getGovernanceTransactions`).
-  - Patch apply channels listings (`getPatchChannels`).
-  - Output string rendering validation.
+### Milestone 20: Graphify Enrichment Core — [context.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/context.js)
+- **Security & Sensitive Paths Screening:** 
+  - JIT path exclusions for sensitive directories (e.g. `.git`, `.ssh`, `credentials`, `secrets`, `.env`).
+  - Binary Zip-bomb scanner that parses Local File Headers from zip/XML office documents to check uncompressed-to-compressed size ratio (flagging > 200:1).
+- **Multi-Language Import Parsing & Shebang Parser:**
+  - Extensionless file language mapping via shebang line checks (e.g. `python3`, `node`).
+  - Regex-based import engines for Python, Rust, Go, SQL, and Apex.
+- **Topological Graph Intelligence:**
+  - Update `graph.py` and `server.py` to calculate PageRank / Degree Centrality ("God Nodes") and crossing community modularity edges ("Surprising Connections") in DuckDB and NetworkX.
+  - Exposed via new `get_graph_intelligence` tool.
+- **Collapsible HTML Visualizations:**
+  - `context/tree.html`: Interactive, collapsible hierarchical folder structure using D3.js.
+  - `context/graph.html`: Self-contained interactive modularity flowchart using Mermaid.js.
 
 ---
 
 ## Verification Results
 
-### Swarm Dashboard CLI Run Output
-```
-$ node bin/veyra.js dashboard
-
- VEYRA SWARM TELEMETRY DASHBOARD
- Local Time: 2026-06-07T17:16:48.201Z
-
-╔══════════════════════ TASK QUEUE STATISTICS ═══════════════════════╗
-║ Progress: ██████░░░░░░░░░░░░░░░░░░░░░░░░  20%                      ║
-║ Total Tasks: 10     | Open: 5      | Claimed: 1                    ║
-║ In Progress: 2    | Resolved: 2    | Failed: 0                     ║
-╚════════════════════════════════════════════════════════════════════╝
-
- 🔑 DATABASE CONCURRENCY LOCKS
-  No active database concurrency locks found.
-
- 🛡️ GOVERNANCE CIRCUIT BREAKERS
-  No active governance transaction sessions tracked.
-
- 🔀 PATCH APPLY CHANNELS
-  No active patch apply channels (worktrees) defined.
-```
-
 ### Vitest Test Suite Execution
 ```
-$ npm test
-
-> veyra-os@1.0.0 test
-> vitest run
-
-
  RUN  v4.1.7 C:/Users/Vinyas G M/OneDrive/Desktop/veyra
 
- ✓ tests/bin/router.test.js (9 tests) 25ms
- ✓ tests/bin/visual-review.test.js (3 tests) 82ms
- ✓ tests/bin/governance.test.js (4 tests) 52ms
- ✓ tests/bin/ui.test.js (3 tests) 16ms
- ✓ tests/bin/schema.test.js (7 tests) 28ms
- ✓ tests/bin/event-bus.test.js (4 tests) 403ms
- ✓ tests/bin/worktree.test.js (3 tests) 12ms
- ✓ tests/bin/ast-transform.test.js (11 tests) 485ms
- ✓ tests/bin/patch.test.js (16 tests) 518ms
- ✓ tests/bin/dashboard.test.js (9 tests) 55ms
- ✓ tests/bin/context.test.js (15 tests) 897ms
- ✓ tests/bin/intent.test.js (10 tests) 952ms
- ✓ tests/bin/verify.test.js (5 tests) 427ms
- ✓ tests/bin/db.test.js (16 tests) 1152ms
- ✓ tests/bin/task-queue.test.js (16 tests) 1247ms
+ Test Files  19 passed (19)
+      Tests  196 passed (196)
+   Start at  14:38:25
+   Duration  2.84s
+```
 
-  Test Files  16 passed (16)
-       Tests  140 passed (140)
-    Start at  23:02:58
-    Duration  1.72s
+### Pytest Execution
+```
+============================= 15 passed in 0.42s ==============================
 ```

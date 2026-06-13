@@ -198,6 +198,57 @@ describe('Patch — detectConflicts', () => {
     expect(result.hasConflict).toBe(true);
     expect(result.details[0]).toContain('Mixed patch types');
   });
+
+  test('detects conflict between class decorator and class method on same class/decorator', () => {
+    const patchA = JSON.stringify([
+      { type: 'addClassDecorator', className: 'User', decoratorName: 'Table', decoratorArgs: [] }
+    ]);
+    const patchB = JSON.stringify([
+      { type: 'addClassDecorator', className: 'User', decoratorName: 'Table', decoratorArgs: ['arg'] }
+    ]);
+
+    const result = patchModule.detectConflicts([
+      { agentId: 'agent-a', filePath: 'src/user.ts', patch: patchA },
+      { agentId: 'agent-b', filePath: 'src/user.ts', patch: patchB },
+    ]);
+
+    expect(result.hasConflict).toBe(true);
+    expect(result.details[0]).toContain('class-decorator:User:Table');
+  });
+
+  test('detects conflict between two patches modifying same JSX attribute', () => {
+    const patchA = JSON.stringify([
+      { type: 'updateJsxAttribute', targetSelector: { tagName: 'div' }, attrName: 'className', attrValueExpression: 'foo' }
+    ]);
+    const patchB = JSON.stringify([
+      { type: 'updateJsxAttribute', targetSelector: { tagName: 'div' }, attrName: 'className', attrValueExpression: 'bar' }
+    ]);
+
+    const result = patchModule.detectConflicts([
+      { agentId: 'agent-a', filePath: 'src/App.tsx', patch: patchA },
+      { agentId: 'agent-b', filePath: 'src/App.tsx', patch: patchB },
+    ]);
+
+    expect(result.hasConflict).toBe(true);
+    expect(result.details[0]).toContain('jsx-attribute:div:className');
+  });
+
+  test('detects conflict between addMethod and addClassMethod on same class and method', () => {
+    const patchA = JSON.stringify([
+      { type: 'addMethod', className: 'User', methodName: 'login' }
+    ]);
+    const patchB = JSON.stringify([
+      { type: 'addClassMethod', className: 'User', methodName: 'login', parameters: [], body: '' }
+    ]);
+
+    const result = patchModule.detectConflicts([
+      { agentId: 'agent-a', filePath: 'src/user.ts', patch: patchA },
+      { agentId: 'agent-b', filePath: 'src/user.ts', patch: patchB },
+    ]);
+
+    expect(result.hasConflict).toBe(true);
+    expect(result.details[0]).toContain('class-method:User:login');
+  });
 });
 
 describe('Workspace — commit', () => {
@@ -248,5 +299,34 @@ describe('Workspace — commit', () => {
 
     const newContent = fs.readFileSync(filePath, 'utf8');
     expect(newContent).toContain('port = 9000');
+  });
+
+  test('workspace.commit() rolls back and writes nothing to disk if a subsequent patch fails', () => {
+    const file1 = path.join(tmpDir, 'file1.ts');
+    const file2 = path.join(tmpDir, 'file2.ts');
+    
+    fs.writeFileSync(file1, 'const a = 1;\n', 'utf8');
+    fs.writeFileSync(file2, 'const b = 2;\n', 'utf8');
+
+    const workspace = patchModule.createWorkspace();
+    
+    // Patch 1: valid AST patch modifying file1
+    const patch1 = JSON.stringify([
+      { type: 'updateVariableAssignment', variableName: 'a', value: 10 }
+    ]);
+    // Patch 2: invalid AST patch modifying file2 (invalid JSON format)
+    const patch2 = '[ { "type": "updateVariableAssignment"';
+
+    workspace.addPatch('agent-1', file1, patch1);
+    workspace.addPatch('agent-2', file2, patch2);
+
+    const result = workspace.commit();
+    expect(result.applied).toBe(0);
+    expect(result.rejected).toBe(2);
+    expect(result.errors.length).toBeGreaterThan(0);
+
+    // Verify neither file was written/updated on disk
+    expect(fs.readFileSync(file1, 'utf8')).toBe('const a = 1;\n');
+    expect(fs.readFileSync(file2, 'utf8')).toBe('const b = 2;\n');
   });
 });

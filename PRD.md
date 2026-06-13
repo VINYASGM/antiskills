@@ -72,5 +72,32 @@ An atomic state machine and locking framework (`claim`, `release`, `start`, `com
 A gorgeous terminal-based telemetry interface extracting SQLite concurrency locks, active governance transactions, circuit-breaker metrics, and patch directories to render real-time swarm operational states using double-bordered boxes, tables, and progress indicators.
 
 ### 4.8 Graphify Enrichment Core (`bin/context.js`, `memory-mcp-server/graph.py`)
-Enhances Veyra's static code indexing and context assembly with secrets/sensitive path skipping, zip-bomb checks for documents, topological metrics (centrality and cross-community edges), extensionless shebang interpretation, and collapsible HTML visualizations (D3 hierarchy tree and Mermaid callflow report).
+Enhances Veyra's static code indexing and context assembly with secrets/sensitive path skipping, zip-bomb checks for documents, topological metrics, extensionless shebang interpretation, and collapsible HTML visualizations.
 
+#### 4.8.1 JIT Security & Sensitive Path Screening
+- **Exclusion Lists:** The crawler must automatically skip sensitive paths and files during JIT indexing, including `.git`, `.ssh`, `credentials`, `secrets`, `.env`, netrc, and private/public key files (`*.pem`, `id_rsa`, etc.) to prevent secret leaks to agent context.
+- **Sensitive Key/Pattern Masking:** Scan and redact potential API keys or token strings found within indexed files matching high-entropy formats.
+
+#### 4.8.2 Zip-Bomb and Resource Exhaustion Defense
+- **Size and Decompression Limits:** Ensure that prior to reading or parsing any zip-based or XML-based Office documents (like `.xlsx`, `.docx`), a pre-flight decompression ratio check is run.
+- **Trigger threshold:** Cap the maximum decompression ratio at 200:1. If any archive exceeds this ratio or expands beyond a configured absolute limit (e.g., 50MB), the crawler must immediately skip it and log a security warning, shielding the swarm from resource exhaustion.
+
+#### 4.8.3 Extensionless Script Shebang Parsing
+- **Shebang Detection:** Interprets the correct language and syntax parser for files lacking standard extensions (e.g., `bin/run`) by reading their first line.
+- **Parser Mapping:** Match shebang lines like `#!/usr/bin/env python3` to Python, `#!/bin/bash` or `#!/bin/sh` to Shell/Bash, and `#!/usr/bin/env node` to JavaScript.
+
+#### 4.8.4 Multi-Language Crawler & Regex Parsers
+- **Language Coverage:** Extend symbol crawling beyond JS/TS to Apex (`.cls`, `.trigger`), Python (`.py`), Go (`.go`), Rust (`.rs`), and SQL (`.sql`).
+- **Regex Extraction:** Use optimized regex-based parsers to resolve dependencies, imports, and calls for non-JS/TS codebases (e.g., mapping `import x`, `from y import z` in Python; `import (...)` in Go; and `use x::y` in Rust).
+
+#### 4.8.5 Topological Graph Metrics & NetworkX Analytics
+- **Centrality Mapping ("God Nodes"):** Compute degree centrality and PageRank values for all nodes in the codebase dependency graph. Rank and identify highly coupled modules ("God Nodes") that represent structural risk.
+- **Cross-Community Analysis ("Surprising Connections"):** Group modules into communities using Louvain/Leiden clustering. Highlight dependencies that bridge distinct communities or language boundaries (e.g., a Rust binding invoked directly by Python logic) to identify critical inter-module couplings.
+
+#### 4.8.6 Collapsible HTML Visualizations
+- **Interactive File-to-Symbol Tree (`context/tree.html`):** Generate a browser-viewable, collapsible hierarchical filesystem tree using D3.js. Clicking nodes expands/collapses directories and shows local symbols.
+- **Architecture Callflow Map (`context/graph.html`):** Generate a self-contained visual flowchart using Mermaid or D3.js showing module relationships, grouped visually by their Louvain-detected communities, allowing developers and agents to trace dependency flows interactively.
+
+
+### 4.9 AST Expansion & Agent Integration (Milestone 21)
+Extends the AST transformation engine (`bin/ast_transform.js`) to support programmatic operations for classes, decorators, JSX/TSX elements, and interface/type declarations. Wires AST manipulations into CLI commands, semantic conflict detectors, and agent swarm prompt instructions.

@@ -62,6 +62,20 @@ class McpServer:
                         "type": "object",
                         "properties": {}
                     }
+                },
+                {
+                    "name": "get_graph_intelligence",
+                    "description": "Calculates graph metrics including degree centrality (God Nodes) and community-crossing/language-crossing edges (Surprising Connections)",
+                    "inputSchema": {
+                        "type": "object",
+                        "properties": {
+                            "top_n_god_nodes": { 
+                                "type": "integer", 
+                                "default": 10, 
+                                "description": "Number of top central nodes to return" 
+                            }
+                        }
+                    }
                 }
             ]
         }
@@ -101,6 +115,21 @@ class McpServer:
                     {
                         "type": "text", 
                         "text": f"Modularity compression triggered. Created consolidated nodes: {consolidated_ids}"
+                    }
+                ]
+            }
+        elif name == "get_graph_intelligence":
+            top_n = arguments.get("top_n_god_nodes", 10)
+            god_nodes = self.graph.calculate_degree_centrality(top_n)
+            surprising_connections = self.graph.get_surprising_connections()
+            return {
+                "content": [
+                    {
+                        "type": "text",
+                        "text": json.dumps({
+                            "god_nodes": god_nodes,
+                            "surprising_connections": surprising_connections
+                        }, indent=2)
                     }
                 ]
             }

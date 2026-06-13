@@ -336,3 +336,154 @@ describe('ContextAssembler — Relevance Scoring (Phase 3)', () => {
     expect(ranked[0].path).toContain('login.ts');
   });
 });
+
+describe('ContextAssembler — Milestone 20 Security and Visualizations', () => {
+  let originalCwd;
+  let tmpDir;
+  let contextAssembler;
+
+  beforeEach(() => {
+    originalCwd = process.cwd();
+    tmpDir = createTempProject();
+    process.chdir(tmpDir);
+    delete require.cache[require.resolve('../../bin/context.js')];
+    contextAssembler = require('../../bin/context.js');
+  });
+
+  afterEach(() => {
+    process.chdir(originalCwd);
+    cleanupTempDir(tmpDir);
+    delete require.cache[require.resolve('../../bin/context.js')];
+  });
+
+  test('isSensitivePath flags sensitive files and directories', () => {
+    expect(contextAssembler.isSensitivePath(path.join(tmpDir, '.git', 'config'))).toBe(true);
+    expect(contextAssembler.isSensitivePath(path.join(tmpDir, 'src', '.env'))).toBe(true);
+    expect(contextAssembler.isSensitivePath(path.join(tmpDir, 'id_rsa'))).toBe(true);
+    expect(contextAssembler.isSensitivePath(path.join(tmpDir, 'secrets', 'passwords.txt'))).toBe(true);
+    expect(contextAssembler.isSensitivePath(path.join(tmpDir, 'credentials.pem'))).toBe(true);
+    
+    expect(contextAssembler.isSensitivePath(path.join(tmpDir, 'src', 'index.js'))).toBe(false);
+    expect(contextAssembler.isSensitivePath(path.join(tmpDir, 'lib', 'utils.ts'))).toBe(false);
+  });
+
+  test('isZipBomb detects zip bombs and allows safe zips', () => {
+    const bombPath = path.join(tmpDir, 'bomb.zip');
+    const safePath = path.join(tmpDir, 'safe.zip');
+    const normalPath = path.join(tmpDir, 'normal.txt');
+
+    // Simulated Zip-Bomb (ratio 500:1)
+    const bombBuf = Buffer.alloc(34);
+    bombBuf.writeUInt32LE(0x04034b50, 0); // PK\x03\x04
+    bombBuf.writeUInt32LE(10, 18); // Compressed Size
+    bombBuf.writeUInt32LE(5000, 22); // Uncompressed Size
+    bombBuf.writeUInt16LE(4, 26); // Filename length
+    bombBuf.writeUInt16LE(0, 28); // Extra field length
+    bombBuf.write('test', 30);
+    fs.writeFileSync(bombPath, bombBuf);
+
+    // Simulated Safe Zip (ratio 2:1)
+    const safeBuf = Buffer.alloc(34);
+    safeBuf.writeUInt32LE(0x04034b50, 0);
+    safeBuf.writeUInt32LE(10, 18);
+    safeBuf.writeUInt32LE(20, 22); // Uncompressed Size
+    safeBuf.writeUInt16LE(4, 26);
+    safeBuf.writeUInt16LE(0, 28);
+    safeBuf.write('test', 30);
+    fs.writeFileSync(safePath, safeBuf);
+
+    // Non-zip file
+    fs.writeFileSync(normalPath, 'Hello world');
+
+    expect(contextAssembler.isZipBomb(bombPath)).toBe(true);
+    expect(contextAssembler.isZipBomb(safePath)).toBe(false);
+    expect(contextAssembler.isZipBomb(normalPath)).toBe(false);
+  });
+
+  test('detectShebangLanguage coerces shebang types', () => {
+    const pyScript = path.join(tmpDir, 'pyscript');
+    const nodeScript = path.join(tmpDir, 'nodescript');
+    const normalFile = path.join(tmpDir, 'script');
+
+    fs.writeFileSync(pyScript, '#!/usr/bin/env python\nprint("Hello")');
+    fs.writeFileSync(nodeScript, '#!/usr/bin/env node\nconsole.log("Hello")');
+    fs.writeFileSync(normalFile, 'console.log("Hello")');
+
+    expect(contextAssembler.detectShebangLanguage(pyScript)).toBe('.py');
+    expect(contextAssembler.detectShebangLanguage(nodeScript)).toBe('.js');
+    expect(contextAssembler.detectShebangLanguage(normalFile)).toBeNull();
+  });
+
+  test('resolves foreign imports (Python, Rust, Go, SQL, Apex)', () => {
+    // 1. Python
+    const pyMain = path.join(tmpDir, 'main.py');
+    const pyUtil = path.join(tmpDir, 'util.py');
+    fs.writeFileSync(pyMain, 'from util import helper\nimport os');
+    fs.writeFileSync(pyUtil, 'def helper(): pass');
+
+    // 2. Rust
+    const rsMain = path.join(tmpDir, 'main.rs');
+    const rsHandler = path.join(tmpDir, 'handler.rs');
+    fs.writeFileSync(rsMain, 'pub mod handler;\nuse std::io;');
+    fs.writeFileSync(rsHandler, 'pub fn run() {}');
+
+    // 3. Go
+    const goMain = path.join(tmpDir, 'main.go');
+    const goDb = path.join(tmpDir, 'db.go');
+    fs.writeFileSync(goMain, `package main\nimport (\n  "db"\n  "fmt"\n)`);
+    fs.writeFileSync(goDb, 'package db');
+
+    // 4. SQL
+    const sqlMain = path.join(tmpDir, 'main.sql');
+    const sqlTable = path.join(tmpDir, 'table.sql');
+    fs.writeFileSync(sqlMain, '--# import "table.sql"\nSELECT * FROM table;');
+    fs.writeFileSync(sqlTable, 'CREATE TABLE table (id INT);');
+
+    // 5. Apex
+    const apexMain = path.join(tmpDir, 'main.cls');
+    const apexBase = path.join(tmpDir, 'BaseController.cls');
+    fs.writeFileSync(apexMain, 'public class Main extends BaseController {}');
+    fs.writeFileSync(apexBase, 'public virtual class BaseController {}');
+
+    const resolvedPy = contextAssembler.resolveImports(pyMain);
+    expect(resolvedPy).toContain(pyUtil);
+
+    const resolvedRs = contextAssembler.resolveImports(rsMain);
+    expect(resolvedRs).toContain(rsHandler);
+
+    const resolvedGo = contextAssembler.resolveImports(goMain);
+    expect(resolvedGo).toContain(goDb);
+
+    const resolvedSql = contextAssembler.resolveImports(sqlMain);
+    expect(resolvedSql).toContain(sqlTable);
+
+    const resolvedApex = contextAssembler.resolveImports(apexMain);
+    expect(resolvedApex).toContain(apexBase);
+  });
+
+  test('generateIndex generates HTML visualizations', () => {
+    // Create some files to index
+    const mainFile = path.join(tmpDir, 'main.js');
+    const utilFile = path.join(tmpDir, 'util.js');
+    fs.writeFileSync(mainFile, 'import "./util.js";');
+    fs.writeFileSync(utilFile, 'export const x = 1;');
+
+    contextAssembler.generateIndex();
+
+    const treePath = path.join(tmpDir, 'context', 'tree.html');
+    const graphPath = path.join(tmpDir, 'context', 'graph.html');
+
+    expect(fs.existsSync(treePath)).toBe(true);
+    expect(fs.existsSync(graphPath)).toBe(true);
+
+    const treeContent = fs.readFileSync(treePath, 'utf8');
+    const graphContent = fs.readFileSync(graphPath, 'utf8');
+
+    expect(treeContent).toContain('Veyra OS - Hierarchy Tree');
+    expect(treeContent).toContain('main.js');
+    expect(treeContent).toContain('util.js');
+
+    expect(graphContent).toContain('mermaid');
+    expect(graphContent).toContain('Community_Root');
+  });
+});

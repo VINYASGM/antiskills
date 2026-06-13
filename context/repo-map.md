@@ -156,13 +156,25 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   ├── handoff.md
 │   │   ├── original_prompt.md
 │   │   └── progress.md
+│   ├── explorer_ast_exploration
+│   │   ├── analysis.md
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   └── progress.md
 │   ├── orchestrator
 │   │   ├── BRIEFING.md
 │   │   ├── handoff.md
 │   │   ├── original_prompt.md
+│   │   ├── ORIGINAL_REQUEST.md
 │   │   ├── plan.md
 │   │   ├── progress.md
 │   │   └── PROJECT.md
+│   ├── orchestrator_ast
+│   │   ├── BRIEFING.md
+│   │   ├── original_prompt.md
+│   │   ├── plan.md
+│   │   └── progress.md
 │   ├── orchestrator_dashboard
 │   │   ├── .gitkeep
 │   │   ├── BRIEFING.md
@@ -195,9 +207,37 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   ├── original_prompt.md
 │   │   ├── progress.md
 │   │   └── review_2.md
+│   ├── reviewer_ast_1
+│   │   ├── analysis.md
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   └── progress.md
+│   ├── reviewer_ast_2
+│   │   ├── analysis.md
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   └── progress.md
 │   ├── sentinel
 │   │   ├── BRIEFING.md
 │   │   └── handoff.md
+│   ├── teamwork_preview_auditor_m20
+│   │   ├── audit.md
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   └── progress.md
+│   ├── teamwork_preview_challenger_m20_1
+│   │   ├── BRIEFING.md
+│   │   ├── challenge.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   └── progress.md
+│   ├── teamwork_preview_challenger_m20_2
+│   │   ├── BRIEFING.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   └── progress.md
 │   ├── teamwork_preview_explorer_dashboard_1
 │   │   ├── analysis.md
 │   │   ├── BRIEFING.md
@@ -213,6 +253,41 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   ├── proposed_ToDo.md
 │   │   ├── proposed_TRD.md
 │   │   └── proposed_veyra.js.patch
+│   ├── teamwork_preview_explorer_m20_1
+│   │   ├── analysis.md
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   ├── progress.md
+│   │   ├── proposed_Architecture_updates.md
+│   │   ├── proposed_PRD_updates.md
+│   │   ├── proposed_State_updates.md
+│   │   ├── proposed_ToDo_updates.md
+│   │   └── proposed_TRD_updates.md
+│   ├── teamwork_preview_explorer_m20_2
+│   │   ├── analysis.md
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   └── progress.md
+│   ├── teamwork_preview_explorer_m20_3
+│   │   ├── analysis.md
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   └── progress.md
+│   ├── teamwork_preview_reviewer_m20_1
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   ├── progress.md
+│   │   └── review.md
+│   ├── teamwork_preview_reviewer_m20_2
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   ├── progress.md
+│   │   └── review.md
 │   ├── victory_auditor
 │   │   ├── BRIEFING.md
 │   │   ├── handoff.md
@@ -225,6 +300,15 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   ├── original_prompt.md
 │   │   ├── progress.md
 │   │   └── victory_audit_report.md
+│   ├── worker_ast_implementation
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   └── progress.md
+│   ├── worker_ast_remediation
+│   │   ├── BRIEFING.md
+│   │   ├── original_prompt.md
+│   │   └── progress.md
 │   ├── worker_cli_schema_1
 │   │   ├── handoff.md
 │   │   ├── original_prompt.md
@@ -248,6 +332,12 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   ├── BRIEFING.md
 │   │   ├── handoff.md
 │   │   ├── original_prompt.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   └── progress.md
+│   ├── worker_implementation
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
 │   │   └── progress.md
 │   ├── worker_update_project_md
 │   │   ├── BRIEFING.md
@@ -263,6 +353,13 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   └── workflows
 │       └── ci.yml
 ├── .gitignore
+├── .pytest_cache
+│   ├── .gitignore
+│   ├── CACHEDIR.TAG
+│   ├── README.md
+│   └── v
+│       └── cache
+│           └── nodeids
 ├── AGENT.md
 ├── agents
 │   ├── architect.md
@@ -332,8 +429,19 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 ├── memory-mcp-server
 │   ├── __pycache__
 │   │   ├── compress.cpython-313.pyc
-│   │   └── graph.cpython-313.pyc
+│   │   ├── graph.cpython-313.pyc
+│   │   ├── test_agent.cpython-313-pytest-9.0.2.pyc
+│   │   ├── test_graph_stress.cpython-313-pytest-9.0.2.pyc
+│   │   └── test_metrics.cpython-313-pytest-9.0.2.pyc
 │   ├── .gitignore
+│   ├── .pytest_cache
+│   │   ├── .gitignore
+│   │   ├── CACHEDIR.TAG
+│   │   ├── README.md
+│   │   └── v
+│   │       └── cache
+│   │           ├── lastfailed
+│   │           └── nodeids
 │   ├── Cargo.lock
 │   ├── Cargo.toml
 │   ├── compress.py
@@ -2214,7 +2322,10 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │       ├── onnxruntime_providers_nv_tensorrt_rtx.dll
 │   │       ├── onnxruntime_providers_shared.dll
 │   │       └── onnxruntime_providers_tensorrt.dll
-│   └── test_agent.py
+│   ├── test_agent.py
+│   ├── test_graph_stress.py
+│   ├── test_metrics_adversarial.py
+│   └── test_metrics.py
 ├── orchestration
 │   ├── choreography-protocol.md
 │   ├── merge-strategy.md
@@ -2243,6 +2354,9 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   ├── global.md
 │   ├── security.md
 │   └── testing.md
+├── src
+│   ├── backend.js
+│   └── frontend.js
 ├── STACK.md
 ├── standards
 │   ├── code-style.md
@@ -2255,6 +2369,7 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 ├── tests
 │   └── bin
 │       ├── ast-transform.test.js
+│       ├── context-stress.test.js
 │       ├── context.test.js
 │       ├── dashboard-stress.test.js
 │       ├── dashboard.test.js
@@ -2262,12 +2377,14 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │       ├── event-bus.test.js
 │       ├── governance.test.js
 │       ├── intent.test.js
+│       ├── m20-adversarial.test.js
 │       ├── patch.test.js
 │       ├── router.test.js
 │       ├── schema.test.js
 │       ├── task-queue.test.js
 │       ├── ui.test.js
 │       ├── verify.test.js
+│       ├── veyra.test.js
 │       ├── visual-review.test.js
 │       └── worktree.test.js
 ├── ToDo.md
@@ -2298,4 +2415,4 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
     └── testing-generation.yaml
 ```
 
-*Indexed at: 2026-06-07T18:01:27.021Z*
+*Indexed at: 2026-06-13T09:08:52.694Z*

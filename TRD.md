@@ -219,18 +219,90 @@ Deterministic parsing combined with vector similarity:
 3. **CLI Invocation**: Integrated directly as a top-level command `dashboard` or `ui dashboard` in `bin/veyra.js`.
 
 ### 4.6 Graphify Enrichment Core
-1. **Security & Sensitive Paths Screening (`bin/context.js`)**:
-   - Screen files and folder segments JIT before AST parsing or vector scoring.
-   - Exclude paths containing sensitive patterns (e.g. `.git`, `.ssh`, `credentials`, `secrets`, `.env`, private keys).
-   - Integrate decompressed ratio checks (cap at 200:1) on zip/XML-based Office documents to prevent zip-bomb exploits.
-2. **Multi-Language AST Parsing Fallback (`bin/context.js`)**:
-   - Extend `resolveImports()` and file discovery to scan non-JS/TS codebases.
-   - Use regex-based symbol and import parsers for Apex (`.cls`/`.trigger`), Python (`.py`), Go (`.go`), Rust (`.rs`), and SQL (`.sql`).
-   - Parse extensionless scripts by inspecting shebang lines (e.g., tokenizing `env -S python3 -u` SYNOPIS).
-3. **Topological Graph Metrics (`memory-mcp-server/graph.py`)**:
-   - Run NetworkX Degree Centrality and PageRank on memory graphs (filtering out stubs, builtins, and mocks) to compute "God Nodes".
-   - Compute "Surprising Connections" between nodes by checking cross-community modularity (Louvain/Leiden) and cross-language boundaries.
-4. **Interactive HTML Rendering (`bin/context.js`)**:
-   - Generate `context/tree.html` presenting a D3.js collapsible hierarchical file-to-symbol tree.
-   - Generate `context/graph.html` presenting a self-contained Mermaid-based callflow architecture report with cross-community edge mapping.
+The Graphify Enrichment Core enhances static code indexing and context assembly with advanced JIT security, multi-language support, topological graph metrics, and interactive visualizations.
 
+#### 4.6.1 JIT Security & Sensitive Path Screening (`bin/context.js`)
+- **Blocklist & Exclusion Matching:** The JIT crawler filters out sensitive files and directories before tokenization or semantic vector scoring using a strict path-based blocklist:
+  - Directory exclusions: `node_modules`, `.git`, `.ssh`, `.idea`, `.vscode`, `dist`, `build`.
+  - File exclusions: `.env`, `*.pem`, `*.key`, `id_rsa`, `id_dsa`, `netrc`, `credentials`, `secrets.json`, `config.local.json`.
+- **Sensitive Key Pattern Matching:** File contents are scanned with regexes targeting API keys, database connection strings, and authorization headers:
+  - Generic token regex: `/(?:key|token|secret|password|passwd|auth)\s*[:=]\s*["'][a-zA-Z0-9_\-]{16,}["']/gi`
+  - Private key block check: `/-----BEGIN[ A-Z0-9_-]+PRIVATE KEY-----/`
+  Files triggering these matches are completely excluded from the index, and a warning is logged.
+
+#### 4.6.2 Zip-Bomb and Resource Exhaustion Defense (`bin/context.js`)
+- **Pre-flight Archive Auditing:** Before extracting or indexing compressed documents (e.g., zip-based `.xlsx`, `.docx`, or `.zip` files), the crawler reads the file header (central directory record) to determine the sum of uncompressed sizes without allocating memory for decompression.
+- **Verification Rule:**
+  - Let $S_{comp}$ be the compressed file size on disk.
+  - Let $S_{uncomp}$ be the total size of all files inside the archive when decompressed.
+  - The compression ratio $R = \frac{S_{uncomp}}{S_{comp}}$ must not exceed `200.0`.
+  - The total uncompressed size $S_{uncomp}$ must not exceed `52,428,800` bytes (50 MB).
+- **Enforcement:** If $R > 200.0$ or $S_{uncomp} > 50\text{ MB}$, the file is flagged as a potential Zip-bomb, decompression is aborted immediately, and the file is omitted from indexing.
+
+#### 4.6.3 Extensionless Script Shebang Parsing (`bin/context.js`)
+- **Interpreter Detection Flow:** When the crawler encounters a file lacking a standard extension, it reads the first 256 bytes to inspect the shebang line.
+- **Parsing logic:**
+  1. Extract the shebang string: Match `^#!(.+)$` on the first line.
+  2. Normalize the path (e.g. `/usr/bin/env python3` -> `python3`, `/bin/bash` -> `bash`).
+  3. Tokenize arguments (e.g., `env -S node --harmony` -> base interpreter: `node`, argument flags: `--harmony`).
+- **Language mapping lookup:**
+  - `python`, `python3` $\rightarrow$ Python (`.py`) parser.
+  - `node`, `nodejs` $\rightarrow$ JavaScript (`.js`) parser.
+  - `sh`, `bash`, `zsh` $\rightarrow$ Bash (`.sh`) parser.
+  - `perl` $\rightarrow$ Perl (`.pl`) parser.
+  - `ruby` $\rightarrow$ Ruby (`.rb`) parser.
+  If no match is found, it defaults to a plain-text token fallback.
+
+#### 4.6.4 Multi-Language Crawler & Regex Parsers (`bin/context.js`)
+To crawl non-JS/TS codebases without requiring heavy language server binaries, the indexing crawler executes fast regex-based AST extraction pipelines:
+- **Python Imports (`.py`):**
+  - Pattern 1 (from imports): `/^\s*from\s+([\w.]+)\s+import\s+([\w\s,*(]+)/gm`
+  - Pattern 2 (direct imports): `/^\s*import\s+([\w\s,.]+)/gm`
+- **Go Imports (`.go`):**
+  - Single-line and multi-line block import matcher: `/import\s+(?:(?:"[^"]+")|\((?:\s*(?:"[^"]+")\s*)*\))/g`
+- **Rust Imports (`.rs`):**
+  - Pattern: `/^\s*(?:pub\s+)?use\s+([^;]+);/gm`
+- **Apex (`.cls` / `.trigger`):**
+  - Extracted using class definition and trigger references: `/(?:extends|implements)\s+(\w+)/gi` and `/trigger\s+\w+\s+on\s+(\w+)/gi`
+- **SQL (`.sql`):**
+  - Dynamic table dependencies parser: `/\b(?:FROM|JOIN)\s+([a-zA-Z_][a-zA-Z0-9_.]*)/gi`
+
+#### 4.6.5 Topological Graph Metrics & NetworkX Analytics (`memory-mcp-server/graph.py`)
+Topological metrics are computed inside the Python memory-mcp-server using NetworkX to identify structural risks and cross-module couplings:
+- **Degree Centrality:** Runs `nx.degree_centrality(G)` to measure the direct connections of each module. High-degree modules (above the 90th percentile) are flagged as **God Nodes**.
+- **PageRank Centrality:** Runs `nx.pagerank(G, alpha=0.85)` to detect modules that are recursively referenced by other important modules.
+- **Community Detection (Louvain):** Partitions the graph using Louvain modularity (`nx.community.louvain_communities(G)`).
+- **Surprising Connections (Bridge Edges):**
+  - Let $C(u)$ be the community ID of node $u$, and $C(v)$ be the community ID of node $v$.
+  - An edge $(u, v)$ is flagged as a **Surprising Connection** (or Bridge Edge) if:
+    1. $C(u) \neq C(v)$ (crosses community boundaries).
+    2. The language properties of $u$ and $v$ differ (cross-language boundary, e.g., a `.py` file invoking a compiled `.go` or `.rs` binary interface).
+  These bridge edges are scored with higher weights to prioritize integration check verification.
+
+#### 4.6.6 Collapsible HTML Visualizer Outputs (`bin/context.js`)
+- **D3.js Collapsible File-to-Symbol Tree (`context/tree.html`):**
+  - Generates a fully self-contained HTML/JS page containing an embedded hierarchical JSON payload representing the repository tree structure.
+  - Utilizes D3.js v7 library loaded via local or cached CDN path (with fallback).
+  - Uses `d3.hierarchy` and `d3.tree` layouts to render a horizontal node-link diagram.
+  - Clicking on a folder node triggers a dynamic toggle of the `.children` array and triggers a smooth transition re-render.
+  - File nodes display details such as lines of code (LOC), file size, and detected syntax symbols (classes, functions, interfaces).
+- **Mermaid/D3.js Architecture Callflow Map (`context/graph.html`):**
+  - Generates an HTML page that compiles the dependency matrix into a visual Mermaid callflow diagram.
+  - Nodes are styled and color-coded based on their Louvain community ID.
+  - Hovering over a node displays a tooltip showing PageRank centrality, degree metrics, and language tags.
+  - Bridges/Surprising Connections are styled with thicker, dashed red lines, indicating integration-sensitive boundaries.
+
+
+### 4.7 Programmatic AST Transformation APIs (Milestone 21)
+1. **Classes & Decorators (`bin/ast_transform.js`)**:
+   - `addClass(sourceText, className, isExported)`: Injects class structure using `ts.factory.createClassDeclaration`.
+   - `addClassDecorator(sourceText, className, decoratorName, decoratorArgs)`: Inserts a decorator into the class's modifiers.
+   - `addClassMethod(sourceText, className, methodName, parameters, methodBodyText, decorators, modifiers)`: Adds/replaces methods.
+   - `addClassProperty(sourceText, className, propertyName, propertyType, initializerText, decorators, modifiers)`: Injects properties with decorators/modifiers.
+2. **JSX/TSX Elements (`bin/ast_transform.js`)**:
+   - `addJsxElement(sourceText, targetSelector, jsxString)`: Appends JSX element inside target container or converts self-closing JSX elements.
+   - `updateJsxAttribute(sourceText, targetSelector, attrName, attrValueExpression)`: Safely updates attributes on JSX opening elements.
+3. **Interfaces & Types (`bin/ast_transform.js`)**:
+   - `addInterface(sourceText, interfaceName, extendsNames)`: Declares exportable interfaces.
+   - `addInterfaceProperty(sourceText, interfaceName, propertyName, propertyType, isOptional)`: Injects or updates properties in interfaces.
+   - `addTypeAlias(sourceText, typeName, typeValueText)`: Deploys type declarations representing complex union/intersection structures.

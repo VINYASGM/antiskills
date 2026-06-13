@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Veyra OS - Community Modularity Callflow</title>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+  </script>
+  <style>
+    body { background-color: #0d1117; color: #c9d1d9; font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    h1 { margin-bottom: 20px; }
+    .mermaid { width: 90vw; }
+  </style>
+</head>
+<body>
+  <h1>Community Modularity Callflow Diagram</h1>
+  <div class="mermaid">
+    graph TD
+  subgraph Community__agent_skills_ui_ux_pro_max_scripts [".agent/skills/ui-ux-pro-max/scripts"]
+    _agent_skills_ui_ux_pro_max_scripts_core_py[".agent/skills/ui-ux-pro-max/scripts/core.py"]
+    _agent_skills_ui_ux_pro_max_scripts_design_system_py[".agent/skills/ui-ux-pro-max/scripts/design_system.py"]
+    _agent_skills_ui_ux_pro_max_scripts_search_py[".agent/skills/ui-ux-pro-max/scripts/search.py"]
+  end
+  subgraph Community__agents_teamwork_preview_explorer_dashboard_1 [".agents/teamwork_preview_explorer_dashboard_1"]
+    _agents_teamwork_preview_explorer_dashboard_1_proposed_dashboard_js[".agents/teamwork_preview_explorer_dashboard_1/proposed_dashboard.js"]
+    _agents_teamwork_preview_explorer_dashboard_1_proposed_dashboard_test_js[".agents/teamwork_preview_explorer_dashboard_1/proposed_dashboard.test.js"]
+  end
+  subgraph Community_bin ["bin"]
+    bin_ast_transform_js["bin/ast_transform.js"]
+    bin_context_js["bin/context.js"]
+    bin_dashboard_js["bin/dashboard.js"]
+    bin_db_js["bin/db.js"]
+    bin_event_bus_js["bin/event_bus.js"]
+    bin_governance_js["bin/governance.js"]
+    bin_intent_js["bin/intent.js"]
+    bin_linter_js["bin/linter.js"]
+    bin_patch_js["bin/patch.js"]
+    bin_router_js["bin/router.js"]
+    bin_schema_js["bin/schema.js"]
+    bin_skills_js["bin/skills.js"]
+    bin_supervisor_js["bin/supervisor.js"]
+    bin_ui_js["bin/ui.js"]
+    bin_vector_search_py["bin/vector_search.py"]
+    bin_verify_js["bin/verify.js"]
+    bin_veyra_js["bin/veyra.js"]
+    bin_visual_review_js["bin/visual-review.js"]
+    bin_workflow_js["bin/workflow.js"]
+    bin_worktree_js["bin/worktree.js"]
+  end
+  subgraph Community_Root ["Root"]
+    demo_ast_patching_js["demo-ast-patching.js"]
+    vitest_config_js["vitest.config.js"]
+  end
+  subgraph Community_memory_mcp_server ["memory-mcp-server"]
+    memory_mcp_server_compress_py["memory-mcp-server/compress.py"]
+    memory_mcp_server_graph_py["memory-mcp-server/graph.py"]
+    memory_mcp_server_server_py["memory-mcp-server/server.py"]
+    memory_mcp_server_test_agent_py["memory-mcp-server/test_agent.py"]
+    memory_mcp_server_test_graph_stress_py["memory-mcp-server/test_graph_stress.py"]
+    memory_mcp_server_test_metrics_py["memory-mcp-server/test_metrics.py"]
+    memory_mcp_server_test_metrics_adversarial_py["memory-mcp-server/test_metrics_adversarial.py"]
+  end
+  subgraph Community_memory_mcp_server_src_actors ["memory-mcp-server/src/actors"]
+    memory_mcp_server_src_actors_coordinator_rs["memory-mcp-server/src/actors/coordinator.rs"]
+    memory_mcp_server_src_actors_mod_rs["memory-mcp-server/src/actors/mod.rs"]
+    memory_mcp_server_src_actors_watcher_rs["memory-mcp-server/src/actors/watcher.rs"]
+  end
+  subgraph Community_memory_mcp_server_src_db ["memory-mcp-server/src/db"]
+    memory_mcp_server_src_db_mod_rs["memory-mcp-server/src/db/mod.rs"]
+    memory_mcp_server_src_db_schema_rs["memory-mcp-server/src/db/schema.rs"]
+    memory_mcp_server_src_db_writer_rs["memory-mcp-server/src/db/writer.rs"]
+  end
+  subgraph Community_memory_mcp_server_src ["memory-mcp-server/src"]
+    memory_mcp_server_src_main_rs["memory-mcp-server/src/main.rs"]
+  end
+  subgraph Community_memory_mcp_server_src_mcp ["memory-mcp-server/src/mcp"]
+    memory_mcp_server_src_mcp_mod_rs["memory-mcp-server/src/mcp/mod.rs"]
+    memory_mcp_server_src_mcp_server_rs["memory-mcp-server/src/mcp/server.rs"]
+  end
+  subgraph Community_memory_mcp_server_src_pipeline ["memory-mcp-server/src/pipeline"]
+    memory_mcp_server_src_pipeline_mod_rs["memory-mcp-server/src/pipeline/mod.rs"]
+    memory_mcp_server_src_pipeline_worker_rs["memory-mcp-server/src/pipeline/worker.rs"]
+  end
+  subgraph Community_src ["src"]
+    src_backend_js["src/backend.js"]
+    src_frontend_js["src/frontend.js"]
+  end
+  subgraph Community_tests_bin ["tests/bin"]
+    tests_bin_ast_transform_test_js["tests/bin/ast-transform.test.js"]
+    tests_bin_context_stress_test_js["tests/bin/context-stress.test.js"]
+    tests_bin_context_test_js["tests/bin/context.test.js"]
+    tests_bin_dashboard_stress_test_js["tests/bin/dashboard-stress.test.js"]
+    tests_bin_dashboard_test_js["tests/bin/dashboard.test.js"]
+    tests_bin_db_test_js["tests/bin/db.test.js"]
+    tests_bin_event_bus_test_js["tests/bin/event-bus.test.js"]
+    tests_bin_governance_test_js["tests/bin/governance.test.js"]
+    tests_bin_intent_test_js["tests/bin/intent.test.js"]
+    tests_bin_m20_adversarial_test_js["tests/bin/m20-adversarial.test.js"]
+    tests_bin_patch_test_js["tests/bin/patch.test.js"]
+    tests_bin_router_test_js["tests/bin/router.test.js"]
+    tests_bin_schema_test_js["tests/bin/schema.test.js"]
+    tests_bin_task_queue_test_js["tests/bin/task-queue.test.js"]
+    tests_bin_ui_test_js["tests/bin/ui.test.js"]
+    tests_bin_verify_test_js["tests/bin/verify.test.js"]
+    tests_bin_veyra_test_js["tests/bin/veyra.test.js"]
+    tests_bin_visual_review_test_js["tests/bin/visual-review.test.js"]
+    tests_bin_worktree_test_js["tests/bin/worktree.test.js"]
+  end
+  subgraph Community_visual_testing ["visual-testing"]
+    visual_testing_audit_go["visual-testing/audit.go"]
+    visual_testing_audit_test_go["visual-testing/audit_test.go"]
+    visual_testing_diff_go["visual-testing/diff.go"]
+    visual_testing_diff_test_go["visual-testing/diff_test.go"]
+    visual_testing_main_go["visual-testing/main.go"]
+    visual_testing_snapshot_go["visual-testing/snapshot.go"]
+    visual_testing_snapshot_test_go["visual-testing/snapshot_test.go"]
+  end
+  _agent_skills_ui_ux_pro_max_scripts_design_system_py --> _agent_skills_ui_ux_pro_max_scripts_design_system_py
+  _agent_skills_ui_ux_pro_max_scripts_design_system_py --> _agent_skills_ui_ux_pro_max_scripts_core_py
+  _agent_skills_ui_ux_pro_max_scripts_search_py --> _agent_skills_ui_ux_pro_max_scripts_search_py
+  _agent_skills_ui_ux_pro_max_scripts_search_py --> _agent_skills_ui_ux_pro_max_scripts_core_py
+  _agent_skills_ui_ux_pro_max_scripts_search_py --> _agent_skills_ui_ux_pro_max_scripts_design_system_py
+  _agents_teamwork_preview_explorer_dashboard_1_proposed_dashboard_test_js --> bin_dashboard_js
+  _agents_teamwork_preview_explorer_dashboard_1_proposed_dashboard_test_js --> bin_db_js
+  bin_db_js --> bin_schema_js
+  bin_supervisor_js --> bin_skills_js
+  bin_verify_js --> bin_patch_js
+  bin_verify_js --> bin_context_js
+  bin_veyra_js --> bin_db_js
+  bin_veyra_js --> bin_context_js
+  bin_veyra_js --> bin_intent_js
+  bin_veyra_js --> bin_patch_js
+  bin_veyra_js --> bin_verify_js
+  bin_veyra_js --> bin_governance_js
+  bin_veyra_js --> bin_dashboard_js
+  bin_veyra_js --> bin_visual_review_js
+  bin_veyra_js --> bin_linter_js
+  bin_veyra_js --> bin_ast_transform_js
+  bin_veyra_js --> bin_event_bus_js
+  bin_workflow_js --> bin_supervisor_js
+  memory_mcp_server_server_py --> memory_mcp_server_graph_py
+  memory_mcp_server_server_py --> memory_mcp_server_compress_py
+  memory_mcp_server_src_actors_mod_rs --> memory_mcp_server_src_actors_coordinator_rs
+  memory_mcp_server_src_actors_mod_rs --> memory_mcp_server_src_actors_watcher_rs
+  memory_mcp_server_src_db_mod_rs --> memory_mcp_server_src_db_writer_rs
+  memory_mcp_server_src_db_mod_rs --> memory_mcp_server_src_db_schema_rs
+  memory_mcp_server_src_main_rs --> memory_mcp_server_src_actors_mod_rs
+  memory_mcp_server_src_main_rs --> memory_mcp_server_src_db_mod_rs
+  memory_mcp_server_src_main_rs --> memory_mcp_server_src_mcp_mod_rs
+  memory_mcp_server_src_main_rs --> memory_mcp_server_src_pipeline_mod_rs
+  memory_mcp_server_src_mcp_mod_rs --> memory_mcp_server_src_mcp_server_rs
+  memory_mcp_server_src_pipeline_mod_rs --> memory_mcp_server_src_pipeline_worker_rs
+  memory_mcp_server_test_graph_stress_py --> memory_mcp_server_graph_py
+  memory_mcp_server_test_metrics_py --> memory_mcp_server_graph_py
+  memory_mcp_server_test_metrics_adversarial_py --> memory_mcp_server_graph_py
+  tests_bin_dashboard_stress_test_js --> bin_dashboard_js
+  tests_bin_dashboard_stress_test_js --> bin_db_js
+  tests_bin_dashboard_test_js --> bin_dashboard_js
+  tests_bin_dashboard_test_js --> bin_db_js
+  tests_bin_governance_test_js --> bin_governance_js
+  tests_bin_schema_test_js --> bin_schema_js
+  tests_bin_verify_test_js --> bin_verify_js
+  tests_bin_verify_test_js --> bin_patch_js
+
+  </div>
+</body>
+</html>
