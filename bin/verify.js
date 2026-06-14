@@ -41,7 +41,7 @@ function parseContract(contractData) {
  * @param {string} patchPath - Path to patch.diff file.
  * @returns {{success: boolean, logs: string[]}}
  */
-function verifyContract(contractPath, patchPath) {
+function verifyContract(contractPath, patchPath, sandboxDir = null) {
   const logs = [];
   logs.push(`Loading contract: ${path.basename(contractPath)}`);
 
@@ -68,13 +68,17 @@ function verifyContract(contractPath, patchPath) {
   }
 
   // Load patch
-  let patchContent;
-  try {
-    patchContent = fs.readFileSync(patchPath, 'utf8');
-    logs.push(`✓ Unified patch loaded from ${path.basename(patchPath)}`);
-  } catch (err) {
-    logs.push(`❌ Failed to read patch: ${err.message}`);
-    return { success: false, logs };
+  let patchContent = null;
+  if (patchPath) {
+    try {
+      patchContent = fs.readFileSync(patchPath, 'utf8');
+      logs.push(`✓ Unified patch loaded from ${path.basename(patchPath)}`);
+    } catch (err) {
+      logs.push(`❌ Failed to read patch: ${err.message}`);
+      return { success: false, logs };
+    }
+  } else {
+    logs.push(`✓ No patch path provided; running verification directly`);
   }
 
   // Transaction backup map: filePath -> originalContent
@@ -82,37 +86,80 @@ function verifyContract(contractPath, patchPath) {
   let patchApplied = false;
 
   try {
-    // 2. Perform Workspace Patch Dry-run and Write
-    for (const filePath of contract.targetFiles) {
-      if (!fs.existsSync(filePath)) {
-        // Let's support virtual/new files by assuming empty original content
-        backup.set(filePath, null);
-        const patchedContent = applyPatch('', patchContent);
-        fs.writeFileSync(filePath, patchedContent, 'utf8');
-      } else {
-        const originalContent = fs.readFileSync(filePath, 'utf8');
-        backup.set(filePath, originalContent);
-        const patchedContent = applyPatch(originalContent, patchContent);
-        fs.writeFileSync(filePath, patchedContent, 'utf8');
+    // 2. Perform Workspace Patch Dry-run and Write (only if patchContent is loaded/not null)
+    if (patchContent !== null) {
+      for (const filePath of contract.targetFiles) {
+        const absFilePath = path.resolve(filePath);
+        const targetPath = sandboxDir ? path.resolve(sandboxDir, path.relative(process.cwd(), absFilePath)) : filePath;
+        
+        if (sandboxDir) {
+          const dir = path.dirname(targetPath);
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+        }
+
+        // Apply patch content to the files. Read from `targetPath` (if exists in sandbox) or the original `filePath` as fallback, apply the patch, and write to `targetPath`.
+        let exists = false;
+        let sourcePath = filePath;
+        if (sandboxDir) {
+          if (fs.existsSync(targetPath)) {
+            exists = true;
+            sourcePath = targetPath;
+          } else if (fs.existsSync(filePath)) {
+            exists = true;
+            sourcePath = filePath;
+          }
+        } else {
+          exists = fs.existsSync(filePath);
+        }
+
+        if (!exists) {
+          // Let's support virtual/new files by assuming empty original content
+          if (!sandboxDir) {
+            backup.set(filePath, null);
+          }
+          const patchedContent = applyPatch('', patchContent);
+          fs.writeFileSync(targetPath, patchedContent, 'utf8');
+        } else {
+          const originalContent = fs.readFileSync(sourcePath, 'utf8');
+          if (!sandboxDir) {
+            backup.set(filePath, originalContent);
+          }
+          const patchedContent = applyPatch(originalContent, patchContent);
+          fs.writeFileSync(targetPath, patchedContent, 'utf8');
+        }
       }
+      patchApplied = true;
+      logs.push(`✓ Patched changes written to target workspace files atomically`);
+    } else {
+      logs.push(`✓ Skipping patch application (patchPath was empty or null)`);
     }
-    patchApplied = true;
-    logs.push(`✓ Patched changes written to target workspace files atomically`);
 
     // 3. Rule validations (Statics)
     if (contract.rules) {
       const rules = contract.rules;
       for (const filePath of contract.targetFiles) {
-        const content = fs.readFileSync(filePath, 'utf8');
+        const absFilePath = path.resolve(filePath);
+        const targetPath = sandboxDir ? path.resolve(sandboxDir, path.relative(process.cwd(), absFilePath)) : filePath;
         
-        if (rules.noConsoleLogs && content.includes('console.log')) {
-          throw new Error(`Rule Violation: 'console.log' found in ${filePath}`);
+        let contentPath = targetPath;
+        if (sandboxDir && !fs.existsSync(targetPath)) {
+          contentPath = filePath;
         }
-        
-        if (rules.maxFileSizeLines) {
-          const linesCount = content.split('\n').length;
-          if (linesCount > rules.maxFileSizeLines) {
-            throw new Error(`Rule Violation: ${filePath} size exceeds ${rules.maxFileSizeLines} lines (has ${linesCount} lines)`);
+
+        if (fs.existsSync(contentPath)) {
+          const content = fs.readFileSync(contentPath, 'utf8');
+          
+          if (rules.noConsoleLogs && content.includes('console.log')) {
+            throw new Error(`Rule Violation: 'console.log' found in ${filePath}`);
+          }
+          
+          if (rules.maxFileSizeLines) {
+            const linesCount = content.split('\n').length;
+            if (linesCount > rules.maxFileSizeLines) {
+              throw new Error(`Rule Violation: ${filePath} size exceeds ${rules.maxFileSizeLines} lines (has ${linesCount} lines)`);
+            }
           }
         }
       }
@@ -123,7 +170,7 @@ function verifyContract(contractPath, patchPath) {
     for (const proof of contract.formalProofs) {
       logs.push(`Executing proof [${proof.type}]: "${proof.command}"...`);
       try {
-        const execOutput = execSync(proof.command, { stdio: 'pipe', encoding: 'utf8' });
+        const execOutput = execSync(proof.command, { cwd: sandboxDir || process.cwd(), stdio: 'pipe', encoding: 'utf8' });
         logs.push(`✓ Proof [${proof.type}] passed`);
         logs.push(execOutput.trim().split('\n').map(l => `  stdout: ${l}`).slice(0, 5).join('\n')); // Log sample stdout
       } catch (execErr) {
@@ -139,7 +186,7 @@ function verifyContract(contractPath, patchPath) {
     logs.push(`❌ Verification Failure: ${err.message}`);
     
     // 5. Transaction Rollback (Clean recovery)
-    if (patchApplied) {
+    if (patchApplied && !sandboxDir) {
       logs.push(`Initiating workspace rollback transactional recovery...`);
       for (const [filePath, origContent] of backup.entries()) {
         try {

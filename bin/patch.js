@@ -302,6 +302,52 @@ function getASTResourceKeys(transforms) {
  *
  * @returns {object} Workspace with addPatch, checkConflicts, and commit methods.
  */
+function copyRecursiveSync(src, dest) {
+  try {
+    const exists = fs.existsSync(src);
+    const stats = exists && fs.statSync(src);
+    const isDirectory = exists && stats.isDirectory();
+    if (isDirectory) {
+      if (!fs.existsSync(dest)) {
+        fs.mkdirSync(dest, { recursive: true });
+      }
+      fs.readdirSync(src).forEach((childItemName) => {
+        if (['node_modules', '.git', '.agents', 'patches', 'scratch', 'target', '__pycache__', '.pytest_cache'].includes(childItemName)) {
+          return;
+        }
+        copyRecursiveSync(path.join(src, childItemName), path.join(dest, childItemName));
+      });
+    } else {
+      fs.copyFileSync(src, dest);
+    }
+  } catch (err) {
+    // Silently ignore copy failures for locked or missing files
+  }
+}
+
+function cleanupSandbox(sandboxDir) {
+  try {
+    const junctionPath = path.join(sandboxDir, 'node_modules');
+    if (fs.existsSync(junctionPath)) {
+      fs.unlinkSync(junctionPath);
+    }
+  } catch (e) {
+    // ignore
+  }
+  try {
+    if (fs.existsSync(sandboxDir)) {
+      fs.rmSync(sandboxDir, { recursive: true, force: true });
+    }
+  } catch (e) {
+    // ignore
+  }
+}
+
+/**
+ * Creates a virtual workspace for collecting agent patches before atomic commit.
+ *
+ * @returns {object} Workspace with addPatch, checkConflicts, and commit methods.
+ */
 function createWorkspace() {
   const patches = [];
 
@@ -345,6 +391,87 @@ function createWorkspace() {
 
       if (errors.length > 0) {
         return { applied: 0, rejected: patches.length, errors };
+      }
+
+      // Check if there is an active taskId and checklist contract
+      let contractPath = null;
+      let taskId = null;
+      const isTestEnv = process.env.NODE_ENV === 'test';
+      const forceSandbox = process.env.VEYRA_FORCE_SANDBOX === 'true';
+
+      if (!isTestEnv || forceSandbox) {
+        const currentTaskPath = path.join(process.cwd(), 'memory', 'current-task.json');
+        if (fs.existsSync(currentTaskPath)) {
+          try {
+            const currentTask = JSON.parse(fs.readFileSync(currentTaskPath, 'utf8'));
+            taskId = currentTask.taskId || currentTask.active_bead;
+          } catch (e) {
+            // ignore
+          }
+        }
+
+        if (taskId) {
+          const checklistsDir = path.join(process.cwd(), 'checklists');
+          if (fs.existsSync(checklistsDir)) {
+            const directContract = path.join(checklistsDir, `contract-${taskId}.json`);
+            if (fs.existsSync(directContract)) {
+              contractPath = directContract;
+            } else {
+              try {
+                const files = fs.readdirSync(checklistsDir);
+                for (const file of files) {
+                  if (file.toLowerCase().includes(taskId.toLowerCase()) && file.endsWith('.json')) {
+                    contractPath = path.join(checklistsDir, file);
+                    break;
+                  }
+                }
+              } catch (e) {
+                // ignore
+              }
+            }
+          }
+        }
+      }
+
+      if (contractPath && fs.existsSync(contractPath)) {
+        const os = require('node:os');
+        const sandboxDir = fs.mkdtempSync(path.join(os.tmpdir(), 'veyra-sandbox-'));
+        try {
+          copyRecursiveSync(process.cwd(), sandboxDir);
+
+          const sourceNodeModules = path.join(process.cwd(), 'node_modules');
+          const targetNodeModules = path.join(sandboxDir, 'node_modules');
+          if (fs.existsSync(sourceNodeModules)) {
+            fs.symlinkSync(sourceNodeModules, targetNodeModules, 'junction');
+          }
+
+          // Write the memory-modified files from virtualCache to their corresponding paths in sandboxDir
+          for (const [filePath, content] of virtualCache.entries()) {
+            const absFilePath = path.resolve(filePath);
+            const relativePath = path.relative(process.cwd(), absFilePath);
+            const targetPath = path.resolve(sandboxDir, relativePath);
+            const dir = path.dirname(targetPath);
+            if (!fs.existsSync(dir)) {
+              fs.mkdirSync(dir, { recursive: true });
+            }
+            fs.writeFileSync(targetPath, content, 'utf8');
+          }
+
+          // Call verifyContract(contractPath, null, sandboxDir)
+          const { verifyContract } = require('./verify.js');
+          const verificationResult = verifyContract(contractPath, null, sandboxDir);
+
+          if (!verificationResult.success) {
+            const verificationLogs = verificationResult.logs.join('\n');
+            return {
+              applied: 0,
+              rejected: patches.length,
+              errors: [ "Contract verification failed: " + verificationLogs ]
+            };
+          }
+        } finally {
+          cleanupSandbox(sandboxDir);
+        }
       }
 
       // Write all updated files to disk

@@ -329,4 +329,154 @@ describe('Workspace — commit', () => {
     expect(fs.readFileSync(file1, 'utf8')).toBe('const a = 1;\n');
     expect(fs.readFileSync(file2, 'utf8')).toBe('const b = 2;\n');
   });
+
+  test('workspace.commit() runs sandbox verification, blocking writes to main workspace on failure', () => {
+    // 1. Create a real file in main workspace
+    const mainFile = path.join(tmpDir, 'src_file.ts');
+    fs.writeFileSync(mainFile, 'const port = 8080;\n', 'utf8');
+
+    // 2. Mock memory/current-task.json to set an active taskId
+    const memoryDir = path.join(process.cwd(), 'memory');
+    if (!fs.existsSync(memoryDir)) {
+      fs.mkdirSync(memoryDir, { recursive: true });
+    }
+    const currentTaskPath = path.join(memoryDir, 'current-task.json');
+    // Save original current-task.json if it exists
+    let originalCurrentTask = null;
+    if (fs.existsSync(currentTaskPath)) {
+      originalCurrentTask = fs.readFileSync(currentTaskPath, 'utf8');
+    }
+    fs.writeFileSync(currentTaskPath, JSON.stringify({ active_bead: 'bd-mock-sandbox' }), 'utf8');
+
+    // 3. Mock checklists/contract-bd-mock-sandbox.json
+    const checklistsDir = path.join(process.cwd(), 'checklists');
+    if (!fs.existsSync(checklistsDir)) {
+      fs.mkdirSync(checklistsDir, { recursive: true });
+    }
+    const contractPath = path.join(checklistsDir, 'contract-bd-mock-sandbox.json');
+    // Save original contract if it exists (very unlikely)
+    let originalContract = null;
+    if (fs.existsSync(contractPath)) {
+      originalContract = fs.readFileSync(contractPath, 'utf8');
+    }
+
+    // Write a contract that checks the mainFile and fails due to rule (noConsoleLogs)
+    const contract = {
+      contractId: 'ct-mock-sandbox',
+      taskId: 'bd-mock-sandbox',
+      targetFiles: [mainFile],
+      rules: {
+        noConsoleLogs: true
+      },
+      formalProofs: []
+    };
+    fs.writeFileSync(contractPath, JSON.stringify(contract, null, 2), 'utf8');
+
+    // 4. Try committing a patch that introduces console.log (this should fail verification in the sandbox)
+    const workspace = patchModule.createWorkspace();
+    const badPatch = patchModule.createPatch('const port = 8080;\n', 'const port = 8080;\nconsole.log(port);\n');
+    workspace.addPatch('agent-test', mainFile, badPatch);
+
+    // Call commit() with VEYRA_FORCE_SANDBOX = 'true'
+    process.env.VEYRA_FORCE_SANDBOX = 'true';
+    try {
+      const commitResult = workspace.commit();
+
+      // Verify it failed because of contract verification
+      expect(commitResult.applied).toBe(0);
+      expect(commitResult.rejected).toBe(1);
+      expect(commitResult.errors[0]).toContain('Contract verification failed');
+
+      // Verify the file on disk remains completely untouched (no console.log)
+      expect(fs.readFileSync(mainFile, 'utf8')).toBe('const port = 8080;\n');
+    } finally {
+      delete process.env.VEYRA_FORCE_SANDBOX;
+    }
+
+    // 5. Cleanup mocked configuration files
+    if (originalCurrentTask !== null) {
+      fs.writeFileSync(currentTaskPath, originalCurrentTask, 'utf8');
+    } else {
+      fs.unlinkSync(currentTaskPath);
+    }
+    if (originalContract !== null) {
+      fs.writeFileSync(contractPath, originalContract, 'utf8');
+    } else {
+      fs.unlinkSync(contractPath);
+    }
+  });
+
+  test('workspace.commit() runs sandbox verification, allowing writes to main workspace on success', () => {
+    // 1. Create a real file in main workspace
+    const mainFile = path.join(tmpDir, 'src_file2.ts');
+    fs.writeFileSync(mainFile, 'const port = 8080;\n', 'utf8');
+
+    // 2. Mock memory/current-task.json to set an active taskId
+    const memoryDir = path.join(process.cwd(), 'memory');
+    if (!fs.existsSync(memoryDir)) {
+      fs.mkdirSync(memoryDir, { recursive: true });
+    }
+    const currentTaskPath = path.join(memoryDir, 'current-task.json');
+    let originalCurrentTask = null;
+    if (fs.existsSync(currentTaskPath)) {
+      originalCurrentTask = fs.readFileSync(currentTaskPath, 'utf8');
+    }
+    fs.writeFileSync(currentTaskPath, JSON.stringify({ active_bead: 'bd-mock-sandbox-success' }), 'utf8');
+
+    // 3. Mock checklists/contract-bd-mock-sandbox-success.json
+    const checklistsDir = path.join(process.cwd(), 'checklists');
+    if (!fs.existsSync(checklistsDir)) {
+      fs.mkdirSync(checklistsDir, { recursive: true });
+    }
+    const contractPath = path.join(checklistsDir, 'contract-bd-mock-sandbox-success.json');
+    let originalContract = null;
+    if (fs.existsSync(contractPath)) {
+      originalContract = fs.readFileSync(contractPath, 'utf8');
+    }
+
+    // Write a contract that checks the mainFile and succeeds
+    const contract = {
+      contractId: 'ct-mock-sandbox-success',
+      taskId: 'bd-mock-sandbox-success',
+      targetFiles: [mainFile],
+      rules: {
+        noConsoleLogs: true
+      },
+      formalProofs: []
+    };
+    fs.writeFileSync(contractPath, JSON.stringify(contract, null, 2), 'utf8');
+
+    // 4. Committing a patch that does NOT violate rules
+    const workspace = patchModule.createWorkspace();
+    const goodPatch = patchModule.createPatch('const port = 8080;\n', 'const port = 9000;\n');
+    workspace.addPatch('agent-test', mainFile, goodPatch);
+
+    // Call commit() with VEYRA_FORCE_SANDBOX = 'true'
+    process.env.VEYRA_FORCE_SANDBOX = 'true';
+    try {
+      const commitResult = workspace.commit();
+
+      // Verify it succeeded
+      expect(commitResult.applied).toBe(1);
+      expect(commitResult.rejected).toBe(0);
+      expect(commitResult.errors.length).toBe(0);
+
+      // Verify the file on disk was successfully modified
+      expect(fs.readFileSync(mainFile, 'utf8')).toBe('const port = 9000;\n');
+    } finally {
+      delete process.env.VEYRA_FORCE_SANDBOX;
+    }
+
+    // 5. Cleanup mocked configuration files
+    if (originalCurrentTask !== null) {
+      fs.writeFileSync(currentTaskPath, originalCurrentTask, 'utf8');
+    } else {
+      fs.unlinkSync(currentTaskPath);
+    }
+    if (originalContract !== null) {
+      fs.writeFileSync(contractPath, originalContract, 'utf8');
+    } else {
+      fs.unlinkSync(contractPath);
+    }
+  });
 });

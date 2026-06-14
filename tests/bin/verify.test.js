@@ -175,4 +175,83 @@ describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
       fs.unlinkSync(manifestPath);
     }
   });
+
+  it('verifyContract() supports sandboxed execution and does not modify original files or rollback main workspace', () => {
+    // 1. Setup original file in workspace
+    const originalContent = 'const val = 100;\n';
+    fs.writeFileSync(targetFilePath, originalContent, 'utf8');
+
+    // 2. Setup sandbox directory
+    const sandboxDir = fs.mkdtempSync(path.join(os.tmpdir(), 'veyra-sandbox-test-'));
+
+    // 3. Create a patch introducing a console.log (violating rule)
+    const modifiedContent = 'const val = 100;\nconsole.log(val);\n';
+    const diff = createPatch(originalContent, modifiedContent);
+    fs.writeFileSync(patchPath, diff, 'utf8');
+
+    // 4. Create a contract with noConsoleLogs rule
+    const contract = {
+      contractId: 'ct-sandbox-fail',
+      taskId: 'bd-sandbox-fail',
+      targetFiles: [targetFilePath],
+      rules: {
+        noConsoleLogs: true
+      },
+      formalProofs: []
+    };
+    fs.writeFileSync(contractPath, JSON.stringify(contract, null, 2), 'utf8');
+
+    // 5. Run verifyContract with sandboxDir
+    const result = verifyContract(contractPath, patchPath, sandboxDir);
+    expect(result.success).toBe(false);
+    expect(result.logs.some(l => l.includes('Rule Violation'))).toBe(true);
+
+    // 6. Verify that targetFilePath in main workspace remains completely unmodified
+    expect(fs.readFileSync(targetFilePath, 'utf8')).toBe(originalContent);
+
+    // 7. Verify that no rollback attempt happened on main workspace (no logs about rolling back main workspace)
+    expect(result.logs.some(l => l.includes('Initiating workspace rollback transactional recovery'))).toBe(false);
+
+    // Cleanup sandbox
+    if (fs.existsSync(sandboxDir)) {
+      fs.rmSync(sandboxDir, { recursive: true, force: true });
+    }
+  });
+
+  it('verifyContract() handles null/empty patchPath gracefully and checks sandbox files directly', () => {
+    // 1. Setup original file
+    fs.writeFileSync(targetFilePath, 'const a = 1;\n', 'utf8');
+
+    // 2. Setup sandbox directory
+    const sandboxDir = fs.mkdtempSync(path.join(os.tmpdir(), 'veyra-sandbox-test-2-'));
+
+    // 3. Write a compliant file directly to sandboxDir
+    const sandboxTargetPath = path.resolve(sandboxDir, path.relative(process.cwd(), targetFilePath));
+    fs.mkdirSync(path.dirname(sandboxTargetPath), { recursive: true });
+    fs.writeFileSync(sandboxTargetPath, 'const a = 1;\n', 'utf8');
+
+    // 4. Create a contract
+    const contract = {
+      contractId: 'ct-sandbox-null-patch',
+      taskId: 'bd-sandbox-null-patch',
+      targetFiles: [targetFilePath],
+      rules: {
+        noConsoleLogs: true
+      },
+      formalProofs: [
+        { type: 'echo', command: 'echo "hello from sandbox"' }
+      ]
+    };
+    fs.writeFileSync(contractPath, JSON.stringify(contract, null, 2), 'utf8');
+
+    // 5. Run verifyContract with null patchPath
+    const result = verifyContract(contractPath, null, sandboxDir);
+    expect(result.success).toBe(true);
+    expect(result.logs.some(l => l.includes('Skipping patch application'))).toBe(true);
+
+    // Cleanup sandbox
+    if (fs.existsSync(sandboxDir)) {
+      fs.rmSync(sandboxDir, { recursive: true, force: true });
+    }
+  });
 });
