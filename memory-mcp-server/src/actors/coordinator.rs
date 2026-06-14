@@ -8,6 +8,7 @@ use crate::actors::watcher::WatcherMessage;
 use crate::pipeline::worker::WorkerMessage;
 
 pub async fn start_coordinator(
+    beads_db_path: PathBuf,
     mut rx: mpsc::Receiver<WatcherMessage>,
     worker_tx: crossbeam_channel::Sender<WorkerMessage>,
     db_tx: tokio::sync::mpsc::Sender<crate::db::DbMessage>,
@@ -31,6 +32,9 @@ pub async fn start_coordinator(
                         let _ = db_tx.send(crate::db::DbMessage::DeleteFile {
                             path: path.to_string_lossy().to_string()
                         }).await;
+                        if let Err(e) = write_watcher_event(&beads_db_path, &path, "file_deleted") {
+                            tracing::error!("Failed to write watcher event for deleted file: {}", e);
+                        }
                     }
                 }
             }
@@ -47,9 +51,27 @@ pub async fn start_coordinator(
                 for path in to_process {
                     pending_changes.remove(&path);
                     info!("Coordinator sending {:?} to WorkerPool for processing", path);
-                    let _ = worker_tx.send(WorkerMessage::ProcessFile(path));
+                    let _ = worker_tx.send(WorkerMessage::ProcessFile(path.clone()));
+                    if let Err(e) = write_watcher_event(&beads_db_path, &path, "file_changed") {
+                        tracing::error!("Failed to write watcher event for changed file: {}", e);
+                    }
                 }
             }
         }
     }
+}
+
+fn write_watcher_event(
+    beads_db_path: &std::path::Path,
+    file_path: &std::path::Path,
+    topic: &str,
+) -> anyhow::Result<()> {
+    let conn = rusqlite::Connection::open(beads_db_path)?;
+    let normalized = file_path.to_string_lossy().replace("\\", "/");
+    let payload = format!("{{\"path\":\"{}\"}}", normalized);
+    conn.execute(
+        "INSERT INTO agent_events (topic, sender, payload, status, timestamp) VALUES (?1, ?2, ?3, ?4, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+        (topic, "file_watcher", &payload, "pending"),
+    )?;
+    Ok(())
 }

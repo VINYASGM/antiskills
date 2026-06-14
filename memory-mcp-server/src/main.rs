@@ -49,9 +49,12 @@ async fn main() -> anyhow::Result<()> {
     // MCP Server (JSON-RPC)
     mcp::start_mcp_server(read_pool, db_tx.clone(), worker_tx.clone()).await;
 
+    // Resolve beads.db path
+    let beads_db_path = cwd.join("memory").join("beads.db");
+
     // Coordinator (Tokio Loop)
     // Run this on the main thread so the process doesn't exit
-    actors::start_coordinator(watcher_rx, worker_tx, db_tx).await;
+    actors::start_coordinator(beads_db_path, watcher_rx, worker_tx, db_tx).await;
 
     Ok(())
 }

@@ -41,6 +41,113 @@ def cosine_similarity(v1, v2):
         return 0.0
     return numerator / denominator
 
+def run_onnx_search(query):
+    # Try all imports
+    import onnxruntime as ort
+    from tokenizers import Tokenizer
+    import numpy as np
+    import sqlite3
+    
+    # Try to locate files
+    cwd = os.getcwd()
+    model_paths = [
+        os.path.join(cwd, 'memory-mcp-server', 'models', 'bge-small-en-v1.5.onnx'),
+        os.path.join(os.path.dirname(__file__), 'memory-mcp-server', 'models', 'bge-small-en-v1.5.onnx'),
+        os.path.join(os.path.dirname(__file__), '..', 'memory-mcp-server', 'models', 'bge-small-en-v1.5.onnx'),
+    ]
+    tok_paths = [
+        os.path.join(cwd, 'memory-mcp-server', 'models', 'tokenizer.json'),
+        os.path.join(os.path.dirname(__file__), 'memory-mcp-server', 'models', 'tokenizer.json'),
+        os.path.join(os.path.dirname(__file__), '..', 'memory-mcp-server', 'models', 'tokenizer.json'),
+    ]
+    model_path = next((p for p in model_paths if os.path.exists(p)), None)
+    tok_path = next((p for p in tok_paths if os.path.exists(p)), None)
+    
+    if not model_path or not tok_path:
+        raise Exception("Model or tokenizer file not found")
+        
+    db_paths = [
+        os.path.join(cwd, '.agent', 'memory.sqlite'),
+        os.path.join(os.path.dirname(__file__), '.agent', 'memory.sqlite'),
+        os.path.join(os.path.dirname(__file__), '..', '.agent', 'memory.sqlite'),
+    ]
+    db_path = next((p for p in db_paths if os.path.exists(p)), None)
+    if not db_path:
+        raise Exception("Database file not found")
+
+    # Load tokenizer & session
+    tokenizer = Tokenizer.from_file(tok_path)
+    session = ort.InferenceSession(model_path)
+
+    # Generate query embedding
+    encoded = tokenizer.encode(query)
+    input_ids = encoded.ids
+    attention_mask = encoded.attention_mask
+    type_ids = encoded.type_ids
+    
+    input_ids_arr = np.array([input_ids], dtype=np.int64)
+    attention_mask_arr = np.array([attention_mask], dtype=np.int64)
+    type_ids_arr = np.array([type_ids], dtype=np.int64)
+    
+    inputs = {
+        'input_ids': input_ids_arr,
+        'attention_mask': attention_mask_arr,
+        'token_type_ids': type_ids_arr
+    }
+    
+    outputs = session.run(None, inputs)
+    last_hidden_state = outputs[0]
+    
+    if last_hidden_state.shape[1] == 0:
+        query_emb = np.zeros(384, dtype=np.float32)
+    else:
+        query_emb = np.mean(last_hidden_state, axis=1)[0]
+
+    # Query sqlite
+    conn = sqlite3.connect(db_path)
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT f.path, c.content, v.embedding
+            FROM files f
+            JOIN chunks c ON f.id = c.file_id
+            JOIN vec_chunks v ON c.id = v.chunk_id
+        """)
+        rows = cursor.fetchall()
+    finally:
+        conn.close()
+
+    if not rows:
+        raise Exception("No vectorized chunks found in database")
+
+    # Calculate cosine similarity and aggregate
+    file_best_scores = {}
+    for fp, content, emb_blob in rows:
+        chunk_emb = np.frombuffer(emb_blob, dtype=np.float32)
+        if len(chunk_emb) != 384:
+            continue
+        
+        # Cosine similarity
+        dot = np.dot(query_emb, chunk_emb)
+        norm1 = np.linalg.norm(query_emb)
+        norm2 = np.linalg.norm(chunk_emb)
+        sim = float(dot / (norm1 * norm2)) if (norm1 > 0 and norm2 > 0) else 0.0
+        
+        # Normalize relative path
+        rel_path = os.path.relpath(fp, os.getcwd()).replace("\\", "/")
+        
+        if rel_path not in file_best_scores or sim > file_best_scores[rel_path]:
+            file_best_scores[rel_path] = sim
+
+    # Convert to scaled scores (0-10) and sort
+    results = {}
+    for rel_path, sim in file_best_scores.items():
+        if sim > 0.0:
+            results[rel_path] = round(sim * 10, 2)
+
+    sorted_res = dict(sorted(results.items(), key=lambda item: item[1], reverse=True)[:25])
+    return sorted_res
+
 def main():
     if len(sys.argv) < 2:
         print(json.dumps({}))
@@ -48,7 +155,14 @@ def main():
 
     query = sys.argv[1]
     
-    # Discover files
+    try:
+        results = run_onnx_search(query)
+        print(json.dumps(results))
+        return
+    except Exception as e:
+        sys.stderr.write(f"ONNX search failed, falling back to TF-IDF: {str(e)}\n")
+    
+    # Discover files for TF-IDF fallback
     exclude_dirs = {'node_modules', '.git', 'dist', 'build', '.next', 'scratch', 'memory', '.agent'}
     extensions = {'.ts', '.tsx', '.js', '.jsx', '.css', '.json'}
     

@@ -1,7 +1,10 @@
 use crossbeam_channel::Receiver;
 use std::path::PathBuf;
+use std::sync::OnceLock;
 use tokio::sync::mpsc::Sender as TokioSender;
 use tracing::{error, info, warn};
+use tokenizers::Tokenizer;
+use ort::session::Session;
 
 use crate::db::{ChunkPayload, DbMessage};
 
@@ -59,14 +62,121 @@ fn chunk_rust_file(content: &str) -> Vec<(u32, u32, String)> {
     chunks
 }
 
-fn embed_text(_text: &str) -> Vec<f32> {
-    // NOTE: Real implementation would:
-    // 1. `Tokenizer::from_file("tokenizer.json")`
-    // 2. Create tensors for `input_ids` and `attention_mask`
-    // 3. Call `ort::Session::run()`
-    // 4. Mean-pool the last hidden states to get the embedding.
-    // Since we don't bundle an ONNX model file in this repo yet, we stub the embedding output.
-    vec![0.1_f32; 384] // Simulated bge-small output
+static TOKENIZER: OnceLock<Option<Tokenizer>> = OnceLock::new();
+static ONNX_SESSION: OnceLock<Option<Session>> = OnceLock::new();
+
+fn get_tokenizer() -> Option<&'static Tokenizer> {
+    TOKENIZER.get_or_init(|| {
+        let current_dir = std::env::current_dir().unwrap_or_default();
+        let paths = [
+            current_dir.join("memory-mcp-server/models/tokenizer.json"),
+            current_dir.join("models/tokenizer.json"),
+            PathBuf::from("memory-mcp-server/models/tokenizer.json"),
+            PathBuf::from("models/tokenizer.json"),
+        ];
+        for path in &paths {
+            if path.exists() {
+                if let Ok(tok) = Tokenizer::from_file(path) {
+                    info!("Successfully loaded tokenizer from {:?}", path);
+                    return Some(tok);
+                }
+            }
+        }
+        warn!("Failed to load tokenizer from any expected path");
+        None
+    }).as_ref()
+}
+
+fn get_session() -> Option<&'static Session> {
+    ONNX_SESSION.get_or_init(|| {
+        let current_dir = std::env::current_dir().unwrap_or_default();
+        let paths = [
+            current_dir.join("memory-mcp-server/models/bge-small-en-v1.5.onnx"),
+            current_dir.join("models/bge-small-en-v1.5.onnx"),
+            PathBuf::from("memory-mcp-server/models/bge-small-en-v1.5.onnx"),
+            PathBuf::from("models/bge-small-en-v1.5.onnx"),
+        ];
+        for path in &paths {
+            if path.exists() {
+                if let Ok(session) = Session::builder()
+                    .unwrap()
+                    .commit_from_file(path)
+                {
+                    info!("Successfully loaded ONNX session from {:?}", path);
+                    return Some(session);
+                }
+            }
+        }
+        warn!("Failed to load ONNX session from any expected path");
+        None
+    }).as_ref()
+}
+
+fn embed_text(text: &str) -> Vec<f32> {
+    let tokenizer = match get_tokenizer() {
+        Some(t) => t,
+        None => return vec![0.1_f32; 384],
+    };
+    let session = match get_session() {
+        Some(s) => s,
+        None => return vec![0.1_f32; 384],
+    };
+
+    let run_inference = || -> anyhow::Result<Vec<f32>> {
+        let encoding = tokenizer.encode(text, true).map_err(|e| anyhow::anyhow!(e))?;
+        let input_ids: Vec<i64> = encoding.get_ids().iter().map(|&x| x as i64).collect();
+        let attention_mask: Vec<i64> = encoding.get_attention_mask().iter().map(|&x| x as i64).collect();
+        let token_type_ids: Vec<i64> = encoding.get_type_ids().iter().map(|&x| x as i64).collect();
+
+        let seq_len = input_ids.len();
+        if seq_len == 0 {
+            return Ok(vec![0.1_f32; 384]);
+        }
+
+        let input_ids_arr = ndarray::Array2::from_shape_vec((1, seq_len), input_ids)?;
+        let attention_mask_arr = ndarray::Array2::from_shape_vec((1, seq_len), attention_mask)?;
+        let token_type_ids_arr = ndarray::Array2::from_shape_vec((1, seq_len), token_type_ids)?;
+
+        let outputs = session.run(ort::inputs![
+            "input_ids" => input_ids_arr,
+            "attention_mask" => attention_mask_arr,
+            "token_type_ids" => token_type_ids_arr,
+        ]?)?;
+
+        let last_hidden_state = outputs.get("last_hidden_state")
+            .or_else(|| outputs.iter().next().map(|(_, v)| v))
+            .ok_or_else(|| anyhow::anyhow!("No outputs found"))?;
+
+        let tensor_ref = last_hidden_state.try_extract_tensor::<f32>()?;
+        let shape = tensor_ref.shape();
+        if shape.len() != 3 {
+            return Err(anyhow::anyhow!("Expected 3D tensor, got shape {:?}", shape));
+        }
+        let sequence_len = shape[1];
+        let hidden_dim = shape[2];
+
+        let view3d = tensor_ref.into_dimensionality::<ndarray::Ix3>()?;
+        let mut embedding = vec![0.0_f32; hidden_dim];
+        for seq_idx in 0..sequence_len {
+            for dim_idx in 0..hidden_dim {
+                embedding[dim_idx] += view3d[[0, seq_idx, dim_idx]];
+            }
+        }
+
+        for val in &mut embedding {
+            *val /= sequence_len as f32;
+        }
+
+        Ok(embedding)
+    };
+
+    match run_inference() {
+        Ok(emb) => emb,
+        Err(e) => {
+            warn!("ONNX inference failed: {}", e);
+            vec![0.1_f32; 384]
+        }
+    }
 }
 
 fn process_file(path: PathBuf, db_tx: TokioSender<DbMessage>) {
