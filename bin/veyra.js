@@ -4,6 +4,10 @@ const path = require('node:path');
 const fs = require('node:fs');
 const beadsDB = require('./db');
 
+try {
+  fs.appendFileSync(path.join(process.cwd(), '.agent', 'argv.log'), JSON.stringify(process.argv) + '\n', 'utf8');
+} catch (e) {}
+
 // Zero-dependency argument parser
 const args = process.argv.slice(2);
 if (args.length === 0) {
@@ -29,6 +33,10 @@ Core Commands:
   worktree add <name>
   worktree remove <name>
   dashboard | ui dashboard   Display swarm status, database locks, and active channels
+  daemon start [--background]
+  daemon stop
+  daemon status
+  daemon run
 `);
 }
 
@@ -391,12 +399,91 @@ function parseOptions(argsList) {
           eventBus.clearHistory();
         }
       }
+      else if (command === 'daemon') {
+        const daemon = require('./daemon');
+        const { options } = parseOptions(remainingArgs);
+
+        if (subcommand === 'start') {
+          if (options.background) {
+            const { spawn } = require('node:child_process');
+            const child = spawn(process.execPath, [process.argv[1], 'daemon', 'run'], {
+              cwd: process.cwd(),
+              detached: true,
+              stdio: 'pipe',
+              env: {
+                ...process.env,
+                VEYRA_DAEMON_BACKGROUND: 'true'
+              }
+            });
+            if (child.stdout) child.stdout.unref();
+            if (child.stderr) child.stderr.unref();
+            child.unref();
+            console.log('Daemon started in background.');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          } else {
+            daemon.startDaemon();
+          }
+        }
+        else if (subcommand === 'stop') {
+          const pidFile = path.join(process.cwd(), '.agent', 'daemon.pid');
+          if (fs.existsSync(pidFile)) {
+            const pid = parseInt(fs.readFileSync(pidFile, 'utf8').trim(), 10);
+            if (pid) {
+              try {
+                process.kill(pid, 'SIGTERM');
+                console.log(`Daemon with PID ${pid} stopped.`);
+              } catch (e) {
+                if (e.code === 'ESRCH') {
+                  console.log(`Daemon process with PID ${pid} not found (already stopped).`);
+                } else {
+                  console.error(`Error killing daemon: ${e.message}`);
+                }
+              }
+            }
+            try { fs.unlinkSync(pidFile); } catch (e) {}
+          } else {
+            console.log('No active daemon process found.');
+          }
+        }
+        else if (subcommand === 'status') {
+          const pidFile = path.join(process.cwd(), '.agent', 'daemon.pid');
+          let running = false;
+          let pid = null;
+          if (fs.existsSync(pidFile)) {
+            const pidStr = fs.readFileSync(pidFile, 'utf8').trim();
+            pid = parseInt(pidStr, 10);
+            if (pid) {
+              try {
+                process.kill(pid, 0);
+                running = true;
+              } catch (e) {
+                running = (e.code === 'EPERM');
+              }
+            }
+          }
+          if (running) {
+            console.log(`Running (PID: ${pid})`);
+          } else {
+            console.log('Stopped');
+          }
+        }
+        else if (subcommand === 'run') {
+          daemon.startDaemon();
+          // Keep process alive in foreground
+          await new Promise(() => {});
+        }
+        else {
+          printHelp();
+        }
+      }
       else {
         printHelp();
       }
     }
   } catch (err) {
-    console.error(`Error: ${err.message}`);
+    try {
+      fs.writeFileSync(2, `Error: ${err.message}\n${err.stack}\n`, 'utf8');
+    } catch (e) {}
     process.exit(1);
   }
 })();
