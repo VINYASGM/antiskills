@@ -144,12 +144,36 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   ├── handoff.md
 │   │   ├── original_prompt.md
 │   │   └── progress.md
+│   ├── auditor_visual_review
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   ├── progress.md
+│   │   └── README.md
+│   ├── auditor_visual_review_2
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   ├── progress.md
+│   │   └── README.md
 │   ├── challenger_1
 │   │   ├── BRIEFING.md
 │   │   ├── challenge_report.md
 │   │   ├── handoff.md
 │   │   ├── original_prompt.md
 │   │   └── progress.md
+│   ├── challenger_visual_review_1
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   ├── progress.md
+│   │   └── README.md
+│   ├── challenger_visual_review_2
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   ├── progress.md
+│   │   └── README.md
 │   ├── explorer_1
 │   │   ├── analysis.md
 │   │   ├── BRIEFING.md
@@ -162,6 +186,21 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   ├── handoff.md
 │   │   ├── original_prompt.md
 │   │   └── progress.md
+│   ├── explorer_m17_1
+│   │   ├── analysis.md
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   └── ORIGINAL_REQUEST.md
+│   ├── explorer_v3_upgrades
+│   │   ├── Architecture.md
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   ├── PRD.md
+│   │   ├── progress.md
+│   │   ├── State.md
+│   │   ├── ToDo.md
+│   │   └── TRD.md
 │   ├── orchestrator
 │   │   ├── BRIEFING.md
 │   │   ├── handoff.md
@@ -182,7 +221,23 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   ├── original_prompt.md
 │   │   ├── progress.md
 │   │   └── PROJECT.md
+│   ├── orchestrator_m17
+│   │   └── README.md
+│   ├── orchestrator_visual_review
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   ├── plan.md
+│   │   ├── progress.md
+│   │   ├── README.md
+│   │   └── SCOPE.md
 │   ├── original_prompt.md
+│   ├── ORIGINAL_REQUEST.md
+│   ├── qa_test_runner
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   └── progress.md
 │   ├── reviewer_1
 │   │   ├── BRIEFING.md
 │   │   ├── challenge.md
@@ -219,6 +274,24 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   ├── handoff.md
 │   │   ├── original_prompt.md
 │   │   └── progress.md
+│   ├── reviewer_remediated
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   ├── progress.md
+│   │   └── README.md
+│   ├── reviewer_visual_review_1
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   ├── progress.md
+│   │   └── README.md
+│   ├── reviewer_visual_review_2
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   ├── progress.md
+│   │   └── README.md
 │   ├── sentinel
 │   │   ├── BRIEFING.md
 │   │   └── handoff.md
@@ -236,6 +309,8 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   └── progress.md
 │   ├── teamwork_preview_challenger_m20_2
 │   │   ├── BRIEFING.md
+│   │   ├── challenge.md
+│   │   ├── handoff.md
 │   │   ├── ORIGINAL_REQUEST.md
 │   │   └── progress.md
 │   ├── teamwork_preview_explorer_dashboard_1
@@ -276,6 +351,12 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   ├── handoff.md
 │   │   ├── ORIGINAL_REQUEST.md
 │   │   └── progress.md
+│   ├── teamwork_preview_orchestrator_v3_upgrades
+│   │   ├── BRIEFING.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   ├── plan.md
+│   │   ├── progress.md
+│   │   └── PROJECT.md
 │   ├── teamwork_preview_reviewer_m20_1
 │   │   ├── BRIEFING.md
 │   │   ├── handoff.md
@@ -292,6 +373,7 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   ├── BRIEFING.md
 │   │   ├── handoff.md
 │   │   ├── original_prompt.md
+│   │   ├── ORIGINAL_REQUEST.md
 │   │   └── progress.md
 │   ├── victory_auditor_dashboard
 │   │   ├── .gitkeep
@@ -300,6 +382,12 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   ├── original_prompt.md
 │   │   ├── progress.md
 │   │   └── victory_audit_report.md
+│   ├── victory_auditor_visual_review
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   ├── progress.md
+│   │   └── README.md
 │   ├── worker_ast_implementation
 │   │   ├── BRIEFING.md
 │   │   ├── handoff.md
@@ -334,21 +422,50 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   ├── original_prompt.md
 │   │   ├── ORIGINAL_REQUEST.md
 │   │   └── progress.md
+│   ├── worker_docs_visual_review
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   ├── progress.md
+│   │   └── README.md
+│   ├── worker_fixes
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   └── progress.md
 │   ├── worker_implementation
 │   │   ├── BRIEFING.md
 │   │   ├── handoff.md
 │   │   ├── ORIGINAL_REQUEST.md
 │   │   └── progress.md
+│   ├── worker_m17_1
+│   ├── worker_remediation
+│   │   ├── Architecture.md
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── ORIGINAL_REQUEST.md
+│   │   ├── PRD.md
+│   │   ├── progress.md
+│   │   ├── README.md
+│   │   ├── State.md
+│   │   ├── ToDo.md
+│   │   └── TRD.md
 │   ├── worker_update_project_md
 │   │   ├── BRIEFING.md
 │   │   ├── handoff.md
 │   │   ├── original_prompt.md
 │   │   └── progress.md
-│   └── worker_update_project_md_2
+│   ├── worker_update_project_md_2
+│   │   ├── BRIEFING.md
+│   │   ├── handoff.md
+│   │   ├── original_prompt.md
+│   │   └── progress.md
+│   └── worker_visual_impl
 │       ├── BRIEFING.md
 │       ├── handoff.md
-│       ├── original_prompt.md
-│       └── progress.md
+│       ├── ORIGINAL_REQUEST.md
+│       ├── progress.md
+│       └── README.md
 ├── .github
 │   └── workflows
 │       └── ci.yml
@@ -397,8 +514,7 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   ├── verify.js
 │   ├── veyra.js
 │   ├── visual-review.js
-│   ├── workflow.js
-│   └── worktree.js
+│   └── workflow.js
 ├── checklists
 │   ├── pre-commit.md
 │   ├── pre-merge.md
@@ -409,8 +525,10 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   ├── file-manifests
 │   │   └── bd-0002.json
 │   ├── glossary.md
+│   ├── graph.html
 │   ├── README.md
-│   └── repo-map.md
+│   ├── repo-map.md
+│   └── tree.html
 ├── context.md
 ├── debugging
 │   ├── incident-template.md
@@ -431,7 +549,9 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   ├── compress.cpython-313.pyc
 │   │   ├── graph.cpython-313.pyc
 │   │   ├── test_agent.cpython-313-pytest-9.0.2.pyc
+│   │   ├── test_graph_adversarial.cpython-313-pytest-9.0.2.pyc
 │   │   ├── test_graph_stress.cpython-313-pytest-9.0.2.pyc
+│   │   ├── test_metrics_adversarial.cpython-313-pytest-9.0.2.pyc
 │   │   └── test_metrics.cpython-313-pytest-9.0.2.pyc
 │   ├── .gitignore
 │   ├── .pytest_cache
@@ -474,113 +594,266 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   │   ├── .cargo-lock
 │   │   │   ├── .fingerprint
 │   │   │   │   ├── ahash-112b80cdca4d4795
+│   │   │   │   ├── ahash-550ab32e6f0130c7
 │   │   │   │   ├── ahash-621d650c1d05aaaf
 │   │   │   │   ├── ahash-bb7db493b4530ca5
+│   │   │   │   ├── aho-corasick-4437a5d6426f90e9
+│   │   │   │   ├── aho-corasick-667d957dbc5ff89d
 │   │   │   │   ├── aho-corasick-e4d240c16779177d
 │   │   │   │   ├── anyhow-33d34861694f1b23
 │   │   │   │   ├── anyhow-76277cedf12be110
 │   │   │   │   ├── anyhow-95ac62169051eebc
+│   │   │   │   ├── anyhow-c587b330edd42253
 │   │   │   │   ├── autocfg-bf86a7c9e7784a2f
 │   │   │   │   │   ├── dep-lib-autocfg
 │   │   │   │   │   ├── invoked.timestamp
 │   │   │   │   │   ├── lib-autocfg
 │   │   │   │   │   └── lib-autocfg.json
+│   │   │   │   ├── base64-29e6036a2f6c82cf
 │   │   │   │   ├── base64-3ce8c6d3f7a88eeb
+│   │   │   │   ├── base64-bde893ec79ef29f1
 │   │   │   │   ├── base64ct-dffaece1ca0ad7ca
 │   │   │   │   ├── bitflags-16e4802d75075e59
+│   │   │   │   ├── bitflags-810630805d470c4d
 │   │   │   │   ├── byteorder-e689aeced596cff8
 │   │   │   │   ├── bytes-047af3d8c0f71d02
+│   │   │   │   ├── bytes-76765b86e79b9d72
+│   │   │   │   │   ├── dep-lib-bytes
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   ├── lib-bytes
+│   │   │   │   │   └── lib-bytes.json
 │   │   │   │   ├── bytes-8a6eb0491cb50e23
+│   │   │   │   │   ├── dep-lib-bytes
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   ├── lib-bytes
+│   │   │   │   │   └── lib-bytes.json
 │   │   │   │   ├── cc-c8feb4c9d782e7c7
+│   │   │   │   │   ├── dep-lib-cc
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   ├── lib-cc
+│   │   │   │   │   └── lib-cc.json
+│   │   │   │   ├── cfg-if-59068db8513376d0
+│   │   │   │   │   ├── dep-lib-cfg_if
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   ├── lib-cfg_if
+│   │   │   │   │   └── lib-cfg_if.json
 │   │   │   │   ├── cfg-if-c2b69e76c7ce3a8e
 │   │   │   │   │   ├── dep-lib-cfg_if
 │   │   │   │   │   ├── invoked.timestamp
 │   │   │   │   │   ├── lib-cfg_if
 │   │   │   │   │   └── lib-cfg_if.json
+│   │   │   │   ├── chacha20-62dedfa8ce097e9f
 │   │   │   │   ├── chacha20-b1fd2908be0fc452
+│   │   │   │   ├── console-7440d576bd52abe7
+│   │   │   │   ├── console-ef2335b01dfda741
+│   │   │   │   ├── cpufeatures-13c3ea7229e88751
 │   │   │   │   ├── cpufeatures-e4248beeb3aac2e8
 │   │   │   │   ├── crossbeam-channel-33abd80231095bc5
+│   │   │   │   ├── crossbeam-channel-6af215627a6d3b19
 │   │   │   │   ├── crossbeam-deque-4a4b3f938e40d272
+│   │   │   │   ├── crossbeam-deque-8f6e4ff6017d09f7
+│   │   │   │   ├── crossbeam-epoch-4930b4541c48175a
 │   │   │   │   ├── crossbeam-epoch-8ce5420f735660b3
 │   │   │   │   ├── crossbeam-utils-42432b70e646151d
 │   │   │   │   │   ├── invoked.timestamp
 │   │   │   │   │   └── output-build-script-build-script-build
 │   │   │   │   ├── crossbeam-utils-544f8f99b115e314
+│   │   │   │   ├── crossbeam-utils-865a02ad4258a230
 │   │   │   │   ├── crossbeam-utils-dac2b101df1d5f9f
+│   │   │   │   ├── darling_core-47e14991ea92bd5b
+│   │   │   │   ├── darling_macro-017aadff8ff426e2
+│   │   │   │   ├── darling-bc9cd8f4f9d923dc
 │   │   │   │   ├── der-528158f98e56ea11
+│   │   │   │   ├── derive_builder_core-2b1223344e1035b4
+│   │   │   │   ├── derive_builder_macro-5aaad3b9ead7175b
+│   │   │   │   ├── derive_builder-a2cdab25cf49452f
+│   │   │   │   ├── derive_builder-c7b9af9d5d628a0e
+│   │   │   │   ├── either-2b998b402556180e
 │   │   │   │   ├── either-7f9687fbfd7a7f12
+│   │   │   │   ├── either-cfdbd94854e18a5a
+│   │   │   │   ├── encode_unicode-5b330cc2d3385219
+│   │   │   │   ├── encode_unicode-ba12d911711d9d06
+│   │   │   │   ├── esaxx-rs-74aade11c52306cd
+│   │   │   │   ├── esaxx-rs-a7e55d59d72b7885
+│   │   │   │   ├── esaxx-rs-adf306fe56bc4a6b
+│   │   │   │   ├── esaxx-rs-b716c8095ffae832
+│   │   │   │   ├── fallible-iterator-2dad37ad7b0aec86
 │   │   │   │   ├── fallible-iterator-c3d4765314261dc1
+│   │   │   │   ├── fallible-streaming-iterator-4828b59f605dc2f6
 │   │   │   │   ├── fallible-streaming-iterator-d321f7e0a595a855
+│   │   │   │   ├── filetime-9a6652c6781aeb83
 │   │   │   │   ├── filetime-acbb92f193fb8d02
 │   │   │   │   ├── find-msvc-tools-08707f1fddde7e9d
 │   │   │   │   │   ├── dep-lib-find_msvc_tools
 │   │   │   │   │   ├── invoked.timestamp
 │   │   │   │   │   ├── lib-find_msvc_tools
 │   │   │   │   │   └── lib-find_msvc_tools.json
+│   │   │   │   ├── fnv-ee15dc5557a5d578
+│   │   │   │   │   ├── dep-lib-fnv
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   ├── lib-fnv
+│   │   │   │   │   └── lib-fnv.json
 │   │   │   │   ├── getrandom-0f59ed22098dc98a
+│   │   │   │   ├── getrandom-4b0bba6878a1e9f2
 │   │   │   │   ├── getrandom-57b50d7c122837e3
+│   │   │   │   ├── getrandom-5f3b4b0377c13f20
+│   │   │   │   ├── getrandom-b98b4e0adf72b062
 │   │   │   │   ├── getrandom-cbcfaba878006d65
+│   │   │   │   ├── hashbrown-78c65fbfef37a131
 │   │   │   │   ├── hashbrown-c557a5118c6b2ab1
+│   │   │   │   ├── hashlink-4dce620581f7a61e
 │   │   │   │   ├── hashlink-f69653acea263f37
 │   │   │   │   ├── hmac-sha256-7416d58a4bc0a775
+│   │   │   │   ├── http-7caba7f59609ae22
 │   │   │   │   ├── http-c5251363f836e554
 │   │   │   │   ├── httparse-24b581bfaaa9264c
 │   │   │   │   ├── httparse-55023d1ea42200c9
 │   │   │   │   │   ├── invoked.timestamp
 │   │   │   │   │   └── output-build-script-build-script-build
 │   │   │   │   ├── httparse-dfce2cbb47bdc99f
+│   │   │   │   ├── ident_case-73258c4b040b070d
+│   │   │   │   │   ├── dep-lib-ident_case
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   ├── lib-ident_case
+│   │   │   │   │   └── lib-ident_case.json
+│   │   │   │   ├── indicatif-f7fd934a01b1092e
+│   │   │   │   ├── indicatif-fc88a2522dd035f7
+│   │   │   │   ├── itertools-093a4bf69eb7d0ae
+│   │   │   │   ├── itertools-6033efc63b9e792f
+│   │   │   │   ├── itertools-94fd4f8518da303d
+│   │   │   │   ├── itertools-b26b5071ab051da9
 │   │   │   │   ├── itoa-6fb89abca1fe31f7
 │   │   │   │   │   ├── dep-lib-itoa
 │   │   │   │   │   ├── invoked.timestamp
 │   │   │   │   │   ├── lib-itoa
 │   │   │   │   │   └── lib-itoa.json
+│   │   │   │   ├── itoa-92d8b1e9c0939eb2
+│   │   │   │   │   ├── dep-lib-itoa
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   ├── lib-itoa
+│   │   │   │   │   └── lib-itoa.json
 │   │   │   │   ├── itoa-ff1b3e95b028d27a
+│   │   │   │   ├── lazy_static-358fe1d06221ba05
 │   │   │   │   ├── lazy_static-d841885ec245de5a
+│   │   │   │   ├── libc-1b5eb052a8059af5
 │   │   │   │   ├── libc-876224e63920cce2
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   └── output-build-script-build-script-build
 │   │   │   │   ├── libc-8a48ea3a9667de03
 │   │   │   │   ├── libc-dc6abad8c9cb7820
 │   │   │   │   ├── libsqlite3-sys-39c5a963989f7159
+│   │   │   │   ├── libsqlite3-sys-47c0d773587ea450
 │   │   │   │   ├── libsqlite3-sys-8a70a3fed1b308dd
 │   │   │   │   ├── libsqlite3-sys-8a8579375e8f42db
 │   │   │   │   ├── lock_api-61a0a97d147249f9
+│   │   │   │   ├── lock_api-de85b07b75c8942a
+│   │   │   │   ├── log-425c51f77dbf60f4
 │   │   │   │   ├── log-494bff57f545eb0c
 │   │   │   │   ├── log-6f14f6c01cdc1f41
 │   │   │   │   ├── lzma-rust2-282a9b1b98e62f4d
+│   │   │   │   ├── macro_rules_attribute-37a6e05aa965f6c6
+│   │   │   │   ├── macro_rules_attribute-6de2c52593fccb6c
+│   │   │   │   ├── macro_rules_attribute-proc_macro-6732cd4671396540
 │   │   │   │   ├── matchers-81dbf8d3062e08d7
+│   │   │   │   ├── matchers-94992a5baa4cbe5d
+│   │   │   │   ├── matchers-ad2e65f83c55e37e
+│   │   │   │   ├── matrixmultiply-4923ee11a66ec6a8
 │   │   │   │   ├── matrixmultiply-cf26ffdd1016e0c9
 │   │   │   │   ├── matrixmultiply-d49a21e60b862bfa
 │   │   │   │   ├── matrixmultiply-d50c4c9640ad316e
 │   │   │   │   ├── memchr-120c0f92d28ec8a9
+│   │   │   │   │   ├── dep-lib-memchr
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   ├── lib-memchr
+│   │   │   │   │   └── lib-memchr.json
+│   │   │   │   ├── memchr-25e193189ac65f13
+│   │   │   │   │   ├── dep-lib-memchr
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   ├── lib-memchr
+│   │   │   │   │   └── lib-memchr.json
+│   │   │   │   ├── memory-mcp-server-44f0356ea4b9fb0f
+│   │   │   │   ├── memory-mcp-server-b1eabe39e18828d9
 │   │   │   │   ├── memory-mcp-server-fd01b7ff65c5df16
+│   │   │   │   ├── minimal-lexical-014fbd6150c8bae9
+│   │   │   │   ├── minimal-lexical-502063777d245869
 │   │   │   │   ├── mio-0580fd8b5f433234
+│   │   │   │   ├── mio-7688daa219e37913
+│   │   │   │   ├── monostate-59e93961de8ea0b8
+│   │   │   │   ├── monostate-e34d899df6336eec
+│   │   │   │   ├── monostate-impl-3769dd470eb91c27
+│   │   │   │   ├── native-tls-3112f106f0d333a5
 │   │   │   │   ├── native-tls-4ecfb794afeb498b
 │   │   │   │   ├── native-tls-66e2089d8425ba4c
 │   │   │   │   ├── native-tls-d56b96e46d641aa6
+│   │   │   │   │   └── invoked.timestamp
+│   │   │   │   ├── ndarray-260041991ca20aa0
 │   │   │   │   ├── ndarray-2dd48cf369e40799
+│   │   │   │   ├── nom-696e4cfaa2205bb4
+│   │   │   │   ├── nom-a24195c16abe7872
 │   │   │   │   ├── notify-1a45315d34aa66bd
+│   │   │   │   ├── notify-aaa5fcdb9fd13744
+│   │   │   │   ├── nu-ansi-term-a89a0112c7295476
 │   │   │   │   ├── nu-ansi-term-fbbfa8089def361b
 │   │   │   │   ├── num-complex-036729caad061b99
+│   │   │   │   ├── num-complex-b6c348444a692339
+│   │   │   │   ├── num-integer-1d651c52e64e0362
 │   │   │   │   ├── num-integer-4a771d9eed05c458
 │   │   │   │   ├── num-traits-0c738a3d9e3a9836
 │   │   │   │   ├── num-traits-21fedd87797232d4
+│   │   │   │   ├── num-traits-367adf8c9eaeab7d
 │   │   │   │   ├── num-traits-5736536b1e93bbe7
+│   │   │   │   ├── number_prefix-3e1174433a785c25
+│   │   │   │   ├── number_prefix-fad2a5e03649ad1d
+│   │   │   │   ├── once_cell-01a5ec62eb147d5f
+│   │   │   │   │   ├── dep-lib-once_cell
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   ├── lib-once_cell
+│   │   │   │   │   └── lib-once_cell.json
 │   │   │   │   ├── once_cell-ef5f2e0f6d10641f
 │   │   │   │   │   ├── dep-lib-once_cell
 │   │   │   │   │   ├── invoked.timestamp
 │   │   │   │   │   ├── lib-once_cell
 │   │   │   │   │   └── lib-once_cell.json
+│   │   │   │   ├── onig_sys-32441991e5436d57
+│   │   │   │   ├── onig_sys-4a2c4c45d63ce41d
+│   │   │   │   ├── onig_sys-a1b4a7c000bc88ec
+│   │   │   │   ├── onig_sys-fbee08905d0a7da3
+│   │   │   │   ├── onig-89501bb7f631399a
+│   │   │   │   ├── onig-adb535adc76fab02
 │   │   │   │   ├── ort-8ee330c2d2fbc3aa
+│   │   │   │   ├── ort-924c556da4ffe2f9
 │   │   │   │   ├── ort-sys-01b48fa42408aa20
+│   │   │   │   ├── ort-sys-2f2e27ad70ead42f
 │   │   │   │   ├── ort-sys-7444fdbd7efa0dc4
+│   │   │   │   ├── ort-sys-9249b3b1b680ab54
 │   │   │   │   ├── ort-sys-9ec31609368fd923
+│   │   │   │   ├── ort-sys-daaf64f1ceb4dad8
 │   │   │   │   ├── parking_lot_core-0f9575b8cb61f8af
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   └── output-build-script-build-script-build
 │   │   │   │   ├── parking_lot_core-588292848a28df73
 │   │   │   │   ├── parking_lot_core-ae7b9910c0c80335
+│   │   │   │   ├── parking_lot_core-f10db2a69644242b
+│   │   │   │   ├── parking_lot-100d931b491a1d59
 │   │   │   │   ├── parking_lot-5aae059e3b0d3f12
+│   │   │   │   ├── paste-73ea5008b16bf6f2
+│   │   │   │   ├── paste-ef7218349294ce80
+│   │   │   │   ├── paste-f09290cce392f093
 │   │   │   │   ├── pem-rfc7468-873c78dee3050f02
 │   │   │   │   ├── percent-encoding-764d19be0b28f3dc
+│   │   │   │   ├── pin-project-lite-0e767b5bef4d40ae
 │   │   │   │   ├── pin-project-lite-e197a1fc64da9eb7
 │   │   │   │   ├── pkg-config-c3ddb4d8fcde3917
+│   │   │   │   │   ├── dep-lib-pkg_config
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   ├── lib-pkg_config
+│   │   │   │   │   └── lib-pkg_config.json
+│   │   │   │   ├── portable-atomic-0ce8efa97546dd39
+│   │   │   │   ├── portable-atomic-34141a32eebd5151
+│   │   │   │   ├── portable-atomic-56ea870e277db08d
+│   │   │   │   ├── portable-atomic-f258cb5ee4536e6d
+│   │   │   │   ├── ppv-lite86-65840c023b811863
+│   │   │   │   ├── ppv-lite86-cfdd26639ce0ec31
 │   │   │   │   ├── proc-macro2-10a7c9e2c3da988e
 │   │   │   │   │   ├── invoked.timestamp
 │   │   │   │   │   └── output-build-script-build-script-build
@@ -592,66 +865,138 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   │   │   ├── quote-6fee11d8ab3728e9
 │   │   │   │   ├── quote-8b22841bf5ce26c2
 │   │   │   │   ├── r2d2_sqlite-41ecec7fad49a8e2
+│   │   │   │   ├── r2d2_sqlite-5767e78f7b30a956
 │   │   │   │   ├── r2d2-4afcef5c791f0c18
+│   │   │   │   ├── r2d2-a6472ab579c8826a
+│   │   │   │   ├── rand_chacha-42815f7416695155
+│   │   │   │   ├── rand_chacha-b6b4d28f1abd3402
 │   │   │   │   ├── rand_core-430571a493eace91
+│   │   │   │   ├── rand_core-db03dd196b489a1a
+│   │   │   │   ├── rand_core-dbdf680b0d332020
+│   │   │   │   ├── rand_core-dd5b5de8ec4cbded
+│   │   │   │   ├── rand-2d6e35dbab696cb9
+│   │   │   │   ├── rand-620cd0190c0b5994
 │   │   │   │   ├── rand-7c6223d6ce6a38c1
+│   │   │   │   ├── rand-b5e29cb84498d0d3
+│   │   │   │   ├── rawpointer-24c84ebb47984188
 │   │   │   │   ├── rawpointer-8980953dbe7fd0b9
 │   │   │   │   ├── rayon-0195fd5e1494925a
+│   │   │   │   ├── rayon-432f69146e423cac
+│   │   │   │   ├── rayon-7e552900908c502a
+│   │   │   │   ├── rayon-cond-1b4bcf033ed48c4e
+│   │   │   │   ├── rayon-cond-ed47a3a925801f45
 │   │   │   │   ├── rayon-core-306c8d0ed05b66da
 │   │   │   │   ├── rayon-core-7334b6869c2746b4
+│   │   │   │   ├── rayon-core-bbf6712e6f6f40d5
 │   │   │   │   ├── rayon-core-d7efe9bf3be046de
 │   │   │   │   ├── regex-0b8708cb266de13b
+│   │   │   │   ├── regex-145816cf4a6c145b
+│   │   │   │   ├── regex-automata-63d918970e6588dd
 │   │   │   │   ├── regex-automata-81338a0789c98264
+│   │   │   │   ├── regex-automata-d83dc0fc92d934c6
+│   │   │   │   ├── regex-ccf7cf428496cb8f
 │   │   │   │   ├── regex-syntax-280792f168c30571
+│   │   │   │   ├── regex-syntax-4fa10c42a51002ab
 │   │   │   │   ├── rusqlite-1d9d8de1ea28a916
+│   │   │   │   ├── rusqlite-a5bad08f1b31c100
 │   │   │   │   ├── rustls-pki-types-1157b2f1ed514d06
+│   │   │   │   ├── same-file-05410c40ff5cc25e
 │   │   │   │   ├── same-file-ca843abbfe8c8027
+│   │   │   │   ├── schannel-9caf2e6b70957eeb
 │   │   │   │   ├── schannel-b8120e951a5afeb1
 │   │   │   │   ├── scheduled-thread-pool-9cd1d777eda9e84b
+│   │   │   │   ├── scheduled-thread-pool-a70b76187240c1e9
 │   │   │   │   ├── scopeguard-5fdeabdf4f6bf574
+│   │   │   │   ├── scopeguard-ff96c909ded4fda5
 │   │   │   │   ├── serde_core-30b81be079ba16dd
+│   │   │   │   ├── serde_core-8e650f168ee0310d
 │   │   │   │   ├── serde_core-a82e9052872013e6
 │   │   │   │   ├── serde_core-f95b864b058cf2e3
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   └── output-build-script-build-script-build
 │   │   │   │   ├── serde_derive-cdc87888b93a8c62
 │   │   │   │   ├── serde_json-04af0b73e960cacb
+│   │   │   │   ├── serde_json-389323f0405de837
 │   │   │   │   ├── serde_json-808d403d238e6d78
 │   │   │   │   ├── serde_json-bacf2ddc8e91f05f
 │   │   │   │   ├── serde-226b1c3826c13038
 │   │   │   │   ├── serde-49ed553e01a407b0
 │   │   │   │   ├── serde-a8da8f0875afcebc
+│   │   │   │   ├── serde-c73bf94709ed1273
 │   │   │   │   ├── sharded-slab-00c94f2b754575d0
+│   │   │   │   ├── sharded-slab-53388061c15d8bfb
 │   │   │   │   ├── shlex-b9805c329debb77b
 │   │   │   │   │   ├── dep-lib-shlex
 │   │   │   │   │   ├── invoked.timestamp
 │   │   │   │   │   ├── lib-shlex
 │   │   │   │   │   └── lib-shlex.json
+│   │   │   │   ├── smallvec-0bc754f1667b1370
+│   │   │   │   │   ├── dep-lib-smallvec
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   ├── lib-smallvec
+│   │   │   │   │   └── lib-smallvec.json
 │   │   │   │   ├── smallvec-6cdffd41099ffc2d
 │   │   │   │   │   ├── dep-lib-smallvec
 │   │   │   │   │   ├── invoked.timestamp
 │   │   │   │   │   ├── lib-smallvec
 │   │   │   │   │   └── lib-smallvec.json
+│   │   │   │   ├── socket2-0ed6d2dda90406f7
 │   │   │   │   ├── socket2-667538cca9e7d28b
 │   │   │   │   ├── socks-224ac2de8f5a3e95
+│   │   │   │   ├── spm_precompiled-04fc2bc92b05f8dd
+│   │   │   │   ├── spm_precompiled-e2772d8706ae2ac8
+│   │   │   │   ├── strsim-a9e5f57c3c594ff6
 │   │   │   │   ├── syn-e196cad5c5f21bbd
+│   │   │   │   ├── thiserror-1b596e34b81eabf9
+│   │   │   │   ├── thiserror-6636807358cdee76
+│   │   │   │   ├── thiserror-ba0f98ba7800b8d7
+│   │   │   │   ├── thiserror-bc0bfe698dc31d7d
+│   │   │   │   ├── thiserror-impl-96797363dd215e91
+│   │   │   │   ├── thread_local-15b7a2c5ea200037
 │   │   │   │   ├── thread_local-66aedbfcb4ef3b71
+│   │   │   │   ├── tokenizers-06120ab16dcff240
+│   │   │   │   ├── tokenizers-9930c435ff90a4c5
 │   │   │   │   ├── tokio-11d01925cc029adb
+│   │   │   │   ├── tokio-ed8ce5969ce04827
 │   │   │   │   ├── tokio-macros-8f702b6e825a7cc2
 │   │   │   │   ├── tracing-00cae92bfddde102
+│   │   │   │   ├── tracing-3bd3421738eb40c7
 │   │   │   │   ├── tracing-attributes-54d38fe3a09427c1
 │   │   │   │   ├── tracing-core-145f7cef1c477dea
+│   │   │   │   ├── tracing-core-2082e7949f804ea6
+│   │   │   │   ├── tracing-log-0eee3b55b2fc379b
 │   │   │   │   ├── tracing-log-12557c6bbc6fa6dc
 │   │   │   │   ├── tracing-subscriber-2741e996db52dad0
+│   │   │   │   ├── tracing-subscriber-6ee2aa63ee8942fb
+│   │   │   │   ├── tracing-subscriber-e24ea8bf0be61933
 │   │   │   │   ├── tree-sitter-418c57ea9ee12c02
+│   │   │   │   ├── tree-sitter-540b76cdd35d9b6b
 │   │   │   │   ├── tree-sitter-999d539ccb4eb881
 │   │   │   │   ├── tree-sitter-aea208e17f4996c2
+│   │   │   │   ├── tree-sitter-cab72d28343d8bae
+│   │   │   │   ├── tree-sitter-rust-0c610b34be1026e2
+│   │   │   │   ├── tree-sitter-rust-30ea94eeee609140
+│   │   │   │   ├── tree-sitter-rust-32a3b97a5ba2cce7
+│   │   │   │   ├── tree-sitter-rust-7237226ff1125d89
+│   │   │   │   ├── unicode_categories-4467a14114ccafb6
+│   │   │   │   ├── unicode_categories-63e4ef9a9dbc342b
 │   │   │   │   ├── unicode-ident-c19b7d19e98e00c5
 │   │   │   │   │   ├── dep-lib-unicode_ident
 │   │   │   │   │   ├── invoked.timestamp
 │   │   │   │   │   ├── lib-unicode_ident
 │   │   │   │   │   └── lib-unicode_ident.json
+│   │   │   │   ├── unicode-normalization-alignments-9fee27dbd05e5a30
+│   │   │   │   ├── unicode-normalization-alignments-c3e4b7f62b70caa4
+│   │   │   │   ├── unicode-segmentation-1680285599af9fc8
+│   │   │   │   ├── unicode-segmentation-3f66837b8e3cea07
+│   │   │   │   ├── unicode-width-293107a69ec8ad71
+│   │   │   │   ├── unicode-width-d75ea0a976ec83f9
 │   │   │   │   ├── ureq-2d21044dd9ee4b3f
+│   │   │   │   ├── ureq-4df262e4ee9864a2
+│   │   │   │   ├── ureq-proto-4c65421e27c93e2e
 │   │   │   │   ├── ureq-proto-afa8dd7a685ef787
 │   │   │   │   ├── utf8-zero-561cb0cc9847db8e
+│   │   │   │   ├── uuid-1fc0b89ca703ddae
 │   │   │   │   ├── uuid-be2f801839828f62
 │   │   │   │   ├── vcpkg-cfede6aa8c5599cb
 │   │   │   │   ├── version_check-cb5c9d34d558413d
@@ -659,6 +1004,7 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   │   │   │   ├── invoked.timestamp
 │   │   │   │   │   ├── lib-version_check
 │   │   │   │   │   └── lib-version_check.json
+│   │   │   │   ├── walkdir-4653403e0e46700c
 │   │   │   │   ├── walkdir-ee6f007a6d7083d5
 │   │   │   │   ├── webpki-root-certs-290ffdd0d78aa2af
 │   │   │   │   ├── winapi-4539467e386a0160
@@ -666,10 +1012,18 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   │   │   ├── winapi-fc7f2477d2d62f24
 │   │   │   │   │   ├── invoked.timestamp
 │   │   │   │   │   └── output-build-script-build-script-build
+│   │   │   │   ├── winapi-util-cd01e91a0cb1145e
 │   │   │   │   ├── winapi-util-f99d09b6beb67cc8
+│   │   │   │   ├── windows_x86_64_msvc-02930314deb7e4c2
+│   │   │   │   ├── windows_x86_64_msvc-0efb6d2aed666b81
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   └── output-build-script-build-script-build
 │   │   │   │   ├── windows_x86_64_msvc-3378ed7e828e9860
 │   │   │   │   ├── windows_x86_64_msvc-6a298888f1a7cb64
+│   │   │   │   ├── windows_x86_64_msvc-a1c906d899b4a4f7
+│   │   │   │   ├── windows_x86_64_msvc-e6badc4be1c7b0e8
 │   │   │   │   ├── windows_x86_64_msvc-fbe082120e27b6ae
+│   │   │   │   ├── windows_x86_64_msvc-ffc777d573fa34f7
 │   │   │   │   ├── windows-link-0ce570982ccb1c2e
 │   │   │   │   │   ├── dep-lib-windows_link
 │   │   │   │   │   ├── invoked.timestamp
@@ -680,44 +1034,91 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   │   │   │   ├── invoked.timestamp
 │   │   │   │   │   ├── lib-windows_link
 │   │   │   │   │   └── lib-windows_link.json
+│   │   │   │   ├── windows-link-57fe558fbc78bd39
+│   │   │   │   │   ├── dep-lib-windows_link
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   ├── lib-windows_link
+│   │   │   │   │   └── lib-windows_link.json
+│   │   │   │   ├── windows-sys-0475b418bdbd8de7
 │   │   │   │   ├── windows-sys-293bc5d86578848d
 │   │   │   │   │   ├── dep-lib-windows_sys
 │   │   │   │   │   ├── invoked.timestamp
 │   │   │   │   │   ├── lib-windows_sys
 │   │   │   │   │   └── lib-windows_sys.json
+│   │   │   │   ├── windows-sys-3b2a1ec8648dcf7c
+│   │   │   │   ├── windows-sys-4d39483d409e0d26
 │   │   │   │   ├── windows-sys-b6909b5e22872040
+│   │   │   │   ├── windows-sys-ba221085bd34d400
+│   │   │   │   ├── windows-sys-f39f9284d20376d8
 │   │   │   │   ├── windows-sys-f55d9c771b15c4b1
 │   │   │   │   │   ├── dep-lib-windows_sys
 │   │   │   │   │   ├── invoked.timestamp
 │   │   │   │   │   ├── lib-windows_sys
 │   │   │   │   │   └── lib-windows_sys.json
+│   │   │   │   ├── windows-targets-a6463aa4945fa662
+│   │   │   │   ├── windows-targets-d97ed811d9fe28ef
 │   │   │   │   ├── windows-targets-e179bb463291d9ca
+│   │   │   │   ├── windows-targets-e89433938f6dfd93
+│   │   │   │   ├── zerocopy-b3af1cc636c68b33
 │   │   │   │   ├── zerocopy-d450b3bbe2bd25fa
 │   │   │   │   ├── zerocopy-f39847fa4ad7347a
+│   │   │   │   │   ├── invoked.timestamp
+│   │   │   │   │   └── output-build-script-build-script-build
 │   │   │   │   ├── zerocopy-f7cde724e46f52fd
 │   │   │   │   ├── zeroize-95f4582d11160583
 │   │   │   │   │   ├── dep-lib-zeroize
 │   │   │   │   │   ├── invoked.timestamp
 │   │   │   │   │   ├── lib-zeroize
 │   │   │   │   │   └── lib-zeroize.json
+│   │   │   │   ├── zmij-4af8959139dacb54
 │   │   │   │   ├── zmij-8ab589d2e5f8b1c4
 │   │   │   │   ├── zmij-8cf862dc85352143
 │   │   │   │   └── zmij-9dc4ec678a558b55
 │   │   │   ├── deps
 │   │   │   │   ├── autocfg-bf86a7c9e7784a2f.d
+│   │   │   │   ├── bytes-76765b86e79b9d72.d
+│   │   │   │   ├── bytes-8a6eb0491cb50e23.d
+│   │   │   │   ├── cc-c8feb4c9d782e7c7.d
+│   │   │   │   ├── cfg_if-59068db8513376d0.d
 │   │   │   │   ├── cfg_if-c2b69e76c7ce3a8e.d
 │   │   │   │   ├── find_msvc_tools-08707f1fddde7e9d.d
+│   │   │   │   ├── fnv-ee15dc5557a5d578.d
+│   │   │   │   ├── ident_case-73258c4b040b070d.d
 │   │   │   │   ├── itoa-6fb89abca1fe31f7.d
+│   │   │   │   ├── itoa-92d8b1e9c0939eb2.d
 │   │   │   │   ├── libautocfg-bf86a7c9e7784a2f.rlib
 │   │   │   │   ├── libautocfg-bf86a7c9e7784a2f.rmeta
+│   │   │   │   ├── libbytes-76765b86e79b9d72.rlib
+│   │   │   │   ├── libbytes-76765b86e79b9d72.rmeta
+│   │   │   │   ├── libbytes-8a6eb0491cb50e23.rlib
+│   │   │   │   ├── libbytes-8a6eb0491cb50e23.rmeta
+│   │   │   │   ├── libcc-c8feb4c9d782e7c7.rlib
+│   │   │   │   ├── libcc-c8feb4c9d782e7c7.rmeta
+│   │   │   │   ├── libcfg_if-59068db8513376d0.rlib
+│   │   │   │   ├── libcfg_if-59068db8513376d0.rmeta
 │   │   │   │   ├── libcfg_if-c2b69e76c7ce3a8e.rmeta
 │   │   │   │   ├── libfind_msvc_tools-08707f1fddde7e9d.rlib
 │   │   │   │   ├── libfind_msvc_tools-08707f1fddde7e9d.rmeta
+│   │   │   │   ├── libfnv-ee15dc5557a5d578.rlib
+│   │   │   │   ├── libfnv-ee15dc5557a5d578.rmeta
+│   │   │   │   ├── libident_case-73258c4b040b070d.rlib
+│   │   │   │   ├── libident_case-73258c4b040b070d.rmeta
 │   │   │   │   ├── libitoa-6fb89abca1fe31f7.rlib
 │   │   │   │   ├── libitoa-6fb89abca1fe31f7.rmeta
+│   │   │   │   ├── libitoa-92d8b1e9c0939eb2.rlib
+│   │   │   │   ├── libitoa-92d8b1e9c0939eb2.rmeta
+│   │   │   │   ├── libmemchr-120c0f92d28ec8a9.rmeta
+│   │   │   │   ├── libmemchr-25e193189ac65f13.rlib
+│   │   │   │   ├── libmemchr-25e193189ac65f13.rmeta
+│   │   │   │   ├── libonce_cell-01a5ec62eb147d5f.rlib
+│   │   │   │   ├── libonce_cell-01a5ec62eb147d5f.rmeta
 │   │   │   │   ├── libonce_cell-ef5f2e0f6d10641f.rmeta
+│   │   │   │   ├── libpkg_config-c3ddb4d8fcde3917.rlib
+│   │   │   │   ├── libpkg_config-c3ddb4d8fcde3917.rmeta
 │   │   │   │   ├── libshlex-b9805c329debb77b.rlib
 │   │   │   │   ├── libshlex-b9805c329debb77b.rmeta
+│   │   │   │   ├── libsmallvec-0bc754f1667b1370.rlib
+│   │   │   │   ├── libsmallvec-0bc754f1667b1370.rmeta
 │   │   │   │   ├── libsmallvec-6cdffd41099ffc2d.rmeta
 │   │   │   │   ├── libunicode_ident-c19b7d19e98e00c5.rlib
 │   │   │   │   ├── libunicode_ident-c19b7d19e98e00c5.rmeta
@@ -726,18 +1127,26 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │   │   │   ├── libwindows_link-0ce570982ccb1c2e.rmeta
 │   │   │   │   ├── libwindows_link-4912c44494a09911.rlib
 │   │   │   │   ├── libwindows_link-4912c44494a09911.rmeta
+│   │   │   │   ├── libwindows_link-57fe558fbc78bd39.rlib
+│   │   │   │   ├── libwindows_link-57fe558fbc78bd39.rmeta
 │   │   │   │   ├── libwindows_sys-293bc5d86578848d.rmeta
 │   │   │   │   ├── libwindows_sys-f55d9c771b15c4b1.rlib
 │   │   │   │   ├── libwindows_sys-f55d9c771b15c4b1.rmeta
 │   │   │   │   ├── libzeroize-95f4582d11160583.rlib
 │   │   │   │   ├── libzeroize-95f4582d11160583.rmeta
+│   │   │   │   ├── memchr-120c0f92d28ec8a9.d
+│   │   │   │   ├── memchr-25e193189ac65f13.d
+│   │   │   │   ├── once_cell-01a5ec62eb147d5f.d
 │   │   │   │   ├── once_cell-ef5f2e0f6d10641f.d
+│   │   │   │   ├── pkg_config-c3ddb4d8fcde3917.d
 │   │   │   │   ├── shlex-b9805c329debb77b.d
+│   │   │   │   ├── smallvec-0bc754f1667b1370.d
 │   │   │   │   ├── smallvec-6cdffd41099ffc2d.d
 │   │   │   │   ├── unicode_ident-c19b7d19e98e00c5.d
 │   │   │   │   ├── version_check-cb5c9d34d558413d.d
 │   │   │   │   ├── windows_link-0ce570982ccb1c2e.d
 │   │   │   │   ├── windows_link-4912c44494a09911.d
+│   │   │   │   ├── windows_link-57fe558fbc78bd39.d
 │   │   │   │   ├── windows_sys-293bc5d86578848d.d
 │   │   │   │   ├── windows_sys-f55d9c771b15c4b1.d
 │   │   │   │   └── zeroize-95f4582d11160583.d
@@ -2323,8 +2732,8 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │   │       ├── onnxruntime_providers_shared.dll
 │   │       └── onnxruntime_providers_tensorrt.dll
 │   ├── test_agent.py
+│   ├── test_graph_adversarial.py
 │   ├── test_graph_stress.py
-│   ├── test_metrics_adversarial.py
 │   └── test_metrics.py
 ├── orchestration
 │   ├── choreography-protocol.md
@@ -2385,8 +2794,7 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
 │       ├── ui.test.js
 │       ├── verify.test.js
 │       ├── veyra.test.js
-│       ├── visual-review.test.js
-│       └── worktree.test.js
+│       └── visual-review.test.js
 ├── ToDo.md
 ├── TRD.md
 ├── veyra
@@ -2415,4 +2823,4 @@ This is the dynamically generated repository tree of Veyra OS. It is automatical
     └── testing-generation.yaml
 ```
 
-*Indexed at: 2026-06-13T09:08:52.694Z*
+*Indexed at: 2026-06-14T05:46:09.792Z*

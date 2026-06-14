@@ -46,7 +46,6 @@
     bin_veyra_js["bin/veyra.js"]
     bin_visual_review_js["bin/visual-review.js"]
     bin_workflow_js["bin/workflow.js"]
-    bin_worktree_js["bin/worktree.js"]
   end
   subgraph Community_Root ["Root"]
     demo_ast_patching_js["demo-ast-patching.js"]
@@ -57,9 +56,9 @@
     memory_mcp_server_graph_py["memory-mcp-server/graph.py"]
     memory_mcp_server_server_py["memory-mcp-server/server.py"]
     memory_mcp_server_test_agent_py["memory-mcp-server/test_agent.py"]
+    memory_mcp_server_test_graph_adversarial_py["memory-mcp-server/test_graph_adversarial.py"]
     memory_mcp_server_test_graph_stress_py["memory-mcp-server/test_graph_stress.py"]
     memory_mcp_server_test_metrics_py["memory-mcp-server/test_metrics.py"]
-    memory_mcp_server_test_metrics_adversarial_py["memory-mcp-server/test_metrics_adversarial.py"]
   end
   subgraph Community_memory_mcp_server_src_actors ["memory-mcp-server/src/actors"]
     memory_mcp_server_src_actors_coordinator_rs["memory-mcp-server/src/actors/coordinator.rs"]
@@ -105,7 +104,6 @@
     tests_bin_verify_test_js["tests/bin/verify.test.js"]
     tests_bin_veyra_test_js["tests/bin/veyra.test.js"]
     tests_bin_visual_review_test_js["tests/bin/visual-review.test.js"]
-    tests_bin_worktree_test_js["tests/bin/worktree.test.js"]
   end
   subgraph Community_visual_testing ["visual-testing"]
     visual_testing_audit_go["visual-testing/audit.go"]
@@ -151,9 +149,9 @@
   memory_mcp_server_src_main_rs --> memory_mcp_server_src_pipeline_mod_rs
   memory_mcp_server_src_mcp_mod_rs --> memory_mcp_server_src_mcp_server_rs
   memory_mcp_server_src_pipeline_mod_rs --> memory_mcp_server_src_pipeline_worker_rs
+  memory_mcp_server_test_graph_adversarial_py --> memory_mcp_server_graph_py
   memory_mcp_server_test_graph_stress_py --> memory_mcp_server_graph_py
   memory_mcp_server_test_metrics_py --> memory_mcp_server_graph_py
-  memory_mcp_server_test_metrics_adversarial_py --> memory_mcp_server_graph_py
   tests_bin_dashboard_stress_test_js --> bin_dashboard_js
   tests_bin_dashboard_stress_test_js --> bin_db_js
   tests_bin_dashboard_test_js --> bin_dashboard_js
