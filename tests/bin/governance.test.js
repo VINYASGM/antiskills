@@ -46,6 +46,7 @@ describe('Governance System — Attempt State & Escalation Breaker', () => {
   });
 
   it('trips the circuit breaker at exactly 3 strikes and writes escalation report', () => {
+    const eventBus = require('../../bin/event_bus');
     gov.initTransaction('3333', 'bd-0003', ['agent-a', 'agent-b']);
     
     gov.recordFailure('3333', 'agent-a', 'First linter warning');
@@ -55,6 +56,13 @@ describe('Governance System — Attempt State & Escalation Breaker', () => {
     expect(state.failedAttemptsCount).toBe(3);
     expect(state.status).toBe('tripped');
     
+    // Check trip event is published
+    const events = eventBus.listEvents('governance_tripped');
+    expect(events.length).toBeGreaterThan(0);
+    const tripEvent = events.find(e => e.payload.transactionId === '3333');
+    expect(tripEvent).toBeDefined();
+    expect(tripEvent.payload.taskId).toBe('bd-0003');
+
     // Check escalation report is generated
     const reportPath = path.join(tempDir, 'escalation-3333.md');
     expect(fs.existsSync(reportPath)).toBe(true);

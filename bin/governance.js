@@ -82,6 +82,13 @@ class GovernanceSystem {
     if (session.failedAttemptsCount >= session.maxThreshold) {
       session.status = 'tripped';
       this.generateEscalationReport(session);
+      try {
+        const eventBus = require('./event_bus.js');
+        eventBus.publish('governance_tripped', 'governance', { transactionId: session.transactionId, taskId: session.taskId });
+      } catch (err) {
+        // Log error if event bus is unavailable
+        console.error('Error publishing governance_tripped event:', err);
+      }
     }
 
     fs.writeFileSync(this._getTxPath(transactionId), JSON.stringify(session, null, 2), 'utf8');

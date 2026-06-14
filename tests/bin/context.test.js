@@ -487,3 +487,243 @@ describe('ContextAssembler — Milestone 20 Security and Visualizations', () => 
     expect(graphContent).toContain('Community_Root');
   });
 });
+
+describe('ContextAssembler — SQLite Crawl Cache', () => {
+  let originalCwd;
+  let tmpDir;
+  let contextAssembler;
+  let db;
+
+  beforeEach(() => {
+    originalCwd = process.cwd();
+    tmpDir = createTempProject();
+    process.chdir(tmpDir);
+
+    // Clear cache of both context.js and db.js to ensure fresh instance in tmpDir
+    delete require.cache[require.resolve('../../bin/context.js')];
+    delete require.cache[require.resolve('../../bin/db.js')];
+
+    contextAssembler = require('../../bin/context.js');
+    db = require('../../bin/db').db;
+  });
+
+  afterEach(() => {
+    process.chdir(originalCwd);
+    cleanupTempDir(tmpDir);
+    delete require.cache[require.resolve('../../bin/context.js')];
+    delete require.cache[require.resolve('../../bin/db.js')];
+  });
+
+  test('Cache miss performs normal scan and writes to DB', () => {
+    const fileA = path.join(tmpDir, 'src', 'a.ts');
+    const fileB = path.join(tmpDir, 'src', 'b.ts');
+    fs.writeFileSync(fileA, "import './b'; app.get('/api/users');");
+    fs.writeFileSync(fileB, 'export const b = 1;');
+
+    // Verify DB table is initially empty for these files
+    const initialRow = db.prepare('SELECT * FROM crawl_cache WHERE file_path = ?').get(path.resolve(fileA));
+    expect(initialRow).toBeUndefined();
+
+    // Run buildGraph
+    const result = contextAssembler.buildGraph([fileA]);
+
+    // Check result
+    expect(result).toContain(path.resolve(fileA));
+    expect(result).toContain(path.resolve(fileB));
+
+    // Check cache is written to DB
+    const cachedRow = db.prepare('SELECT * FROM crawl_cache WHERE file_path = ?').get(path.resolve(fileA));
+    expect(cachedRow).toBeDefined();
+    expect(cachedRow.file_path).toBe(path.resolve(fileA));
+    expect(JSON.parse(cachedRow.imports)).toContain(path.resolve(fileB));
+    expect(JSON.parse(cachedRow.semantic_keys)).toContain('route:/api/users');
+  });
+
+  test('Cache hit avoids parsing and loads directly from DB', () => {
+    const fileA = path.join(tmpDir, 'src', 'a.ts');
+    const fileB = path.join(tmpDir, 'src', 'b.ts');
+    fs.writeFileSync(fileA, "import './b';");
+    fs.writeFileSync(fileB, 'export const b = 1;');
+
+    // Warm up cache
+    contextAssembler.buildGraph([fileA]);
+
+    // Set up spies
+    let resolveImportsCalled = false;
+    let extractSemanticKeysCalled = false;
+    const origResolve = contextAssembler.resolveImports;
+    const origExtract = contextAssembler.extractSemanticKeys;
+
+    contextAssembler.resolveImports = function(...args) {
+      resolveImportsCalled = true;
+      return origResolve.apply(this, args);
+    };
+    contextAssembler.extractSemanticKeys = function(...args) {
+      extractSemanticKeysCalled = true;
+      return origExtract.apply(this, args);
+    };
+
+    try {
+      // Run buildGraph again (should hit cache for fileA)
+      const result = contextAssembler.buildGraph([fileA]);
+
+      // Check results
+      expect(result).toContain(path.resolve(fileA));
+      expect(result).toContain(path.resolve(fileB));
+    } finally {
+      contextAssembler.resolveImports = origResolve;
+      contextAssembler.extractSemanticKeys = origExtract;
+    }
+  });
+
+  test('Cache hit loads manually seeded entries directly from DB', () => {
+    const fileA = path.join(tmpDir, 'src', 'a.ts');
+    const fileDummy = path.join(tmpDir, 'src', 'dummy.ts');
+
+    fs.writeFileSync(fileA, "const a = 1;");
+    fs.writeFileSync(fileDummy, "const dummy = 1;");
+
+    const stat = fs.statSync(fileA);
+    const mtimeMs = stat.mtimeMs;
+
+    // Seed cache database manually
+    db.prepare(`
+      INSERT INTO crawl_cache (file_path, mtime, imports, semantic_keys)
+      VALUES (?, ?, ?, ?)
+    `).run(
+      path.resolve(fileA),
+      mtimeMs,
+      JSON.stringify([path.resolve(fileDummy)]),
+      JSON.stringify(['route:/api/dummy-seeded'])
+    );
+
+    // Set up spies to verify they are NOT called for fileA
+    let resolveImportsCalledCount = 0;
+    const origResolve = contextAssembler.resolveImports;
+    contextAssembler.resolveImports = function(filePath, ...args) {
+      if (filePath === path.resolve(fileA)) resolveImportsCalledCount++;
+      return origResolve.call(this, filePath, ...args);
+    };
+
+    try {
+      const result = contextAssembler.buildGraph([fileA]);
+
+      // If cache hit worked, it should have queued fileDummy and loaded route:/api/dummy-seeded
+      expect(result).toContain(path.resolve(fileA));
+      expect(result).toContain(path.resolve(fileDummy));
+      expect(resolveImportsCalledCount).toBe(0);
+    } finally {
+      contextAssembler.resolveImports = origResolve;
+    }
+  });
+
+  test('Modified file mtime invalidates cache', () => {
+    const fileA = path.join(tmpDir, 'src', 'a.ts');
+    const fileB = path.join(tmpDir, 'src', 'b.ts');
+    const fileC = path.join(tmpDir, 'src', 'c.ts');
+    fs.writeFileSync(fileA, "import './b';");
+    fs.writeFileSync(fileB, 'export const b = 1;');
+    fs.writeFileSync(fileC, 'export const c = 1;');
+
+    // First build - warms up cache with import of B
+    contextAssembler.buildGraph([fileA]);
+
+    // Verify cache has B
+    const row1 = db.prepare('SELECT * FROM crawl_cache WHERE file_path = ?').get(path.resolve(fileA));
+    expect(JSON.parse(row1.imports)).toContain(path.resolve(fileB));
+
+    // Update fileA to import C and change content
+    fs.writeFileSync(fileA, "import './c';");
+
+    // Force system clock / filesystem tick delay if needed, or modify mtime artificially to guarantee difference
+    const stat = fs.statSync(fileA);
+    const newMtimeMs = Math.round(stat.mtimeMs + 5000);
+    fs.utimesSync(fileA, new Date(newMtimeMs), new Date(newMtimeMs));
+
+    // Run buildGraph again
+    const result = contextAssembler.buildGraph([fileA]);
+
+    // Check results
+    expect(result).toContain(path.resolve(fileA));
+    expect(result).toContain(path.resolve(fileC));
+    expect(result).not.toContain(path.resolve(fileB));
+
+    // Check cache in DB is updated to C
+    const row2 = db.prepare('SELECT * FROM crawl_cache WHERE file_path = ?').get(path.resolve(fileA));
+    expect(JSON.parse(row2.imports)).toContain(path.resolve(fileC));
+    expect(Math.round(Number(row2.mtime))).toBe(newMtimeMs);
+  });
+
+  test('Watcher events invalidate JIT caches on buildGraph', () => {
+    const fileA = path.resolve('src/a.ts');
+    fs.writeFileSync(fileA, "import './b';");
+    
+    // Warm up cache
+    contextAssembler.buildGraph([fileA]);
+    
+    // Verify it is cached in DB
+    const initialCached = db.prepare('SELECT * FROM crawl_cache WHERE file_path = ?').get(path.resolve(fileA));
+    expect(initialCached).toBeDefined();
+
+    // Create the agent_events table if not exists (in case event bus wasn't run)
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS agent_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        topic TEXT NOT NULL,
+        sender TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
+        timestamp TEXT NOT NULL
+      );
+    `);
+
+    // Insert watcher event for fileA
+    const payload = JSON.parse(JSON.stringify({ path: path.resolve(fileA) }));
+    db.prepare(`
+      INSERT INTO agent_events (topic, sender, payload, status, timestamp)
+      VALUES ('file_changed', 'file_watcher', ?, 'pending', ?)
+    `).run(JSON.stringify(payload), new Date().toISOString());
+
+    // Trigger processWatcherEvents JIT cache invalidation
+    const beadsDB = require('../../bin/db');
+    beadsDB.processWatcherEvents();
+
+    // Verify event is marked as processed
+    const event = db.prepare("SELECT * FROM agent_events WHERE sender = 'file_watcher'").get();
+    expect(event.status).toBe('processed');
+
+    // Verify crawl_cache entry for fileA is deleted
+    const cachedRow = db.prepare('SELECT * FROM crawl_cache WHERE file_path = ?').get(path.resolve(fileA));
+    expect(cachedRow).toBeUndefined();
+  });
+
+  test('Watcher events invalidate in-memory _fileMtimes for bd-XXXX.json files', () => {
+    // Create the agent_events table if not exists
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS agent_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        topic TEXT NOT NULL,
+        sender TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
+        timestamp TEXT NOT NULL
+      );
+    `);
+
+    const beadsDB = require('../../bin/db');
+    beadsDB._fileMtimes.set('bd-0001.json', 123456789);
+
+    const payload = { path: 'memory/beads/bd-0001.json' };
+    db.prepare(`
+      INSERT INTO agent_events (topic, sender, payload, status, timestamp)
+      VALUES ('file_changed', 'file_watcher', ?, 'pending', ?)
+    `).run(JSON.stringify(payload), new Date().toISOString());
+
+    // Process events
+    beadsDB.processWatcherEvents();
+
+    // Verify in-memory cache is deleted
+    expect(beadsDB._fileMtimes.has('bd-0001.json')).toBe(false);
+  });
+});
+

@@ -1,6 +1,8 @@
 const ts = require('typescript');
 const fs = require('node:fs');
 const path = require('node:path');
+const beadsDB = require('./db');
+
 
 /**
  * 🧠 Hybrid Code Intelligence Engine
@@ -9,6 +11,40 @@ const path = require('node:path');
  * that compiler-level AST traversals are blind to.
  */
 class ContextAssembler {
+
+  _getCachedCrawl(filePath, mtime) {
+    try {
+      const mtimeMs = Math.round((mtime instanceof Date) ? mtime.getTime() : Number(mtime));
+      const db = require('./db').db;
+      const row = db.prepare('SELECT mtime, imports, semantic_keys FROM crawl_cache WHERE file_path = ?').get(filePath);
+      if (row && Math.round(Number(row.mtime)) === mtimeMs) {
+        return {
+          imports: JSON.parse(row.imports),
+          semanticKeys: JSON.parse(row.semantic_keys)
+        };
+      }
+    } catch (e) {
+      // Ignore database errors and return null
+    }
+    return null;
+  }
+
+  _saveCachedCrawl(filePath, mtime, imports, semanticKeys) {
+    try {
+      const mtimeMs = Math.round((mtime instanceof Date) ? mtime.getTime() : Number(mtime));
+      const db = require('./db').db;
+      db.prepare(`
+        INSERT INTO crawl_cache (file_path, mtime, imports, semantic_keys)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(file_path) DO UPDATE SET
+          mtime = excluded.mtime,
+          imports = excluded.imports,
+          semantic_keys = excluded.semantic_keys
+      `).run(filePath, mtimeMs, JSON.stringify(imports), JSON.stringify(semanticKeys));
+    } catch (e) {
+      // Ignore database errors
+    }
+  }
 
   isSensitivePath(filePath) {
     const relativePath = path.relative(process.cwd(), filePath).replace(/\\/g, '/');
@@ -365,6 +401,7 @@ class ContextAssembler {
    * const fileScope = contextAssembler.buildGraph(['./index.js']);
    */
   buildGraph(entryFiles) {
+    beadsDB.processWatcherEvents();
     const visited = new Set();
     const queue = [...entryFiles];
     const fileSemanticKeys = new Map();
@@ -380,19 +417,32 @@ class ContextAssembler {
       visited.add(absPath);
 
       try {
-        const ext = path.extname(absPath);
+        const stat = fs.statSync(absPath);
+        const mtime = stat.mtimeMs;
+        const cached = this._getCachedCrawl(absPath, mtime);
+        
         let deps = [];
-        if (['.ts', '.tsx', '.js', '.jsx'].includes(ext)) {
-          const content = fs.readFileSync(absPath, 'utf8');
-          const sourceFile = ts.createSourceFile(
-            absPath,
-            content,
-            ts.ScriptTarget.Latest,
-            true
-          );
-          deps = this.resolveImports(absPath, sourceFile);
+        let keys = [];
+
+        if (cached) {
+          deps = cached.imports;
+          keys = cached.semanticKeys;
         } else {
-          deps = this.resolveImports(absPath);
+          const ext = path.extname(absPath);
+          if (['.ts', '.tsx', '.js', '.jsx'].includes(ext)) {
+            const content = fs.readFileSync(absPath, 'utf8');
+            const sourceFile = ts.createSourceFile(
+              absPath,
+              content,
+              ts.ScriptTarget.Latest,
+              true
+            );
+            deps = this.resolveImports(absPath, sourceFile);
+          } else {
+            deps = this.resolveImports(absPath);
+          }
+          keys = this.extractSemanticKeys(absPath);
+          this._saveCachedCrawl(absPath, mtime, deps, keys);
         }
 
         for (const dep of deps) {
@@ -400,8 +450,6 @@ class ContextAssembler {
           if (!visited.has(absDep)) queue.push(absDep);
         }
 
-        // Extract semantic keys for implicit linking
-        const keys = this.extractSemanticKeys(absPath);
         fileSemanticKeys.set(absPath, keys);
         for (const key of keys) {
           if (!semanticIndex.has(key)) semanticIndex.set(key, []);
@@ -450,7 +498,32 @@ class ContextAssembler {
       const absPath = path.resolve(file);
       if (visited.has(absPath)) continue; 
       try {
-        const keys = this.extractSemanticKeys(absPath);
+        const stat = fs.statSync(absPath);
+        const mtime = stat.mtimeMs;
+        const cached = this._getCachedCrawl(absPath, mtime);
+        
+        let keys = [];
+        if (cached) {
+          keys = cached.semanticKeys;
+        } else {
+          const ext = path.extname(absPath);
+          let deps = [];
+          if (['.ts', '.tsx', '.js', '.jsx'].includes(ext)) {
+            const content = fs.readFileSync(absPath, 'utf8');
+            const sourceFile = ts.createSourceFile(
+              absPath,
+              content,
+              ts.ScriptTarget.Latest,
+              true
+            );
+            deps = this.resolveImports(absPath, sourceFile);
+          } else {
+            deps = this.resolveImports(absPath);
+          }
+          keys = this.extractSemanticKeys(absPath);
+          this._saveCachedCrawl(absPath, mtime, deps, keys);
+        }
+
         fileSemanticKeys.set(absPath, keys);
         for (const key of keys) {
           if (!semanticIndex.has(key)) semanticIndex.set(key, []);
@@ -629,6 +702,7 @@ class ContextAssembler {
    * @returns {{files: string[], dependencies: Map<string, string[]>, dependedBy: Map<string, string[]>}} The resolved files lists and import mappings.
    */
   generateDependencyGraph() {
+    beadsDB.processWatcherEvents();
     const root = process.cwd();
     const files = [];
     
@@ -672,19 +746,29 @@ class ContextAssembler {
 
     for (const file of files) {
       try {
-        const ext = path.extname(file);
+        const stat = fs.statSync(file);
+        const mtime = stat.mtimeMs;
+        const cached = this._getCachedCrawl(file, mtime);
+        
         let resolved = [];
-        if (['.ts', '.tsx', '.js', '.jsx'].includes(ext)) {
-          const content = fs.readFileSync(file, 'utf8');
-          const sourceFile = ts.createSourceFile(
-            file,
-            content,
-            ts.ScriptTarget.Latest,
-            true
-          );
-          resolved = this.resolveImports(file, sourceFile);
+        if (cached) {
+          resolved = cached.imports;
         } else {
-          resolved = this.resolveImports(file);
+          const ext = path.extname(file);
+          if (['.ts', '.tsx', '.js', '.jsx'].includes(ext)) {
+            const content = fs.readFileSync(file, 'utf8');
+            const sourceFile = ts.createSourceFile(
+              file,
+              content,
+              ts.ScriptTarget.Latest,
+              true
+            );
+            resolved = this.resolveImports(file, sourceFile);
+          } else {
+            resolved = this.resolveImports(file);
+          }
+          const keys = this.extractSemanticKeys(file);
+          this._saveCachedCrawl(file, mtime, resolved, keys);
         }
 
         for (const r of resolved) {

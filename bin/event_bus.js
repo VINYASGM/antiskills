@@ -1,21 +1,27 @@
-const beadsDB = require('./db.js');
-
 /**
  * 📡 JIT SQLite Swarm Event Bus
  * Orchestrates multi-agent pipelines asynchronously via transactional pub/sub channels.
  * Replaces rigid orchestrator-to-subagent hierarchy with lightweight topic-based subscriptions.
  */
 class AgentEventBus {
+  get db() {
+    const activeDb = require('./db.js').db;
+    if (this._lastDb !== activeDb) {
+      this._lastDb = activeDb;
+      this._initTable(activeDb);
+    }
+    return activeDb;
+  }
+
   constructor() {
-    this.db = beadsDB.db;
-    this._initTable();
+    // Lazy getter initializes the database table
   }
 
   /**
    * Initializes the event logging table inside the JIT SQLite memory database.
    */
-  _initTable() {
-    this.db.exec(`
+  _initTable(db) {
+    db.exec(`
       CREATE TABLE IF NOT EXISTS agent_events (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         topic TEXT NOT NULL,
