@@ -1,7 +1,7 @@
 # Project State — Veyra
 
-**Last Updated:** 2026-06-13
-**Phase:** Milestone 17: Multimodal VLM Layout Auditing
+**Last Updated:** 2026-06-14
+**Phase:** Milestone 18: Pub/Sub Swarm Worker Loop
 
 ---
 
@@ -9,12 +9,12 @@
 
 | Field | Value |
 |---|---|
-| **Current Phase** | Milestone 17: Multimodal VLM Layout Auditing |
+| **Current Phase** | V3 Upgrades Completion |
 | **Status** | 🟢 Complete |
-| **Core Goal** | Implement visual regression and responsive layout verification using vision-language models (Gemini 1.5 Flash) and local fallback coordinate checks. |
-| **Started** | 2026-06-13 |
-| **Target Completion** | 2026-06-13 |
-| **Active Milestones** | None |
+| **Core Goal** | Implement and document all V3 Swarm Upgrades, including lockfile concurrency, sandboxed verification, incremental crawl cache, file watcher/ONNX integration, and daemon pub/sub worker loop. |
+| **Started** | 2026-06-14 |
+| **Target Completion** | 2026-06-14 |
+| **Active Milestones** | None (V3 Swarm Upgrades fully complete) |
 
 
 ---
@@ -42,6 +42,11 @@
 | **Milestone 20: Graphify Enrichment Core** | 🟢 Complete | Ported JIT security filters, zip-bomb screening, shebang interpret-mapping, multi-language import crawling, NetworkX centrality/modularity metrics, and D3/Mermaid browser visualizations. |
 | **Milestone 21: AST Expansion & Agent Integration** | 🟢 Complete | Expanded AST transform engine to support classes/decorators, JSX, and interfaces/types, and wired to CLI/conflict checking/agent prompts. |
 | **Milestone 17: Multimodal VLM Layout Auditing** | 🟢 Complete | Added Figma design placeholder generation, Gemini API integration, and fallback coordinate & contrast auditing. |
+| **Milestone 22: File Locking** | 🟢 Complete | Integrated proper-lockfile file locking in db.js write operations with retry mechanism and concurrency tests. |
+| **Milestone 24: Sandboxed Patch Verification** | 🟢 Complete | Implemented temporary directory playground copying, node_modules junctions mounting, and verifyContract boundary isolation. |
+| **Milestone 5: Rollback Telemetry & File Watcher Connection** | 🟢 Complete | Implemented trip event publishing on the SQLite event bus, JIT cache invalidation on watcher events, and connected Rust coordinator actor to beads.db database. |
+| **Milestone 6: ONNX Embeddings** | 🟢 Complete | Completed Rust ONNX embedding generation using tokenizers/ort, and implemented python-based ONNX vector similarity search with a robust TF-IDF fallback. |
+| **Milestone 18: Pub/Sub Swarm Worker Loop** | 🟢 Complete | Formulated a background daemon subscribing to WAL event bus, managing async routing/allocation, dependency resolution, and cascading failures. |
 
 ---
 
@@ -62,15 +67,32 @@
 | `bin/governance.js` | 🟢 Active | Swarm retry attempt state governance circuit breaker. |
 | `bin/ui.js` | 🟢 Active | Terminal visual primitives (boxes, tables, and progress bars). |
 | `bin/dashboard.js` | 🟢 Active | Swarm telemetry extraction and formatting dashboard engine. |
+| `bin/daemon.js` | 🟢 Active | Background pub/sub swarm worker daemon loop microservice. |
 | `checklists/` | 🟢 Active | JSON programmatic verification contract templates. |
-| `tests/` | 🟢 Active | 166 Vitest test cases validating schemas, core modules, task queues, databases, VFS patches, circuit breakers, custom rules, and crawler enrichment visualizers. |
+| `tests/` | 🟢 Active | 172 Vitest test cases validating schemas, core modules, task queues, databases, VFS patches, circuit breakers, custom rules, and crawler enrichment visualizers. |
 | `tests/bin/dashboard.test.js` | 🟢 Active | Vitest unit tests verifying dashboard rendering and calculations. |
+| `tests/bin/daemon.test.js` | 🟢 Active | Vitest unit tests verifying swarm daemon and event log integrations. |
 | `context.md` | 🟢 Active | Central developer cheat sheet. |
 | `.github/workflows/ci.yml` | 🟢 Active | GitHub Actions CI configuration running Vitest tests on PRs/pushes. |
+| `docs/adr/` | 🟢 Active | Architectural Decision Records (0001 to 0006) for V3 upgrades. |
 
 ---
 
 ## 4. Next Actions
 
-1. **Implement Future V4 Strategic Milestones**
-   - Formulate daemon worker microservice subscribing to WAL event bus (Milestone 18).
+None (V3 Swarm Upgrades fully complete)
+
+---
+
+## 5. Architectural Decision Records (ADRs)
+
+Veyra OS V3 upgrades and decisions are tracked and confirmed via:
+
+- **[ADR 0001: Deprecate Legacy Git Worktrees](docs/adr/0001-deprecate-legacy-git-worktrees.md)**: Transitioned fully from Git worktrees to `patch.js` VFS patching.
+- **[ADR 0002: Prevent JSON Concurrency Collisions](docs/adr/0002-prevent-concurrency-collision-via-proper-lockfile.md)**: Implemented file locking using `proper-lockfile` and retry spin-locks.
+- **[ADR 0003: Isolated Sandboxed Patch Verification](docs/adr/0003-isolated-sandboxed-patch-verification.md)**: Speculative verification inside temporary sandboxes with Windows directory junctions.
+- **[ADR 0004: SQLite-Backed Incremental Crawl Cache](docs/adr/0004-sqlite-backed-incremental-crawl-cache.md)**: Caching module imports and semantic keys inside a `crawl_cache` table using file `mtime` dirty-flags.
+- **[ADR 0005: Watcher Events & ONNX Semantic Search](docs/adr/0005-file-watcher-events-and-onnx-semantic-search.md)**: Rust file watcher events mapped to JIT cache invalidation, paired with Python ONNX similarity search.
+- **[ADR 0006: Pub/Sub Swarm Worker Loop](docs/adr/0006-pubsub-swarm-worker.md)**: Employs background worker daemon polling SQLite WAL event bus, managing async routing/allocation and failure propagation.
+
+All V3 upgrades are fully complete, robust, and verified.

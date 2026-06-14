@@ -8,7 +8,7 @@
 
 ### ✅ Milestone 1: Test Infrastructure & Integrity (Phase 1)
 - [x] Configure Vitest with auto-injected globals (`vitest.config.js`).
-- [x] Create comprehensive test suites under `tests/bin/` checking `db.js`, `context.js`, `intent.js`, `patch.js`, `router.js`, `worktree.js`, and `visual-review.js`.
+- [x] Create comprehensive test suites under `tests/bin/` checking `db.js`, `context.js`, `intent.js`, `patch.js`, `router.js`, and `visual-review.js`.
 - [x] Verify all 65/65 tests are green in PowerShell environment.
 
 ### ✅ Milestone 2: JIT SQLite Database Cache & Performance (Phase 2)
@@ -96,6 +96,10 @@
 ---
 ## Completed Swarm Telemetry Milestones
 
+### ✅ Milestone 18: Pub/Sub Swarm Worker Loop
+- [x] Formulate a daemon microservice subscribing to an SQLite WAL event bus.
+- [x] Allocate subagent tasks asynchronously as event bus dependency flags update.
+
 ### ✅ Milestone 19: Swarm Telemetry Dashboard (Phase D)
 - [x] Analyze codebase tracking and database locking metrics.
 - [x] Design data extraction functions in `bin/dashboard.js` retrieving SQLite locks, governance retry strike arrays, and patch channels.
@@ -117,15 +121,36 @@
 - [x] Generation of structured JSON reports (`vlm_audit_report.json` and viewport-specific files).
 - [x] Automated assertions and exit codes integration in CI/CD pipeline.
 
+### ✅ Milestone 22: Concurrency & File Locking (V3 Upgrades)
+- [x] Integrate `proper-lockfile` locking around JSON write operations in `_writeToJSON` in `bin/db.js`.
+- [x] Implement synchronous retry logic inside lockfile synchronization.
+- [x] Add comprehensive concurrency and lock recovery test coverage in `tests/bin/db.test.js`.
+
+### ✅ Milestone 24: Sandboxed Patch Verification (V3 Upgrades)
+- [x] Implement path resolution and sandbox target paths in `verifyContract()` inside `bin/verify.js`.
+- [x] Handle null/empty patches gracefully, validating the sandbox workspace directly.
+- [x] Replicate speculative workspace recursively (with optimized exclusions) and mount `node_modules` via directory junction.
+- [x] Safeguard clean rollback isolation and link unlinking in try-finally blocks inside `bin/patch.js`.
+- [x] Add extensive sandbox verification test coverage in `tests/bin/verify.test.js` and `tests/bin/patch.test.js`.
+
+### ✅ Milestone 5: Rollback Telemetry & File Watcher Connection
+- [x] Wire circuit breaker trips in `bin/governance.js` to publish `governance_tripped` events JIT.
+- [x] Connect Rust coordinator actor to beads.db and write file change/delete events to `agent_events`.
+- [x] Implement JIT `processWatcherEvents()` cache invalidation in `bin/db.js` and integrate in `bin/context.js`.
+- [x] Add unit tests verifying trip event publishing and file watcher invalidation.
+
+### ✅ Milestone 6: ONNX Embeddings
+- [x] Implement Rust-based ONNX text embedding generation using tokenizers and ort.
+- [x] Implement Python-based ONNX semantic vector similarity search in `bin/vector_search.py` with TF-IDF fallback.
+- [x] Add unit tests verifying both ONNX and TF-IDF search pathways.
+
 ---
 ## Active / In-Progress Milestones
 
 None
 ## Future V4 Strategic Milestones
 
-### ⬜ Milestone 18: Pub/Sub Swarm Worker Loop
-- [ ] Formulate a daemon microservice subscribing to an SQLite WAL event bus.
-- [ ] Allocate subagent tasks asynchronously as event bus dependency flags update.
+None
 
 ### ✅ Milestone 20: Graphify Enrichment Core (Security Ingest, Graph Topology, and HTML Visualizers)
 - [x] Add JIT secrets, netrc, and key skipping patterns to `bin/context.js`.
@@ -134,5 +159,17 @@ None
 - [x] Extend import crawling to support multi-language fallbacks (Python, Rust, Go, Apex, SQL).
 - [x] Update `memory-mcp-server/graph.py` to calculate degree centrality ("God Nodes") and Modular connections crossing communities / language barriers ("Surprising Connections").
 - [x] Build interactive HTML outputs: a collapsible tree using D3.js (`context/tree.html`) and an architecture Mermaid callflow diagram (`context/graph.html`).
+
+---
+## Architectural Decision Records (ADRs)
+- [x] **[ADR 0001](docs/adr/0001-deprecate-legacy-git-worktrees.md)**: Deprecate Legacy Git Worktrees in Favor of VFS Patching
+- [x] **[ADR 0002](docs/adr/0002-prevent-concurrency-collision-via-proper-lockfile.md)**: Prevent JSON Database Concurrency Collisions Using proper-lockfile
+- [x] **[ADR 0003](docs/adr/0003-isolated-sandboxed-patch-verification.md)**: Isolated Sandboxed Patch Verification
+- [x] **[ADR 0004](docs/adr/0004-sqlite-backed-incremental-crawl-cache.md)**: SQLite-Backed Incremental Crawl Cache
+- [x] **[ADR 0005](docs/adr/0005-file-watcher-events-and-onnx-semantic-search.md)**: Rust File Watcher Events & ONNX Semantic Search Integration
+- [x] **[ADR 0006](docs/adr/0006-pubsub-swarm-worker.md)**: Pub/Sub Swarm Worker Loop
+
+All V3 upgrades are fully complete, documented, and verified.
+
 
 

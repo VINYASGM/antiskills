@@ -80,6 +80,8 @@ To scale memory to extremely large codebases without blowing out token budgets:
 - **Graph Clustering (NetworkX):** Identifies closely related historical decisions, requirements, and tasks as graph clusters.
 - **Episodic Compression:** Merges and summarizes older, closed clusters into single semantic nodes, delivering lightweight dense historical contexts to active agents.
 - **Hybrid Context assembly:** Merges syntax-tree (AST) crawler paths for immediate caller-callee scopes with a fast vector embedding database (RAG) search for global configurations and styled elements.
+- **File Watcher & JIT Cache Invalidation:** The Rust file watcher actor notifies the coordinator of changed or deleted files, writing pending event records to the SQLite event bus. The context assembler JIT processes these events, deletes corresponding rows from the crawl cache, and invalidates in-memory mtime/bead caches, guaranteeing cache freshness before graph evaluation.
+- **ONNX Embeddings:** Generates 384-dimensional semantic embeddings in Rust (via tokenizers/ort) and retrieves them via Python `vector_search.py` using cosine similarity, falling back to TF-IDF if dependencies or databases are missing.
 
 ---
 
@@ -201,4 +203,44 @@ flowchart TD
 - **Gemini API Integration:** When a `GEMINI_API_KEY` is present, screenshots and mockups are transmitted to the `gemini-1.5-flash` model with visual layout and contrast check instructions.
 - **Fallback Coordinate Auditor:** Provides a deterministic fallback path. If the VLM check fails or is disabled (or if the `MOCK_VLM_FAIL=true` flag is set), the auditor inspects coordinates in `dom_structure.json` and flags failures if forbidden IDs such as `'low-contrast-text'` are found.
 - **CI Assertions & Report Generator:** Compiles audit results into `memory/evidence/visual/vlm_audit_report.json` and viewport-specific breakdown files. If violations or contrast problems are found, it triggers a non-zero exit status (`exit 1`) to block CI builds. On success, it logs audit output and exits cleanly (`exit 0`).
+
+## 9. Concurrency & JSON File Locking (Milestone 23)
+To ensure write-safety across concurrent agent executions, the database engine implements file-level locking:
+1. **Pre-flight Existence Assurance:** Ensures parent directory and the JSON target file exist before locking (writing `{}` if missing), as `proper-lockfile` mandates an existing target path.
+2. **Synchronous Locking Wrapper:** Calls `lockSync` with retries: `lockfile.lockSync(jsonPath, { retries: { retries: 10, minTimeout: 50, maxTimeout: 100 } })`. To support synchronous retries which are natively rejected by the library, `proper-lockfile` is monkeypatched to implement a synchronous spin retry loop with randomized backoff.
+3. **Atomic Write & Clean Release:** Enforces read, merge, validate, and write operations inside a try/finally block, ensuring the lock is released even if schema validation or write operations fail.
+
+## 10. Sandboxed Patch Verification (Milestone 24)
+To ensure multi-agent patch concurrent safety and prevent workspace corruption, patch verification is conducted in an isolated temporary sandbox before modifications are permanently written to the main project:
+1. **Speculative Workspace Replication:** When `commit()` executes, if an active task has a checklist contract file, a new temporary directory `sandboxDir` is created in the system temp directory, and the workspace is recursively copied (excluding dependency, build, and telemetry caches such as `node_modules`, `.git`, `.agents`, `patches`, `scratch`, `target`, `__pycache__`, and `.pytest_cache`).
+2. **Directory Junction Mounting:** To avoid expensive package installs inside the sandbox, a directory junction for `node_modules` is linked from the main project into `sandboxDir` via standard Windows directory junction symlinking.
+3. **Sandbox Validation:** Memory-modified files from `virtualCache` are written directly to their corresponding paths inside `sandboxDir`, and `verifyContract(contractPath, null, sandboxDir)` is executed to perform rules and formal proof validations against the sandbox files.
+4. **Isolation Guard & Clean Revert:** If sandbox validation fails, writing to the main workspace is blocked, no rollback is executed on main files, and the `sandboxDir` is unlinked and deleted in a try-finally block. Only upon successful verification are the files permanently written to the main workspace.
+
+---
+
+## 10.5 Pub/Sub Swarm Worker Loop (Milestone 18)
+Decoupled multi-agent execution relies on asynchronous pub/sub worker coordination:
+1. **JIT Database Event Ingestion:** Status changes on beads triggers event publishing inside `bin/db.js` using dynamic imports of `bin/event_bus.js` (avoiding circular dependency locks). These events (e.g. `bead_created`, `bead_status_changed`, `bead_resolved`, `bead_failed`) are recorded to the SQLite `agent_events` table.
+2. **Daemon Polling Loop:** A background microservice (`bin/daemon.js`) polls `agent_events` every 500ms, subscribing to topics to mark them completed.
+3. **Dependency Cascading:** Tracks dependencies of open/failed beads. When a dependency fails, the failure cascades downstream to dependents. If all parent dependencies are resolved, the daemon routes/allocates the task to the primary role via `bin/router.js` and publishes `task_allocated`.
+4. **Startup Sweep & CLI Integration:** Boot time runs a sweep to recover stale tasks. Background execution is managed via CLI (`daemon start [--background]`, `daemon stop`, `daemon status`, `daemon run`).
+
+---
+
+## 11. Architectural Decision Records (ADRs)
+
+The architectural structure of Veyra V3 is officially guided by the following Architectural Decision Records:
+
+- **[ADR 0001: Deprecate Legacy Git Worktrees in Favor of VFS Patching](docs/adr/0001-deprecate-legacy-git-worktrees.md)**: Transitioning from sequential Git worktrees to the line and AST-based VFS patch engine (`patch.js`) to eliminate merge chaos and locking overhead.
+- **[ADR 0002: Prevent JSON Database Concurrency Collisions Using proper-lockfile](docs/adr/0002-prevent-concurrency-collision-via-proper-lockfile.md)**: Using `proper-lockfile` with a synchronous retry spin-lock mechanism to safeguard JSON write integrity.
+- **[ADR 0003: Isolated Sandboxed Patch Verification](docs/adr/0003-isolated-sandboxed-patch-verification.md)**: Copying speculative workspace to temp directories, linking `node_modules` via junctions, and verifying patches programmatically in isolation.
+- **[ADR 0004: SQLite-Backed Incremental Crawl Cache](docs/adr/0004-sqlite-backed-incremental-crawl-cache.md)**: Caching import structures and semantic keys inside a `crawl_cache` table in `beads.db` using file modification time (`mtime`) flags to optimize crawler speed.
+- **[ADR 0005: Rust File Watcher Events & ONNX Semantic Search Integration](docs/adr/0005-file-watcher-events-and-onnx-semantic-search.md)**: Connecting Rust file watcher events (`agent_events`) with Python ONNX similarity search (`vector_search.py`) for semantic relevance and JIT cache invalidation.
+- **[ADR 0006: Pub/Sub Swarm Worker Loop](docs/adr/0006-pubsub-swarm-worker.md)**: Employs background worker daemon polling SQLite WAL event bus, managing async routing/allocation and failure propagation.
+
+All V3 upgrades are fully complete, robust, and verified.
+
+
+
 

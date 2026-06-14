@@ -7,7 +7,7 @@ Welcome to Veyra, the developer context hub. This document serves as the absolut
 ## 1. Project Purpose & Philosophy
 
 Veyra is a reusable, AI-native engineering operating system repository framework designed to coordinate multiple AI-assisted developer agents in high-performance swarms while avoiding structural bottlenecks:
-- **Contract-Proven Merges:** Programmatic checks (`bin/verify.js`) validate code properties against math/logical checklists prior to committing, preventing logic degradation.
+- **Contract-Proven Merges:** Programmatic checks (`bin/verify.js`) validate code properties against math/logical checklists inside isolated temporary sandboxes prior to committing, preventing logic degradation and concurrent workspace pollution.
 - **Decoupled MCP Graph Memory:** Staging memory offloaded to an isolated Model Context Protocol (MCP) server running DuckDB and NetworkX to support large-scale clustering and history summarization.
 - **Hybrid Context Assembly:** Combines local syntax-tree (AST) crawls with global similarity vector searches (RAG) to ensure maximum relevancy and zero token waste.
 - **Explorer-Architect Prototyping Loops:** A fast *Explorer* sandbox tests assumptions before the *Architect* formalizes specs, mitigating waterfall friction.
@@ -19,7 +19,7 @@ Veyra is a reusable, AI-native engineering operating system repository framework
 ## 2. Directory Structure & Map
 
 - [bin/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin) — CLI engine core.
-  - [db.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/db.js) — Memory cache with lazy-sync and timestamp checking.
+  - [db.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/db.js) — Memory cache with lazy-sync, timestamp checking, and proper-lockfile JSON file locking.
   - [context.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/context.js) — Hybrid context assembly engine (AST + semantic vector search).
   - [intent.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/intent.js) — Ephemeral broadcast registry for style/API conflict isolation.
   - [patch.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/patch.js) — Unified line-based and AST-based VFS patch engine.
@@ -164,3 +164,18 @@ The interactive HTML reports generated in the `context/` folder integrate with t
   - **God Nodes:** Highlighted with bright warning borders and larger radiuses proportional to their degree/PageRank centrality.
   - **Bridge Edges (Surprising Connections):** Rendered as thick, dashed lines in bright red. Indicates coupling across modular communities or programming languages.
 - **Developer / Swarm Integration:** Developers can run `node bin/veyra.js context index` to refresh these maps instantly and review active workspaces via any standard web browser.
+
+---
+
+## 6. Architectural Decision Records (ADRs)
+
+Veyra OS V3 implementation and upgrade decisions are tracked in the following ADRs:
+
+- **[ADR 0001: Deprecate Legacy Git Worktrees in Favor of VFS Patching](docs/adr/0001-deprecate-legacy-git-worktrees.md)**: Transition from Git worktrees to `patch.js` VFS patching, removing `bin/worktree.js` and `tests/bin/worktree.test.js`.
+- **[ADR 0002: Prevent JSON Database Concurrency Collisions Using proper-lockfile](docs/adr/0002-prevent-concurrency-collision-via-proper-lockfile.md)**: Implementation of file locks (`proper-lockfile`) and synchronous retry loops for JSON writes in `bin/db.js`.
+- **[ADR 0003: Isolated Sandboxed Patch Verification](docs/adr/0003-isolated-sandboxed-patch-verification.md)**: Speculative verification run within temporary system directories and directory junctions to prevent workspace pollution.
+- **[ADR 0004: SQLite-Backed Incremental Crawl Cache](docs/adr/0004-sqlite-backed-incremental-crawl-cache.md)**: Crawl caching stored in a `crawl_cache` table in `beads.db` to optimize indexing with dirty-flag checking on file `mtime`.
+- **[ADR 0005: Rust File Watcher Events & ONNX Semantic Search Integration](docs/adr/0005-file-watcher-events-and-onnx-semantic-search.md)**: Capture Rust watcher events to `agent_events` in `beads.db` and implement Python ONNX semantic search with TF-IDF fallback.
+
+With these ADRs implemented, all V3 upgrades are fully complete, robust, and verified.
+

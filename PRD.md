@@ -51,7 +51,7 @@ AI coding agents suffer from six systemic architectural failures at scale, which
 ## 4. Key V3/V4 Features
 
 ### 4.1 Contract-Proven Integration Engine (`bin/patch.js` & `bin/verify.js`)
-Validates that proposed VFS patches satisfy programmatic and mathematical contract proofs before merge. Runs atomic integration validations inside isolated memory spaces.
+Validates that proposed VFS patches satisfy programmatic and mathematical contract proofs before merge. Runs atomic integration validations inside isolated temporary sandbox environments (via system temp directory and directory junctions for `node_modules`) to prevent dirtying workspace files and ensure concurrency isolation.
 
 ### 4.2 Decoupled MCP Memory Graph (`memory-mcp-server/`)
 An isolated memory broker using DuckDB and NetworkX to represent memory beads as nodes and dependencies as edges. Provides automatic episodic clustering and recursive summaries to conserve token window budgets.
@@ -110,3 +110,31 @@ Provides automated visual regression and responsive layout verification using vi
 - **Deterministic Coordinate and Failover Audits:** Executes a fallback local check against `dom_structure.json` if the VLM is unreachable or disabled, checking coordinates, inspecting elements for forbidden IDs (such as `'low-contrast-text'`), and checking the `MOCK_VLM_FAIL=true` override flag.
 - **Comprehensive Visual Report Output:** Generates structured execution reports inside `memory/evidence/visual/vlm_audit_report.json`, along with separate viewport-specific breakdown report files.
 - **Automated CI Assertions:** Implements strict automated verification; returns exit code 1 if layout violations or contrast issues are detected, and logs success details and returns exit code 0 if the visual audit passes.
+
+### 4.11 Concurrency & File Locking (Milestone 23)
+Integrates file-level locking (`proper-lockfile`) in the memory database module (`bin/db.js`) to secure JSON file-per-bead write transactions against concurrent agent write race conditions, using synchronous retry loops and robust try/finally cleanup semantics.
+
+### 4.12 Pub/Sub Swarm Worker Loop (Milestone 18)
+Coordinates multi-agent task allocations asynchronously. A background daemon service (`bin/daemon.js`) polls every 500ms, subscribing to `agent_events` in the SQLite WAL event bus to process tasks. It manages:
+- **Dependency resolution**: routes tasks only when parent dependencies are resolved.
+- **Cascading failures**: automatically propagates failures down to downstream dependent tasks.
+- **Asynchronous allocation**: claims and routes tasks to primary agent roles using `bin/router.js` and publishes `task_allocated` events.
+- **Startup recovery**: force-releases stale tasks and does a startup recovery sweep.
+Provides CLI daemon commands (`start`, `stop`, `status`, `run`) to manage background execution.
+
+---
+
+## 5. Architectural Decision Records (ADRs)
+
+To ensure the integrity, scalability, and performance of the Veyra OS V3 framework, the following Architectural Decision Records have been accepted and implemented:
+
+- **[ADR 0001: Deprecate Legacy Git Worktrees in Favor of VFS Patching](docs/adr/0001-deprecate-legacy-git-worktrees.md)**: Transitions fully to AST/line-based VFS patch engine (`patch.js`) to avoid sequential rebase locks and merge chaos in agent swarms.
+- **[ADR 0002: Prevent JSON Database Concurrency Collisions Using proper-lockfile](docs/adr/0002-prevent-concurrency-collision-via-proper-lockfile.md)**: Implements file locking using `proper-lockfile` and retry spin-locks to synchronize JSON writes and guarantee transactional integrity.
+- **[ADR 0003: Isolated Sandboxed Patch Verification](docs/adr/0003-isolated-sandboxed-patch-verification.md)**: Runs contract verification proofs in isolated system temp directories with directory junctions for `node_modules` to prevent workspace pollution.
+- **[ADR 0004: SQLite-Backed Incremental Crawl Cache](docs/adr/0004-sqlite-backed-incremental-crawl-cache.md)**: Employs a `crawl_cache` table in `beads.db` to skip parsing files whose modification times (`mtime`) have not changed, yielding up to a 10x speedup.
+- **[ADR 0005: Rust File Watcher Events & ONNX Semantic Search Integration](docs/adr/0005-file-watcher-events-and-onnx-semantic-search.md)**: Emits JIT file watcher invalidation events from Rust and integrates Python ONNX-based semantic search to bypass lexical search shortcomings.
+- **[ADR 0006: Pub/Sub Swarm Worker Loop](docs/adr/0006-pubsub-swarm-worker.md)**: Implements a background worker daemon polling the WAL event bus, routing/allocating beads, and cascading failures across dependencies.
+
+With these ADRs implemented, all V3 upgrades are fully complete, robust, and verified.
+
+
