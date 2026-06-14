@@ -440,3 +440,133 @@ describe('BeadsDB — Sync Optimization (Phase 2)', () => {
     expect(db._lastSyncTime).toBe(syncTimeBefore);
   });
 });
+
+describe('BeadsDB — File Locking & Concurrency', () => {
+  let originalCwd;
+  let tmpDir;
+  let db;
+
+  beforeEach(() => {
+    originalCwd = process.cwd();
+    tmpDir = createTempProject();
+    process.chdir(tmpDir);
+    const dbPath = require.resolve('../../bin/db.js');
+    delete require.cache[dbPath];
+    const intentPath = path.join(path.dirname(dbPath), 'intent.js');
+    if (require.cache[intentPath]) delete require.cache[intentPath];
+    db = require('../../bin/db.js');
+  });
+
+  afterEach(() => {
+    if (db && db.db) { try { db.db.close(); } catch (e) {} }
+    process.chdir(originalCwd);
+    cleanupTempDir(tmpDir);
+    const dbPath = require.resolve('../../bin/db.js');
+    delete require.cache[dbPath];
+  });
+
+  test('lockfile.lockSync is called with proper arguments and releases lock even on validation failure', () => {
+    const lockfile = require('proper-lockfile');
+    const lockSpy = vi.spyOn(lockfile, 'lockSync');
+
+    // 1. Successful write
+    db.create({
+      type: 'task_state',
+      status: 'open',
+      title: 'Locking Test',
+      description: 'Verifying lock is called.',
+      author: 'test',
+      tags: [],
+      dependencies: []
+    });
+
+    const jsonPath = path.join(tmpDir, 'memory', 'beads', 'bd-0001.json');
+    expect(lockSpy).toHaveBeenCalledWith(jsonPath, expect.objectContaining({
+      retries: expect.objectContaining({
+        retries: 10,
+        minTimeout: 50,
+        maxTimeout: 100
+      })
+    }));
+
+    lockSpy.mockClear();
+
+    // 2. Failed validation (schema error) should release lock
+    expect(() => {
+      db.create({
+        type: 'task_state',
+        status: 'invalid-status-to-trigger-zod-error',
+        title: 'Validation Error Test'
+      });
+    }).toThrow();
+
+    expect(lockSpy).toHaveBeenCalled();
+  });
+
+  test('concurrent writes do not corrupt the file and serialize correctly', async () => {
+    const beadId = db.create({
+      type: 'task_state',
+      status: 'open',
+      title: 'Initial',
+      description: 'First title',
+      author: 'test',
+      tags: [],
+      dependencies: []
+    });
+
+    const lockfile = require('proper-lockfile');
+    const originalLockSync = lockfile.lockSync;
+
+    let activeLocks = 0;
+    let maxConcurrentLocks = 0;
+
+    vi.spyOn(lockfile, 'lockSync').mockImplementation((file, options) => {
+      activeLocks++;
+      if (activeLocks > maxConcurrentLocks) {
+        maxConcurrentLocks = activeLocks;
+      }
+      const release = originalLockSync(file, options);
+      return () => {
+        activeLocks--;
+        release();
+      };
+    });
+
+    db._writeToJSON(beadId, { title: 'Update 1' });
+    db._writeToJSON(beadId, { title: 'Update 2' });
+
+    expect(maxConcurrentLocks).toBe(1);
+    expect(activeLocks).toBe(0);
+
+    const updated = db.get(beadId);
+    expect(updated.title).toBe('Update 2');
+  });
+
+  test('lockSync retries and eventually throws ELOCKED if lock remains held', () => {
+    const lockfile = require('proper-lockfile');
+    
+    const beadId = 'bd-0001';
+    const jsonPath = path.join(tmpDir, 'memory', 'beads', `${beadId}.json`);
+    fs.mkdirSync(path.dirname(jsonPath), { recursive: true });
+    fs.writeFileSync(jsonPath, '{}', 'utf8');
+
+    const manualRelease = lockfile.lockSync(jsonPath);
+
+    const startTime = Date.now();
+    let error;
+    try {
+      db._writeToJSON(beadId, { title: 'Should Fail' });
+    } catch (e) {
+      error = e;
+    } finally {
+      manualRelease();
+    }
+
+    const duration = Date.now() - startTime;
+
+    expect(error).toBeDefined();
+    expect(error.code).toBe('ELOCKED');
+    expect(duration).toBeGreaterThanOrEqual(450);
+  });
+});
+

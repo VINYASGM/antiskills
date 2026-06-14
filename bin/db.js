@@ -1,6 +1,46 @@
 const Database = require('better-sqlite3');
 const path = require('node:path');
 const fs = require('node:fs');
+const lockfile = require('proper-lockfile');
+
+// Monkeypatch lockfile.lockSync to support synchronous retries
+const originalLockSync = lockfile.lockSync;
+lockfile.lockSync = function (file, options) {
+  const opts = { ...options };
+  const retriesConfig = opts.retries;
+  delete opts.retries; // Prevent proper-lockfile from throwing "Cannot use retries with the sync api"
+
+  let retries = 0;
+  let maxRetries = 0;
+  let minTimeout = 50;
+  let maxTimeout = 100;
+
+  if (typeof retriesConfig === 'number') {
+    maxRetries = retriesConfig;
+  } else if (retriesConfig && typeof retriesConfig.retries === 'number') {
+    maxRetries = retriesConfig.retries;
+    if (typeof retriesConfig.minTimeout === 'number') minTimeout = retriesConfig.minTimeout;
+    if (typeof retriesConfig.maxTimeout === 'number') maxTimeout = retriesConfig.maxTimeout;
+  }
+
+  while (true) {
+    try {
+      return originalLockSync.call(lockfile, file, opts);
+    } catch (err) {
+      if ((err.code === 'ELOCKED' || err.code === 'EEXIST') && retries < maxRetries) {
+        retries++;
+        const delay = minTimeout + Math.random() * (maxTimeout - minTimeout);
+        const start = Date.now();
+        while (Date.now() - start < delay) {
+          // Sync spin sleep
+        }
+        continue;
+      }
+      throw err;
+    }
+  }
+};
+
 
 /**
  * 💾 BeadsDB — Git-Native & SQLite-Cached Memory Graph
@@ -83,6 +123,12 @@ class BeadsDB {
         data TEXT,
         PRIMARY KEY(agent_id, task_id)
       );
+      CREATE TABLE IF NOT EXISTS crawl_cache (
+        file_path TEXT PRIMARY KEY,
+        mtime INTEGER NOT NULL,
+        imports TEXT NOT NULL,
+        semantic_keys TEXT NOT NULL
+      );
       CREATE INDEX IF NOT EXISTS idx_status ON beads(status);
       CREATE INDEX IF NOT EXISTS idx_type ON beads(type);
     `);
@@ -151,10 +197,61 @@ ${bead.description || ''}`;
   }
 
   /**
+   * Reads pending file_watcher events from agent_events, marks them as processed,
+   * deletes the matching rows from the crawl_cache table, and invalidates in-memory mtime/bead caches
+   * if the modified file is a bead JSON file (bd-XXXX.json).
+   */
+  processWatcherEvents() {
+    try {
+      const tableCheck = this.db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='agent_events'").get();
+      if (!tableCheck) return;
+
+      const events = this.db.prepare(`
+        SELECT id, payload FROM agent_events
+        WHERE sender = 'file_watcher' AND status = 'pending'
+        ORDER BY id ASC
+      `).all();
+
+      if (events.length === 0) return;
+
+      const deleteCrawlCache = this.db.prepare('DELETE FROM crawl_cache WHERE file_path = ? OR file_path = ?');
+      const updateEventStatus = this.db.prepare("UPDATE agent_events SET status = 'processed' WHERE id = ?");
+
+      this.db.transaction(() => {
+        for (const event of events) {
+          try {
+            const payload = JSON.parse(event.payload);
+            if (payload && payload.path) {
+              const nativePath = path.resolve(payload.path);
+              const forwardSlashPath = nativePath.replace(/\\/g, '/');
+              
+              // Delete from crawl_cache
+              deleteCrawlCache.run(nativePath, forwardSlashPath);
+
+              // Invalidate in-memory mtime/bead caches
+              const filename = path.basename(nativePath);
+              if (/^bd-\d{4}\.json$/i.test(filename)) {
+                this._fileMtimes.delete(filename);
+              }
+            }
+          } catch (err) {
+            // Ignore parsing errors for individual events
+          }
+          // Mark event as processed
+          updateEventStatus.run(event.id);
+        }
+      })();
+    } catch (e) {
+      // Ignore database errors
+    }
+  }
+
+  /**
    * Scans memory folder paths, reads plain-text JSON beads,
    * parses them, and synchronizes them transactionally to the SQLite cache database.
    */
   sync() {
+    this.processWatcherEvents();
     const beadsDir = path.join(process.cwd(), 'memory', 'beads');
     if (!fs.existsSync(beadsDir)) fs.mkdirSync(beadsDir, { recursive: true });
     
@@ -380,38 +477,49 @@ ${bead.description || ''}`;
     const beadsDir = path.join(process.cwd(), 'memory', 'beads');
     const jsonPath = path.join(beadsDir, `${beadId}.json`);
 
-    let current = {};
-    if (fs.existsSync(jsonPath)) {
+    if (!fs.existsSync(beadsDir)) {
+      fs.mkdirSync(beadsDir, { recursive: true });
+    }
+    if (!fs.existsSync(jsonPath)) {
+      fs.writeFileSync(jsonPath, '{}', 'utf8');
+    }
+
+    const release = lockfile.lockSync(jsonPath, { retries: { retries: 10, minTimeout: 50, maxTimeout: 100 } });
+
+    let validated;
+    try {
+      let current = {};
       try {
         current = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
       } catch (e) {
         // Fallback
       }
+
+      const merged = { ...current, ...updates };
+
+      if (!merged.id) merged.id = beadId;
+      if (merged.type === undefined) merged.type = 'task_state';
+      if (merged.status === undefined) merged.status = 'open';
+      if (merged.status === 'done') merged.status = 'resolved';
+      if (merged.title === undefined) merged.title = 'Untitled';
+      if (merged.author === undefined) merged.author = 'system';
+      if (merged.tags === undefined) merged.tags = [];
+      if (merged.dependencies === undefined) merged.dependencies = [];
+      if (merged.description === undefined) merged.description = '';
+      if (merged.claimed_by === undefined) merged.claimed_by = null;
+      if (merged.claimed_at === undefined) merged.claimed_at = null;
+      if (merged.evidence === undefined) merged.evidence = null;
+      if (merged.timestamp === undefined) merged.timestamp = new Date().toISOString();
+
+      if (merged.timestamp instanceof Date) merged.timestamp = merged.timestamp.toISOString();
+      if (merged.claimed_at instanceof Date) merged.claimed_at = merged.claimed_at.toISOString();
+
+      validated = beadSchema.parse(merged);
+
+      fs.writeFileSync(jsonPath, JSON.stringify(validated, null, 2), 'utf8');
+    } finally {
+      release();
     }
-
-    const merged = { ...current, ...updates };
-
-    if (!merged.id) merged.id = beadId;
-    if (merged.type === undefined) merged.type = 'task_state';
-    if (merged.status === undefined) merged.status = 'open';
-    if (merged.status === 'done') merged.status = 'resolved';
-    if (merged.title === undefined) merged.title = 'Untitled';
-    if (merged.author === undefined) merged.author = 'system';
-    if (merged.tags === undefined) merged.tags = [];
-    if (merged.dependencies === undefined) merged.dependencies = [];
-    if (merged.description === undefined) merged.description = '';
-    if (merged.claimed_by === undefined) merged.claimed_by = null;
-    if (merged.claimed_at === undefined) merged.claimed_at = null;
-    if (merged.evidence === undefined) merged.evidence = null;
-    if (merged.timestamp === undefined) merged.timestamp = new Date().toISOString();
-
-    if (merged.timestamp instanceof Date) merged.timestamp = merged.timestamp.toISOString();
-    if (merged.claimed_at instanceof Date) merged.claimed_at = merged.claimed_at.toISOString();
-
-    const validated = beadSchema.parse(merged);
-
-    if (!fs.existsSync(beadsDir)) fs.mkdirSync(beadsDir, { recursive: true });
-    fs.writeFileSync(jsonPath, JSON.stringify(validated, null, 2), 'utf8');
 
     // Update the mtime cache map immediately
     try {
@@ -481,6 +589,10 @@ ${bead.description || ''}`;
     
     this._writeToJSON(beadId, bead);
     this.sync();
+
+    const eventBus = require('./event_bus.js');
+    eventBus.publish('bead_created', bead.author || 'system', { beadId, bead });
+
     return beadId;
   }
 
@@ -525,6 +637,9 @@ ${bead.description || ''}`;
    */
   claim(beadId, agentId) {
     this._expireStaleClaims();
+    const oldBead = this.db.prepare(`SELECT status FROM beads WHERE id = ?`).get(beadId);
+    const oldStatus = oldBead ? oldBead.status : null;
+
     const now = new Date().toISOString();
     const result = this.db.prepare(`
       UPDATE beads SET claimed_by = ?, claimed_at = ?, status = 'claimed'
@@ -532,6 +647,10 @@ ${bead.description || ''}`;
     `).run(agentId, now, beadId, agentId);
     if (result.changes > 0) {
       this._writeToJSON(beadId, { claimed_by: agentId, claimed_at: now, status: 'claimed' });
+      
+      const eventBus = require('./event_bus.js');
+      eventBus.publish('bead_status_changed', agentId, { beadId, oldStatus, newStatus: 'claimed' });
+
       return true;
     }
     return false;
@@ -541,6 +660,9 @@ ${bead.description || ''}`;
    * Release a claim. Only owning agent can release unless force=true.
    */
   release(beadId, agentId, force = false) {
+    const oldBead = this.db.prepare(`SELECT status FROM beads WHERE id = ?`).get(beadId);
+    const oldStatus = oldBead ? oldBead.status : null;
+
     let sql, params;
     if (force) {
       sql = `UPDATE beads SET claimed_by = NULL, claimed_at = NULL, status = 'open' WHERE id = ? AND claimed_by IS NOT NULL`;
@@ -552,6 +674,10 @@ ${bead.description || ''}`;
     const result = this.db.prepare(sql).run(...params);
     if (result.changes > 0) {
       this._writeToJSON(beadId, { claimed_by: null, claimed_at: null, status: 'open' });
+
+      const eventBus = require('./event_bus.js');
+      eventBus.publish('bead_status_changed', agentId || 'system', { beadId, oldStatus, newStatus: 'open' });
+
       return true;
     }
     return false;
@@ -561,12 +687,19 @@ ${bead.description || ''}`;
    * Transition claimed → in_progress. Only claiming agent can start.
    */
   start(beadId, agentId) {
+    const oldBead = this.db.prepare(`SELECT status FROM beads WHERE id = ?`).get(beadId);
+    const oldStatus = oldBead ? oldBead.status : null;
+
     const result = this.db.prepare(`
       UPDATE beads SET status = 'in_progress'
       WHERE id = ? AND claimed_by = ? AND status = 'claimed'
     `).run(beadId, agentId);
     if (result.changes > 0) {
       this._writeToJSON(beadId, { status: 'in_progress' });
+
+      const eventBus = require('./event_bus.js');
+      eventBus.publish('bead_status_changed', agentId, { beadId, oldStatus, newStatus: 'in_progress' });
+
       return true;
     }
     return false;
@@ -576,12 +709,20 @@ ${bead.description || ''}`;
    * Transition in_progress → resolved. Clears claim.
    */
   complete(beadId, agentId, evidence = '') {
+    const oldBead = this.db.prepare(`SELECT status FROM beads WHERE id = ?`).get(beadId);
+    const oldStatus = oldBead ? oldBead.status : null;
+
     const result = this.db.prepare(`
       UPDATE beads SET status = 'resolved', claimed_by = NULL, claimed_at = NULL, evidence = ?
       WHERE id = ? AND claimed_by = ? AND status = 'in_progress'
     `).run(evidence, beadId, agentId);
     if (result.changes > 0) {
       this._writeToJSON(beadId, { status: 'resolved', claimed_by: null, claimed_at: null, evidence: evidence || null });
+
+      const eventBus = require('./event_bus.js');
+      eventBus.publish('bead_status_changed', agentId, { beadId, oldStatus, newStatus: 'resolved' });
+      eventBus.publish('bead_resolved', agentId, { beadId, evidence });
+
       return true;
     }
     return false;
@@ -591,12 +732,20 @@ ${bead.description || ''}`;
    * Transition in_progress → failed. Clears claim.
    */
   fail(beadId, agentId, reason = '') {
+    const oldBead = this.db.prepare(`SELECT status FROM beads WHERE id = ?`).get(beadId);
+    const oldStatus = oldBead ? oldBead.status : null;
+
     const result = this.db.prepare(`
       UPDATE beads SET status = 'failed', claimed_by = NULL, claimed_at = NULL, evidence = ?
       WHERE id = ? AND claimed_by = ? AND status IN ('claimed', 'in_progress')
     `).run(reason, beadId, agentId);
     if (result.changes > 0) {
       this._writeToJSON(beadId, { status: 'failed', claimed_by: null, claimed_at: null, evidence: reason || null });
+
+      const eventBus = require('./event_bus.js');
+      eventBus.publish('bead_status_changed', agentId, { beadId, oldStatus, newStatus: 'failed' });
+      eventBus.publish('bead_failed', agentId, { beadId, reason });
+
       return true;
     }
     return false;
@@ -606,12 +755,19 @@ ${bead.description || ''}`;
    * Reopen a resolved or failed bead. Clears any claim.
    */
   reopen(beadId) {
+    const oldBead = this.db.prepare(`SELECT status FROM beads WHERE id = ?`).get(beadId);
+    const oldStatus = oldBead ? oldBead.status : null;
+
     const result = this.db.prepare(`
       UPDATE beads SET status = 'open', claimed_by = NULL, claimed_at = NULL
       WHERE id = ? AND status IN ('resolved', 'failed')
     `).run(beadId);
     if (result.changes > 0) {
       this._writeToJSON(beadId, { status: 'open', claimed_by: null, claimed_at: null });
+
+      const eventBus = require('./event_bus.js');
+      eventBus.publish('bead_status_changed', 'system', { beadId, oldStatus, newStatus: 'open' });
+
       return true;
     }
     return false;
