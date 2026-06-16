@@ -27,7 +27,7 @@ Veyra uses plain-text Markdown, JSON, SQLite, and Python/Node graph adapters, ma
 
 ---
 
-## 2. Core V3 Schemas & Data Formats
+## 2. Core V4 Schemas & Data Formats
 
 ### 2.1 Contract Proof Definition Schema (`checklists/contract-XXXX.json`)
  प्रोग्रामेटिक validations that must be verified before patches are merged.
@@ -230,13 +230,13 @@ veyra/
 
 ---
 
-## 4. V3 Coordination Algorithms
+## 4. V4 Coordination Algorithms
 
 ### 4.1 Hybrid Context Assembly
 Deterministic parsing combined with vector similarity:
 1. **AST Blast Radius**: Crawls imports up to 2 levels to catch direct caller dependencies.
 2. **Semantic Vector Search**: Generates a local embedding of the task spec, running similarity matching over the codebase to yield indirect config or business logic touchpoints.
-3. **ONNX Embeddings (V3 Upgrades)**: Uses `bge-small-en-v1.5.onnx` and `tokenizer.json` to generate 384-dimensional query and chunk embeddings. Embeddings are cached in OnceLocks in Rust, and computed via cosine similarity in Python `vector_search.py` using numpy. Fallback to local TF-IDF search occurs if dependencies are missing.
+3. **ONNX Embeddings (V4 Upgrades)**: Uses `bge-small-en-v1.5.onnx` and `tokenizer.json` to generate 384-dimensional query and chunk embeddings. Embeddings are cached in OnceLocks in Rust, and computed via cosine similarity in Python `vector_search.py` using numpy. Fallback to local TF-IDF search occurs if dependencies are missing.
 4. **Watcher JIT Cache Invalidation**: Rust file watcher actor detects changes/deletions, inserting events into `agent_events`. On graph builds, `processWatcherEvents()` JIT processes pending events, clears the `crawl_cache` rows, and invalidates the in-memory `_fileMtimes` cache for beads.
 5. **Budget Ranking**: Concatenates and limits injection to a hard token threshold, ensuring optimal coverage without exceeding contexts.
 
@@ -383,7 +383,7 @@ Coordinates multi-agent task allocations asynchronously via event subscription:
 
 ## 11. Architectural Decision Records (ADRs)
 
-The following Architectural Decision Records have been accepted and implemented to support Veyra V3 operations:
+The following Architectural Decision Records have been accepted and implemented to support Veyra V4 operations:
 
 - **[ADR 0001: Deprecate Legacy Git Worktrees in Favor of VFS Patching](docs/adr/0001-deprecate-legacy-git-worktrees.md)**: Remove `bin/worktree.js` and `tests/bin/worktree.test.js` to transition fully to the line and AST-based VFS patch engine (`patch.js`).
 - **[ADR 0002: Prevent JSON Database Concurrency Collisions Using proper-lockfile](docs/adr/0002-prevent-concurrency-collision-via-proper-lockfile.md)**: Use `proper-lockfile` with a retry spin-lock mechanism to synchronize json writes.
@@ -392,4 +392,4 @@ The following Architectural Decision Records have been accepted and implemented 
 - **[ADR 0005: Rust File Watcher Events & ONNX Semantic Search Integration](docs/adr/0005-file-watcher-events-and-onnx-semantic-search.md)**: Capture Rust file watcher events to `agent_events` in `beads.db` and utilize Python ONNX similarity search with TF-IDF fallback.
 - **[ADR 0006: Pub/Sub Swarm Worker Loop](docs/adr/0006-pubsub-swarm-worker.md)**: Implements background worker daemon polling SQLite WAL event bus, managing async routing/allocation and failure propagation.
 
-With these ADRs implemented, all V3 upgrades are fully complete, robust, and verified.
+With these ADRs implemented, all V4 upgrades are fully complete, robust, and verified.

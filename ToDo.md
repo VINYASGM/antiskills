@@ -4,7 +4,7 @@
 
 ---
 
-## Completed Milestones (V2 Architecture Core)
+## Completed Milestones (V3 Architecture Core)
 
 ### ✅ Milestone 1: Test Infrastructure & Integrity (Phase 1)
 - [x] Configure Vitest with auto-injected globals (`vitest.config.js`).
@@ -40,7 +40,7 @@
 - [x] Run and verify visual verification tests pass.
 
 ---
-## Completed V3 Swarm Milestones
+## Completed V4 Swarm Milestones
 
 ### ✅ Milestone 7: Decoupled MCP Memory Graph (Phase 8)
 - [x] Initialize Python MCP Server in `memory-mcp-server/`.
@@ -69,7 +69,7 @@
 ### ✅ Milestone 12: Architectural Zoom-Out Audit (Phase 13)
 - [x] Map core node modules, caller functions, and system topologies.
 - [x] Audit the 5 critical legacy bottlenecks (Rebase lock, JSON memory limits, AST explosion, Waterfall Spec, Rule scatter).
-- [x] Build comprehensive responses matching V3 implementations and V4 evolutionary roadmap.
+- [x] Build comprehensive responses matching V4 implementations and V5 evolutionary roadmap.
 
 ### ✅ Milestone 13: Task Queue & Claim Discipline (Phase B)
 - [x] Added `claimed_by` and `claimed_at` runtime metadata to SQLite DB to prevent concurrent agent conflicts.
@@ -121,12 +121,12 @@
 - [x] Generation of structured JSON reports (`vlm_audit_report.json` and viewport-specific files).
 - [x] Automated assertions and exit codes integration in CI/CD pipeline.
 
-### ✅ Milestone 22: Concurrency & File Locking (V3 Upgrades)
+### ✅ Milestone 22: Concurrency & File Locking (V4 Upgrades)
 - [x] Integrate `proper-lockfile` locking around JSON write operations in `_writeToJSON` in `bin/db.js`.
 - [x] Implement synchronous retry logic inside lockfile synchronization.
 - [x] Add comprehensive concurrency and lock recovery test coverage in `tests/bin/db.test.js`.
 
-### ✅ Milestone 24: Sandboxed Patch Verification (V3 Upgrades)
+### ✅ Milestone 24: Sandboxed Patch Verification (V4 Upgrades)
 - [x] Implement path resolution and sandbox target paths in `verifyContract()` inside `bin/verify.js`.
 - [x] Handle null/empty patches gracefully, validating the sandbox workspace directly.
 - [x] Replicate speculative workspace recursively (with optimized exclusions) and mount `node_modules` via directory junction.
@@ -148,7 +148,7 @@
 ## Active / In-Progress Milestones
 
 None
-## Future V4 Strategic Milestones
+## Future Strategic Milestones
 
 None
 
@@ -169,7 +169,7 @@ None
 - [x] **[ADR 0005](docs/adr/0005-file-watcher-events-and-onnx-semantic-search.md)**: Rust File Watcher Events & ONNX Semantic Search Integration
 - [x] **[ADR 0006](docs/adr/0006-pubsub-swarm-worker.md)**: Pub/Sub Swarm Worker Loop
 
-All V3 upgrades are fully complete, documented, and verified.
+All V4 upgrades are fully complete, documented, and verified.
 
 
 

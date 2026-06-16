@@ -31,11 +31,11 @@ def compute_tfidf(tf, idf):
         tfidf[word] = val * idf.get(word, 0.0)
     return tfidf
 
-def cosine_similarity(v1, v2):
-    common = set(v1.keys()) & set(v2.keys())
-    numerator = sum(v1[w] * v2[w] for w in common)
-    sum1 = sum(val**2 for val in v1.values())
-    sum2 = sum(val**2 for val in v2.values())
+def cosine_similarity(vector_a, vector_b):
+    common = set(vector_a.keys()) & set(vector_b.keys())
+    numerator = sum(vector_a[w] * vector_b[w] for w in common)
+    sum1 = sum(val**2 for val in vector_a.values())
+    sum2 = sum(val**2 for val in vector_b.values())
     denominator = math.sqrt(sum1) * math.sqrt(sum2)
     if not denominator:
         return 0.0
