@@ -4,6 +4,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { parseContract, verifyContract } from '../../bin/verify';
 import { createPatch } from '../../bin/patch';
+import { sandboxPathFor } from '../../bin/sandbox-path';
 
 describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
   let tempDir;
@@ -226,7 +227,7 @@ describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
     const sandboxDir = fs.mkdtempSync(path.join(os.tmpdir(), 'veyra-sandbox-test-2-'));
 
     // 3. Write a compliant file directly to sandboxDir
-    const sandboxTargetPath = path.resolve(sandboxDir, path.relative(process.cwd(), targetFilePath));
+    const sandboxTargetPath = sandboxPathFor(sandboxDir, targetFilePath);
     fs.mkdirSync(path.dirname(sandboxTargetPath), { recursive: true });
     fs.writeFileSync(sandboxTargetPath, 'const a = 1;\n', 'utf8');
 

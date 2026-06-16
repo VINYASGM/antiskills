@@ -185,28 +185,25 @@ class MemoryGraph:
                 n_data = self.nx_graph.nodes[node]
                 results.append({
                     "node_id": node,
-                    "in_centrality": 0.0,
-                    "out_centrality": 0.0,
+                    "pagerank": 0.0,
                     "title": n_data.get("title", "Untitled"),
                     "summary": n_data.get("summary", "")
                 })
             return results[:limit]
 
-        in_centrality = nx.in_degree_centrality(subgraph)
-        out_centrality = nx.out_degree_centrality(subgraph)
+        pagerank_scores = nx.pagerank(subgraph)
         
         results = []
         for node in filtered_nodes:
             n_data = self.nx_graph.nodes[node]
             results.append({
                 "node_id": node,
-                "in_centrality": float(in_centrality.get(node, 0.0)),
-                "out_centrality": float(out_centrality.get(node, 0.0)),
+                "pagerank": float(pagerank_scores.get(node, 0.0)),
                 "title": n_data.get("title", "Untitled"),
                 "summary": n_data.get("summary", "")
             })
         
-        results.sort(key=lambda x: x["in_centrality"], reverse=True)
+        results.sort(key=lambda x: x["pagerank"], reverse=True)
         return results[:limit]
 
     def calculate_degree_centrality(self, top_n=10):
@@ -219,10 +216,10 @@ class MemoryGraph:
             
         from networkx.algorithms import community
         try:
-            communities = list(community.label_propagation_communities(g))
+            communities = list(community.louvain_communities(g))
         except Exception:
             try:
-                communities = list(community.louvain_communities(g))
+                communities = list(community.label_propagation_communities(g))
             except Exception:
                 communities = list(nx.connected_components(g))
             

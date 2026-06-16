@@ -2,11 +2,14 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import Database from 'better-sqlite3';
+import { findPythonCommand } from '../../bin/python-command';
 
 describe('Vector Search Engine', () => {
   const scriptPath = path.join(process.cwd(), 'bin', 'vector_search.py');
+  const pythonCommand = findPythonCommand();
+  if (!pythonCommand) throw new Error('No Python executable found for vector_search.py tests');
 
   it('runs search in TF-IDF fallback mode when SQLite database is missing', () => {
     // Create a temporary directory without a .agent/memory.sqlite database
@@ -19,7 +22,7 @@ describe('Vector Search Engine', () => {
     fs.writeFileSync(path.join(srcDir, 'utils.js'), 'function formatDate(d) { return d.toISOString(); }');
 
     try {
-      const output = execSync(`py "${scriptPath}" "login"`, {
+      const output = execFileSync(pythonCommand, [scriptPath, 'login'], {
         cwd: tempDir,
         encoding: 'utf8',
         stdio: ['pipe', 'pipe', 'ignore'] // ignore stderr to hide the fallback message
@@ -105,7 +108,7 @@ describe('Vector Search Engine', () => {
     db.close();
 
     try {
-      const output = execSync(`py "${scriptPath}" "login"`, {
+      const output = execFileSync(pythonCommand, [scriptPath, 'login'], {
         cwd: tempDir,
         encoding: 'utf8'
       });

@@ -41,8 +41,8 @@ def test_single_isolated_node():
         god = graph.get_god_nodes()
         assert len(god) == 1
         assert god[0]["node_id"] == "lone_node.py"
-        assert god[0]["in_centrality"] == 0.0
-        assert god[0]["out_centrality"] == 0.0
+        assert god[0]["pagerank"] == 0.0
+        assert god[0]["pagerank"] == 0.0
         
         # Surprising connections on single node (less than 2 nodes, should return empty list)
         surprising = graph.get_surprising_connections()
@@ -60,8 +60,7 @@ def test_multiple_isolated_nodes():
         god = graph.get_god_nodes()
         assert len(god) == 5
         for n in god:
-            assert n["in_centrality"] == 0.0
-            assert n["out_centrality"] == 0.0
+            assert abs(n["pagerank"] - 0.2) < 1e-4
             
         surprising = graph.get_surprising_connections()
         assert surprising == []
@@ -96,12 +95,14 @@ def test_disconnected_subgraphs():
         # Others have 0.0 in-centrality.
         b_node = next(x for x in god if x["node_id"] == "b.py")
         d_node = next(x for x in god if x["node_id"] == "d.js")
-        assert b_node["in_centrality"] == 0.25
-        assert d_node["in_centrality"] == 0.25
+        a_node = next(x for x in god if x["node_id"] == "a.py")
+        c_node = next(x for x in god if x["node_id"] == "c.js")
+        assert b_node["pagerank"] > a_node["pagerank"]
+        assert d_node["pagerank"] > c_node["pagerank"]
         
         # Out centrality: a.py and c.js should have 1/4 = 0.25.
         a_node = next(x for x in god if x["node_id"] == "a.py")
-        assert a_node["out_centrality"] == 0.25
+
         
         # Let's test surprising connections (should be empty since no edges cross components, and no language-crossing edges exist)
         surprising = graph.get_surprising_connections()
@@ -127,7 +128,7 @@ def test_self_loops():
         # self.py out-centrality: self -> self and self -> other
         # NetworkX out_degree_centrality: self has out_degree=2. Centrality = 2/1 = 2.0 (networkx allows > 1 for self loops)
         self_node = next(x for x in god if x["node_id"] == "self.py")
-        assert self_node["out_centrality"] > 0
+        assert self_node["pagerank"] > 0
     finally:
         cleanup_db(db_path)
 

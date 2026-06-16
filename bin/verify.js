@@ -10,6 +10,7 @@ const { execSync } = require('node:child_process');
 const { z } = require('zod');
 const { applyPatch } = require('./patch');
 const contextAssembler = require('./context');
+const { sandboxPathFor } = require('./sandbox-path');
 
 // 1. Zod Contract Schema
 const ContractSchema = z.object({
@@ -89,8 +90,7 @@ function verifyContract(contractPath, patchPath, sandboxDir = null) {
     // 2. Perform Workspace Patch Dry-run and Write (only if patchContent is loaded/not null)
     if (patchContent !== null) {
       for (const filePath of contract.targetFiles) {
-        const absFilePath = path.resolve(filePath);
-        const targetPath = sandboxDir ? path.resolve(sandboxDir, path.relative(process.cwd(), absFilePath)) : filePath;
+        const targetPath = sandboxDir ? sandboxPathFor(sandboxDir, filePath) : filePath;
         
         if (sandboxDir) {
           const dir = path.dirname(targetPath);
@@ -140,8 +140,7 @@ function verifyContract(contractPath, patchPath, sandboxDir = null) {
     if (contract.rules) {
       const rules = contract.rules;
       for (const filePath of contract.targetFiles) {
-        const absFilePath = path.resolve(filePath);
-        const targetPath = sandboxDir ? path.resolve(sandboxDir, path.relative(process.cwd(), absFilePath)) : filePath;
+        const targetPath = sandboxDir ? sandboxPathFor(sandboxDir, filePath) : filePath;
         
         let contentPath = targetPath;
         if (sandboxDir && !fs.existsSync(targetPath)) {

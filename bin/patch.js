@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const astTransform = require('./ast_transform.js');
+const { sandboxPathFor } = require('./sandbox-path');
 
 /**
  * Creates a unified diff between original and modified content.
@@ -447,9 +448,7 @@ function createWorkspace() {
 
           // Write the memory-modified files from virtualCache to their corresponding paths in sandboxDir
           for (const [filePath, content] of virtualCache.entries()) {
-            const absFilePath = path.resolve(filePath);
-            const relativePath = path.relative(process.cwd(), absFilePath);
-            const targetPath = path.resolve(sandboxDir, relativePath);
+            const targetPath = sandboxPathFor(sandboxDir, filePath);
             const dir = path.dirname(targetPath);
             if (!fs.existsSync(dir)) {
               fs.mkdirSync(dir, { recursive: true });

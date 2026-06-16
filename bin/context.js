@@ -2,6 +2,7 @@ const ts = require('typescript');
 const fs = require('node:fs');
 const path = require('node:path');
 const beadsDB = require('./db');
+const { findPythonCommand } = require('./python-command');
 
 
 /**
@@ -79,6 +80,29 @@ class ContextAssembler {
     return false;
   }
 
+  hasSensitiveContent(filePath) {
+    try {
+      const fs = require('node:fs');
+      const fd = fs.openSync(filePath, 'r');
+      const buffer = Buffer.alloc(100 * 1024);
+      const bytesRead = fs.readSync(fd, buffer, 0, buffer.length, 0);
+      fs.closeSync(fd);
+      if (bytesRead === 0) return false;
+      const content = buffer.toString('utf8', 0, bytesRead);
+      const sensitiveRegexes = [
+        /BEGIN (RSA|OPENSSH|DSA|EC|PGP) PRIVATE KEY/i,
+        /["']?(?:api_key|apikey|secret_key|secret|token|password|passwd|pwd|auth_token|access_token)["']?\s*[:=]\s*["'][a-zA-Z0-9_\-\.]{10,}["']/i,
+        /ghp_[a-zA-Z0-9]{36}/,
+        /xox[baprs]-[a-zA-Z0-9]{10,}/,
+        /AKIA[0-9A-Z]{16}/
+      ];
+      for (const regex of sensitiveRegexes) {
+        if (regex.test(content)) return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
   isZipBomb(filePath) {
     let fd;
     try {
@@ -113,7 +137,7 @@ class ContextAssembler {
       
       const ratio = totalUncompressed / (totalCompressed || 1);
       if (ratio > 200) return true;
-      if (totalUncompressed > 500 * 1024 * 1024) return true; // 500MB safety limit
+      if (totalUncompressed > 50 * 1024 * 1024) return true; // 50MB safety limit
       
       return false;
     } catch (e) {
@@ -205,6 +229,10 @@ class ContextAssembler {
         const sqlRegex = /--#\s*import\s+["']?([\w\-./\\]+)["']?/g;
         let match;
         while ((match = sqlRegex.exec(content)) !== null) {
+          imports.push(match[1]);
+        }
+        const depsRegex = /\b(?:FROM|JOIN)\s+([a-zA-Z0-9_]+)/gi;
+        while ((match = depsRegex.exec(content)) !== null) {
           imports.push(match[1]);
         }
         break;
@@ -413,6 +441,7 @@ class ContextAssembler {
       const absPath = path.resolve(file);
       if (this.isSensitivePath(absPath)) continue;
       if (this.isZipBomb(absPath)) continue;
+      if (this.hasSensitiveContent(absPath)) continue;
       if (visited.has(absPath) || !fs.existsSync(absPath)) continue;
       visited.add(absPath);
 
@@ -476,6 +505,7 @@ class ContextAssembler {
             scanDir(fullPath, depth + 1);
           } else {
             if (this.isZipBomb(fullPath)) continue;
+            if (this.hasSensitiveContent(fullPath)) continue;
             
             const ext = path.extname(item.name);
             let resolvedExt = ext;
@@ -569,12 +599,17 @@ class ContextAssembler {
     let vectorScores = {};
     if (task) {
       try {
-        const { execSync } = require('node:child_process');
+        const { execFileSync } = require('node:child_process');
+        const pythonCommand = findPythonCommand();
+        if (!pythonCommand) throw new Error('Python executable not found');
         const scriptPath = path.join(__dirname, 'vector_search.py');
-        const output = execSync(`py "${scriptPath}" "${task.replace(/"/g, '\\"')}"`, { encoding: 'utf8' });
+        const output = execFileSync(pythonCommand, [scriptPath, task], {
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'ignore']
+        });
         vectorScores = JSON.parse(output.trim());
       } catch (err) {
-        // Fallback silently if py fails
+        // Fallback silently if vector search is unavailable.
       }
     }
 
@@ -719,6 +754,7 @@ class ContextAssembler {
             scanDir(fullPath, depth + 1);
           } else {
             if (this.isZipBomb(fullPath)) continue;
+            if (this.hasSensitiveContent(fullPath)) continue;
 
             const ext = path.extname(item.name);
             let resolvedExt = ext;
@@ -894,16 +930,49 @@ class ContextAssembler {
       communities.get(groupName).push({ file, relPath });
     }
 
+    // --- PageRank Calculation ---
+    const pagerank = new Map();
+    const d = 0.85; // Damping factor
+    const numNodes = files.length || 1;
+    for (const f of files) pagerank.set(f, 1 / numNodes);
+
+    const maxIters = 20;
+    for (let i = 0; i < maxIters; i++) {
+      const newPr = new Map();
+      let danglingSum = 0;
+      for (const f of files) {
+        const deps = dependencies.get(f) || [];
+        if (deps.length === 0) {
+          danglingSum += pagerank.get(f);
+        }
+      }
+      
+      for (const f of files) {
+        let sum = 0;
+        for (const other of files) {
+          const otherDeps = dependencies.get(other) || [];
+          if (otherDeps.includes(f)) {
+            sum += pagerank.get(other) / otherDeps.length;
+          }
+        }
+        newPr.set(f, (1 - d) / numNodes + d * (sum + danglingSum / numNodes));
+      }
+      for (const f of files) pagerank.set(f, newPr.get(f));
+    }
+
     let mermaid = 'graph TD\n';
     const fileToId = new Map();
 
+    let communityIdCounter = 1;
     for (const [group, groupFiles] of communities.entries()) {
       const safeGroupName = group.replace(/[^a-zA-Z0-9]/g, '_');
-      mermaid += `  subgraph Community_${safeGroupName} ["${group}"]\n`;
+      const communityId = communityIdCounter++;
+      mermaid += `  subgraph Community_${safeGroupName} ["${group} (Community ${communityId})"]\n`;
       for (const item of groupFiles) {
         const fileId = item.relPath.replace(/[^a-zA-Z0-9]/g, '_');
         fileToId.set(item.file, fileId);
-        mermaid += `    ${fileId}["${item.relPath}"]\n`;
+        const prScore = (pagerank.get(item.file) || 0).toFixed(4);
+        mermaid += `    ${fileId}["${item.relPath}"]\n    click ${fileId} tooltip "PageRank: ${prScore}, Community: ${communityId}"\n`;
       }
       mermaid += '  end\n';
     }
@@ -912,10 +981,18 @@ class ContextAssembler {
     for (const file of files) {
       const fromId = fileToId.get(file);
       const deps = dependencies.get(file) || [];
+      const fromCommunity = path.dirname(path.relative(process.cwd(), file).replace(/\\/g, '/'));
       for (const dep of deps) {
         const toId = fileToId.get(dep);
         if (fromId && toId) {
-          mermaid += `  ${fromId} --> ${toId}\n`;
+          const toCommunity = path.dirname(path.relative(process.cwd(), dep).replace(/\\/g, '/'));
+          if (fromCommunity !== toCommunity) {
+            mermaid += `  ${fromId} ==>|Bridge| ${toId}\n`;
+            mermaid += `  style ${fromId} stroke:#f39c12,stroke-width:2px\n`;
+            mermaid += `  style ${toId} stroke:#f39c12,stroke-width:2px\n`;
+          } else {
+            mermaid += `  ${fromId} --> ${toId}\n`;
+          }
           linkCount++;
         }
       }

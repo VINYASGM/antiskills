@@ -47,8 +47,8 @@ def test_get_god_nodes_single_node():
         god_nodes = graph.get_god_nodes(limit=10)
         assert len(god_nodes) == 1
         assert god_nodes[0]["node_id"] == "only_one.py"
-        assert god_nodes[0]["in_centrality"] == 0.0
-        assert god_nodes[0]["out_centrality"] == 0.0
+        assert god_nodes[0]["pagerank"] == 0.0
+        assert god_nodes[0]["pagerank"] == 0.0
     finally:
         if os.path.exists(db_path):
             os.remove(db_path)
@@ -63,8 +63,7 @@ def test_get_god_nodes_isolated_nodes():
         god_nodes = graph.get_god_nodes(limit=10)
         assert len(god_nodes) == 3
         for node in god_nodes:
-            assert node["in_centrality"] == 0.0
-            assert node["out_centrality"] == 0.0
+            assert abs(node["pagerank"] - 1/3) < 1e-4
     finally:
         if os.path.exists(db_path):
             os.remove(db_path)

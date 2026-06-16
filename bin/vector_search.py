@@ -160,7 +160,8 @@ def main():
         print(json.dumps(results))
         return
     except Exception as e:
-        sys.stderr.write(f"ONNX search failed, falling back to TF-IDF: {str(e)}\n")
+        if os.environ.get("VEYRA_VECTOR_SEARCH_VERBOSE") == "1":
+            sys.stderr.write(f"ONNX search failed, falling back to TF-IDF: {str(e)}\n")
     
     # Discover files for TF-IDF fallback
     exclude_dirs = {'node_modules', '.git', 'dist', 'build', '.next', 'scratch', 'memory', '.agent'}

@@ -43,7 +43,7 @@ def test_get_god_nodes():
         
         # core_logic.py has higher in-degree centrality than helper/database
         assert god_nodes[0]["node_id"] == "core_logic.py"
-        assert god_nodes[0]["in_centrality"] > 0
+        assert god_nodes[0]["pagerank"] > 0
     finally:
         if os.path.exists(db_path):
             os.remove(db_path)
