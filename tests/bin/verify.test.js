@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import zlib from 'node:zlib';
 import { parseContract, verifyContract } from '../../bin/verify';
 import { createPatch } from '../../bin/patch';
 import { sandboxPathFor } from '../../bin/sandbox-path';
@@ -346,6 +347,60 @@ describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
       expect(result.success).toBe(true);
     } finally {
       process.chdir(originalCwd);
+    }
+  });
+
+  it('AI-Native Debugging Bridge generates kernel_panic_report.json.gz on proof failure', async () => {
+    const reportPath = path.resolve(process.cwd(), 'memory/evidence/kernel_panic_report.json.gz');
+    if (fs.existsSync(reportPath)) {
+      fs.unlinkSync(reportPath);
+    }
+
+    // 1. Setup a file in sandbox/tempDir with TypeScript content
+    const testFile = 'failing_file.ts';
+    const testFilePath = path.join(tempDir, testFile);
+    fs.writeFileSync(testFilePath, 'const myVar = 123;\n', 'utf8');
+
+    // 2. Setup a contract with a failing proof command that outputs a compiler-like error format
+    const contract = {
+      contractId: 'ct-bridge-fail',
+      taskId: 'bd-bridge-fail',
+      targetFiles: [testFile],
+      formalProofs: [
+        {
+          type: 'compile-fail',
+          command: 'node -e "console.error(\'failing_file.ts:1:7: error TS1234: test error message\'); process.exit(1)"'
+        }
+      ]
+    };
+    fs.writeFileSync(contractPath, JSON.stringify(contract, null, 2), 'utf8');
+
+    // 3. Run verifyContract
+    const result = await verifyContract(contractPath, null, tempDir);
+    expect(result.success).toBe(false);
+
+    // 4. Assert report was created
+    expect(fs.existsSync(reportPath)).toBe(true);
+
+    // 5. Decompress and parse the report
+    const compressed = fs.readFileSync(reportPath);
+    const decompressed = zlib.gunzipSync(compressed).toString('utf8');
+    const parsed = JSON.parse(decompressed);
+
+    expect(parsed.rawError).toContain('test error message');
+    expect(parsed.location).not.toBeNull();
+    expect(parsed.location.filePath).toContain(testFile);
+    expect(parsed.location.line).toBe(1);
+    expect(parsed.location.column).toBe(7);
+
+    expect(parsed.astNode).not.toBeNull();
+    expect(parsed.astNode.kindName).toBe('Identifier');
+    expect(parsed.astNode.name).toBe('myVar');
+    expect(parsed.astNode.text).toBe('myVar');
+
+    // Cleanup
+    if (fs.existsSync(reportPath)) {
+      fs.unlinkSync(reportPath);
     }
   });
 });

@@ -51,6 +51,8 @@ AI coding agents suffer from nine systemic architectural failures at scale, whic
     - *V4 Solution:* **Graphify Enrichment Core.** Porting Graphify-style capabilities including secrets/zip-bomb screening, multi-language parser fallbacks, NetworkX graph metrics, and interactive browser HTML trees/flowcharts to optimize swarm context and safety.
 11. **Supply Chain Vulnerabilities:** Integration of unvetted third-party npm packages can introduce critical security risks to the runtime environment.
     - *V4 Solution:* **OSV.dev Supply Chain Security Checks.** Integrates automatic queries to the OSV.dev vulnerability database via HTTPS to scan runtime dependencies and lockfiles, halting execution on detected threats with offline mock fallbacks.
+12. **Blind Verification Failures & Diagnostics Gap:** When verification proofs fail, agents receive raw command stderr with no structural code insight, leading to repeated blind attempts.
+    - *V4 Solution:* **AI-Native Debugging Bridge.** Catch command failures, parse stderr to extract the error location (file, line, column), query the TypeScript AST to find the deepest node at that position, and output a gzipped JSON report containing raw error and structural context.
 
 ---
 
@@ -109,13 +111,17 @@ Enhances Veyra's static code indexing and context assembly with secrets/sensitiv
 Extends the AST transformation engine (`bin/ast_transform.js`) to support programmatic operations for classes, decorators, JSX/TSX elements, and interface/type declarations. Wires AST manipulations into CLI commands, semantic conflict detectors, and agent swarm prompt instructions.
 
 ### 4.10 Multimodal VLM Layout Auditing (Milestone 22)
-Provides automated visual regression and responsive layout verification using vision-language models (VLMs) and headless browsers. Key aspects:
+Provides automated visual regression and responsive layout verification using vision-language models (VLMs), headless browsers, and a deterministic geometric assertion engine. Key aspects:
 - **Placeholder PNG Mockups Auto-Generation:** Automatically generates default design mockup images under `memory/design/figma_desktop.png`, `memory/design/figma_tablet.png`, and `memory/design/figma_mobile.png` if they are missing, ensuring stable comparison baselines.
-- **Base64 Responsive Payload Encoding:** Loads current runtime screenshots (`viewport_desktop.png`, `viewport_tablet.png`, `viewport_mobile.png`) alongside their corresponding Figma design mockups, converting both sets into base64 data URIs for vision model ingestion.
+- **Responsive DOM Structure Capture:** Captures DOM structure elements for all viewports (mobile, tablet, desktop) including computed padding styles (`paddingTop`, `paddingRight`, `paddingBottom`, `paddingLeft`) and serializes them to `dom_structure_mobile.json`, `dom_structure_tablet.json`, `dom_structure_desktop.json`, and `dom_structure.json` (as a copy of desktop for backward compatibility).
+- **Figma Layout Spec Check:** Compares bounding boxes of key elements (`header`, `sidebar`, `main-content`, `submit-btn`) against reference specifications defined in `checklists/figma-layout.json` within configurable coordinates and dimension tolerances.
+- **Overlap & Collision Detection:** Detects layout overlaps and collisions between sibling elements in the layout, excluding nested parent-child elements (determined geometrically via coordinate containment).
+- **Mobile Touch Target Validation:** Enforces touch target sizing check (minimum 44x44px dimensions) for all mobile interactive elements.
+- **Baseline Grid Alignment Verification:** Validates that positions (coordinates `x`, `y`) and padding values are aligned to the baseline grid as multiples of 4px.
+- **Base64 Responsive Payload Encoding:** Loads current runtime screenshots alongside their corresponding Figma design mockups, converting both sets into base64 data URIs for vision model ingestion.
 - **Gemini VLM Layout Auditing:** Submits responsive screenshots and Figma mockups side-by-side to the Gemini API (`gemini-1.5-flash`) for comprehensive structural, alignment, typographic, and contrast audits, provided `GEMINI_API_KEY` is configured in the environment.
-- **Deterministic Coordinate and Failover Audits:** Executes a fallback local check against `dom_structure.json` if the VLM is unreachable or disabled, checking coordinates, inspecting elements for forbidden IDs (such as `'low-contrast-text'`), and checking the `MOCK_VLM_FAIL=true` override flag.
-- **Comprehensive Visual Report Output:** Generates structured execution reports inside `memory/evidence/visual/vlm_audit_report.json`, along with separate viewport-specific breakdown report files.
-- **Automated CI Assertions:** Implements strict automated verification; returns exit code 1 if layout violations or contrast issues are detected, and logs success details and returns exit code 0 if the visual audit passes.
+- **Deterministic Failover Audits:** Executes local fallback layout assertions (bounding box mismatch, overlap, touch target, grid alignment, low-contrast-text, and layout shift checking) when VLM is unreachable or disabled.
+- **Unified Visual & Accessibility Report Output:** Merges standard accessibility violations from the Go audit engine with the visual/layout audit findings, writing a unified audit report `vlm_audit_report.json` and a comprehensive breakdown in `audit_summary.log`. Returns exit code 1 if critical or high layout/accessibility violations are found, and exits with 0 otherwise.
 
 ### 4.11 Concurrency & File Locking (Milestone 23)
 Integrates file-level locking (`proper-lockfile`) in the memory database module (`bin/db.js`) to secure JSON file-per-bead write transactions against concurrent agent write race conditions, using synchronous retry loops and robust try/finally cleanup semantics.
@@ -136,6 +142,12 @@ Automated supply chain security queries targeting the OSV.dev API. Scans project
 
 ### 4.15 Agent Audit Observability Logging
 A structured, append-only JSON Lines logging system (`agent-audit.jsonl`) that records fine-grained agent action details, including timestamps, agent IDs, tool calls, status codes, and execution duration.
+
+### 4.16 AI-Native Debugging Bridge (`bin/kernel_panic.js`)
+Acts as a kernel panic monitoring service. Parses stderr of failed verification commands to resolve file paths, lines, and columns. Runs the Microsoft TypeScript compiler API on the failing file to traverse the AST and extract details of the deepest node at the failure coordinate, compiling a compressed report in `memory/evidence/kernel_panic_report.json.gz`.
+
+### 4.17 Model Context Protocol (MCP) Server CLI Integration
+A native Node.js-based Model Context Protocol (MCP) server running over standard input/output (stdio) using JSON-RPC 2.0. Exposes standard Veyra operations (`get_status`, `create_bead`, `list_beads`, and `update_bead`) as MCP tools, allowing external LLM clients to query and manipulate Veyra's database dynamically.
 
 ---
 

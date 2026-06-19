@@ -12,6 +12,7 @@ const { applyPatch } = require('./patch');
 const contextAssembler = require('./context');
 const { sandboxPathFor } = require('./sandbox-path');
 const https = require('node:https');
+const { handleKernelPanic } = require('./kernel_panic');
 
 function checkOfflineMock(packageName, version) {
   const vulnerableMocks = {
@@ -295,6 +296,11 @@ async function verifyContract(contractPath, patchPath, sandboxDir = null) {
         logs.push(execOutput.trim().split('\n').map(l => `  stdout: ${l}`).slice(0, 5).join('\n')); // Log sample stdout
       } catch (execErr) {
         const errDetails = execErr.stderr ? execErr.stderr.toString() : execErr.message;
+        try {
+          handleKernelPanic(execErr, sandboxDir);
+        } catch (bridgeErr) {
+          // Silent catch to prevent masking primary command failure
+        }
         throw new Error(`Proof [${proof.type}] Failed! Command: "${proof.command}". Details: ${errDetails}`);
       }
     }

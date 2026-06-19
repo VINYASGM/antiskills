@@ -96,6 +96,7 @@ To scale memory to extremely large codebases without blowing out token budgets:
 - **Intent Registry:** Agents broadcast planned files, styling tokens, database columns, and endpoints to the lockfile-backed JSON intent file.
 - **Formal Verification:** Proposed unified patch files (`patch.js`) are checked by the `verify.js` engine, running precise linters, TypeScript compilations, and Vitest test suites.
 - **Atomic Commits:** Patch is applied to the physical directory *only* after satisfying all contract proofs, keeping the main branch consistently green.
+- **AI-Native Debugging Bridge:** When a verification step fails, the `verify.js` engine hooks the failure, extracts the stderr trace, parses it to resolve file coordinates, uses the Microsoft TypeScript AST compiler API to locate the deepest failing AST node, and exports a gzipped diagnostic report to `memory/evidence/kernel_panic_report.json.gz`.
 
 ---
 
@@ -190,15 +191,16 @@ flowchart TD
     BASE64 --> GEMINI_VLM
     GEMINI_VLM -->|Audits Layout & Contrast| VLM_RESULT[VLM Audit Result]
     
-    KEY_CHECK -->|No / Failover| FALLBACK["Fallback Coordinate Auditor"]
-    DOM["dom_structure.json"] --> FALLBACK
-    FALLBACK -->|Checks Low Contrast ID / MOCK_VLM_FAIL| FALLBACK_RESULT[Fallback Audit Result]
+    KEY_CHECK -->|No / Failover| FALLBACK["Fallback Coordinate Auditor & Assertion Engine"]
+    DOM["dom_structure_mobile/tablet/desktop.json"] --> FALLBACK
+    FALLBACK -->|Checks Bounding-box tolerance / Overlaps / Touch Target / Grid Alignment / Low Contrast ID| FALLBACK_RESULT[Fallback Audit Result]
     
-    VLM_RESULT & FALLBACK_RESULT -->|5. Compile Reports| REPORTS["Report Generator"]
+    VLM_RESULT & FALLBACK_RESULT -->|5. Compile Unified Report| REPORTS["Report Generator & A11y Aggregator"]
+    GO_A11Y["Go Accessibility Violations"] --> REPORTS
     REPORTS -->|Save| SUMMARY_JSON["vlm_audit_report.json<br>(memory/evidence/visual/)"]
     REPORTS -->|Save| VIEWPORT_JSON["Viewport reports:<br>vlm_audit_desktop/tablet/mobile.json"]
     
-    REPORTS -->|6. Assert Layout Quality| ASSERT{Violations Found?}
+    REPORTS -->|6. Assert Layout & A11y Quality| ASSERT{Violations Found?}
     ASSERT -->|Yes| EXIT_1["Exit Code 1 (Fail CI)"]
     ASSERT -->|No| EXIT_0["Exit Code 0 & Write Log (Pass CI)"]
 ```
@@ -207,8 +209,8 @@ flowchart TD
 - **Figma Mockup Auto-Generator:** Automatically checks if Figma design mockups (`figma_desktop.png`, `figma_tablet.png`, and `figma_mobile.png`) exist in `memory/design/`. If missing, it dynamically generates placeholder images to ensure consistent comparison data is available.
 - **Base64 Responsive Loader:** Reads the captured responsive screenshots (`viewport_desktop.png`, `viewport_tablet.png`, `viewport_mobile.png`) alongside the Figma mockups and encodes them into base64 format for payload transport.
 - **Gemini API Integration:** When a `GEMINI_API_KEY` is present, screenshots and mockups are transmitted to the `gemini-1.5-flash` model with visual layout and contrast check instructions.
-- **Fallback Coordinate Auditor:** Provides a deterministic fallback path. If the VLM check fails or is disabled (or if the `MOCK_VLM_FAIL=true` flag is set), the auditor inspects coordinates in `dom_structure.json` and flags failures if forbidden IDs such as `'low-contrast-text'` are found.
-- **CI Assertions & Report Generator:** Compiles audit results into `memory/evidence/visual/vlm_audit_report.json` and viewport-specific breakdown files. If violations or contrast problems are found, it triggers a non-zero exit status (`exit 1`) to block CI builds. On success, it logs audit output and exits cleanly (`exit 0`).
+- **Deterministic Geometric Assertion Engine:** Executes local fallback layout assertions. It loads `checklists/figma-layout.json` to verify bounding boxes of key layout elements (`header`, `sidebar`, `main-content`, `submit-btn`) against specified coordinate tolerances; runs overlap/collision checks between sibling elements (excluding nested parent-child elements via coordinate containment); verifies mobile touch targets (>= 44x44px for interactive elements); and validates baseline grid alignment (checking positions and paddings as multiples of 4px).
+- **A11y & CI Assertions Aggregator:** Removes early exits during accessibility audits, combining Go accessibility violations with Node local layout/VLM violations. Compiles the master report `memory/evidence/visual/vlm_audit_report.json` and viewport breakdown files. If any high or critical violations exist, it exits with `exit 1` to fail CI, otherwise writing `audit_summary.log` and exiting cleanly (`exit 0`).
 
 ## 9. Concurrency & JSON File Locking (Milestone 23)
 To ensure write-safety across concurrent agent executions, the database engine implements file-level locking:
@@ -231,6 +233,14 @@ Decoupled multi-agent execution relies on asynchronous pub/sub worker coordinati
 2. **Daemon Polling Loop:** A background microservice (`bin/daemon.js`) polls the JSON event bus every 500ms, subscribing to topics to mark them completed.
 3. **Dependency Cascading:** Tracks dependencies of open/failed beads. When a dependency fails, the failure cascades downstream to dependents. If all parent dependencies are resolved, the daemon routes/allocates the task to the primary role via `bin/router.js` and publishes `task_allocated`.
 4. **Startup Sweep & CLI Integration:** Boot time runs a sweep to recover stale tasks. Background execution is managed via CLI (`daemon start [--background]`, `daemon stop`, `daemon status`, `daemon run`).
+
+---
+
+## 10.6 Model Context Protocol (MCP) Server CLI Integration
+External LLMs and workflows communicate with Veyra's task database using a standard Model Context Protocol (MCP) interface over standard I/O (stdio):
+1. **JSON-RPC Protocol Layer:** Line-delimited JSON-RPC 2.0 messages are read from stdin and written to stdout, handling requests and ignoring notifications silently.
+2. **Tool Execution Dispatcher:** When the client requests `tools/call`, the dispatcher maps the tool name to database operations (calling `beadsDB.sync()`, `beadsDB.getAll()`, `beadsDB.create()`, or `beadsDB._writeToJSON()`) and returns standard MCP output formats.
+3. **CLI Bootstrapping:** Binds to the command `node bin/veyra.js mcp` to start the server in the foreground.
 
 ---
 

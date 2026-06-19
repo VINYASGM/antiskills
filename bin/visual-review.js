@@ -57,6 +57,7 @@ class VisualReviewRunner {
     } catch (err) {
       throw new Error(`Invalid target URL: ${targetUrl}`);
     }
+    this.targetUrl = targetUrl;
     console.log(`Target Address: ${targetUrl}`);
     console.log(`Responsive Viewports:`);
     console.log(` - Mobile (375x667)`);
@@ -85,6 +86,7 @@ class VisualReviewRunner {
     }
 
     // 2. Headless execution routing
+    this.goA11yViolations = [];
     if (useGo) {
       console.log('✔ Go Playwright engine detected. Executing visual and DOM captures...');
       try {
@@ -96,28 +98,7 @@ class VisualReviewRunner {
         console.log('♿ Running accessibility standard audit...');
         const auditJson = execSync(`"${goBinPath}" audit --url "${targetUrl}"`, { stdio: 'pipe' }).toString();
         const report = JSON.parse(auditJson);
-
-        // Compile standard Veyra visual audit log
-        let logContent = `=========================================
-VEYRA VISUAL AUDIT LOGS — ACTIVE REPORT
-=========================================
-Target: ${targetUrl}
-Viewports captured: Mobile (375x667), Tablet (768x1024), Desktop (1440x900)
-A11y Violations Found: ${report.violations ? report.violations.length : 0}
-Generated at: ${new Date().toISOString()}
-=========================================`;
-
-        if (report.violations && report.violations.length > 0) {
-          logContent += '\n\nViolations:';
-          for (const v of report.violations) {
-            logContent += `\n - [${v.id}] Selector: ${v.selector}\n   Description: ${v.description}`;
-          }
-        } else {
-          logContent += '\n\n✔ No accessibility violations detected!';
-        }
-
-        fs.writeFileSync(path.join(this.evidenceDir, 'audit_summary.log'), logContent, 'utf8');
-        this.printSuccess();
+        this.goA11yViolations = report.violations || [];
       } catch (err) {
         console.error('✘ Go Playwright execution failed. Falling back...', err.message);
         this.runMockCapture();
@@ -162,6 +143,57 @@ Generated at: ${new Date().toISOString()}
     this.printSuccess();
   }
 
+  findMatchingElement(elements, key) {
+    if (!Array.isArray(elements)) return null;
+    return elements.find(el => {
+      if (!el) return false;
+      const id = el.id ? String(el.id).toLowerCase() : '';
+      const tagName = el.tagName ? String(el.tagName).toLowerCase() : '';
+      const classes = Array.isArray(el.classes) ? el.classes.map(c => String(c).toLowerCase()) : [];
+      
+      if (id === key.toLowerCase()) return true;
+      if (id.includes(key.toLowerCase())) return true;
+      if (classes.includes(key.toLowerCase())) return true;
+      if (key === 'header' && tagName === 'header') return true;
+      if (key === 'sidebar' && tagName === 'aside') return true;
+      if (key === 'main-content' && tagName === 'main') return true;
+      return false;
+    });
+  }
+
+  getOverlap(el1, el2) {
+    const xOverlap = Math.min(el1.x + el1.width, el2.x + el2.width) - Math.max(el1.x, el2.x);
+    const yOverlap = Math.min(el1.y + el1.height, el2.y + el2.height) - Math.max(el1.y, el2.y);
+    if (xOverlap > 0.01 && yOverlap > 0.01) {
+      // Check for nested parent-child elements based on containment
+      const contains1in2 = el2.x <= el1.x && el2.y <= el1.y && (el2.x + el2.width) >= (el1.x + el1.width) && (el2.y + el2.height) >= (el1.y + el1.height);
+      const contains2in1 = el1.x <= el2.x && el1.y <= el2.y && (el1.x + el1.width) >= (el2.x + el2.width) && (el1.y + el1.height) >= (el2.y + el2.height);
+      if (!contains1in2 && !contains2in1) {
+        return { xOverlap, yOverlap };
+      }
+    }
+    return null;
+  }
+
+  isInteractive(el) {
+    const tag = el.tagName ? String(el.tagName).toLowerCase() : '';
+    if (['button', 'a', 'input', 'select', 'textarea'].includes(tag)) {
+      return true;
+    }
+    if (el.id && (el.id.includes('btn') || el.id.includes('button') || el.id.includes('submit') || el.id.includes('interactive') || el.id.includes('click'))) {
+      return true;
+    }
+    if (el.classes && el.classes.some(c => c.includes('btn') || c.includes('button') || c.includes('clickable') || c.includes('interactive') || c.includes('click'))) {
+      return true;
+    }
+    return false;
+  }
+
+  isMultipleOf4(val) {
+    const rounded = Math.round(val);
+    return rounded % 4 === 0;
+  }
+
   /**
    * Performs VLM layout reviews (via Gemini API) or local coordinate fallbacks.
    * 
@@ -171,11 +203,25 @@ Generated at: ${new Date().toISOString()}
     const apiKey = process.env.GEMINI_API_KEY;
     const viewports = ['desktop', 'tablet', 'mobile'];
     const reports = {};
-    let allViolations = [];
+    let allLayoutViolations = [];
 
-    if (apiKey) {
-      console.log('🤖 Running Gemini Multimodal VLM Audits...');
-      for (const v of viewports) {
+    // Load figma-layout.json if it exists
+    let figmaLayout = null;
+    const figmaLayoutPath = path.join(process.cwd(), 'checklists', 'figma-layout.json');
+    if (fs.existsSync(figmaLayoutPath)) {
+      try {
+        figmaLayout = JSON.parse(fs.readFileSync(figmaLayoutPath, 'utf8'));
+      } catch (e) {
+        console.error('Failed to parse figma-layout.json:', e.message);
+      }
+    }
+
+    for (const v of viewports) {
+      const viewportViolations = [];
+
+      // A. Gemini VLM Audit path
+      if (apiKey) {
+        console.log(`🤖 Running Gemini Multimodal VLM Audit for ${v} viewport...`);
         const screenshotPath = path.join(this.evidenceDir, `viewport_${v}.png`);
         const figmaPath = path.join(this.designDir, `figma_${v}.png`);
 
@@ -263,140 +309,248 @@ Return a JSON object with:
             throw new Error('The visual auditor returned a malformed response: content fails to parse.');
           }
 
-          reports[v] = {
-            pass: !!auditReport.pass,
-            violations: Array.isArray(auditReport.violations) ? auditReport.violations : []
-          };
+          if (Array.isArray(auditReport.violations)) {
+            viewportViolations.push(...auditReport.violations);
+          }
         } catch (err) {
           console.error(`✘ Gemini API call failed for ${v} viewport:`, err.message);
-          reports[v] = {
-            pass: false,
-            violations: [{
-              id: `gemini-api-error-${v}`,
-              severity: 'critical',
-              description: `Gemini API call failed for ${v} viewport: ${err.message}`
-            }]
-          };
+          viewportViolations.push({
+            id: `gemini-api-error-${v}`,
+            severity: 'critical',
+            description: `Gemini API call failed for ${v} viewport: ${err.message}`
+          });
         }
       }
-    } else {
-      console.log('ℹ GEMINI_API_KEY not present. Performing local audits fallback...');
-      const localViolations = [];
 
+      // B. Local layout/geometric assertions (Always run, or as fallback)
       if (process.env.MOCK_VLM_FAIL === 'true') {
-        localViolations.push({
+        viewportViolations.push({
           id: 'mock-vlm-failure',
           severity: 'critical',
           description: 'Layout verification failed via MOCK_VLM_FAIL flag'
         });
       }
 
-      const liveDomPath = path.join(this.evidenceDir, 'dom_structure.json');
-      const baselineDomPath = path.join(this.designDir, 'dom_structure.json');
+      // Load DOM structure for this viewport
+      let liveDomPath = path.join(this.evidenceDir, `dom_structure_${v}.json`);
+      if (!fs.existsSync(liveDomPath)) {
+        // Fallback to dom_structure.json for backward compatibility (only if it exists)
+        liveDomPath = path.join(this.evidenceDir, 'dom_structure.json');
+      }
 
       if (fs.existsSync(liveDomPath)) {
         let liveElements = [];
         try {
           const liveContent = fs.readFileSync(liveDomPath, 'utf8');
           liveElements = JSON.parse(liveContent);
-          
-          if (Array.isArray(liveElements)) {
-            for (const el of liveElements) {
-              if (el && el.id === 'low-contrast-text') {
-                localViolations.push({
-                  id: 'low-contrast-text',
+        } catch (e) {
+          console.error(`Failed to parse live DOM structure for ${v}:`, e.message);
+        }
+
+        if (Array.isArray(liveElements)) {
+          // 1. Check for low-contrast-text
+          for (const el of liveElements) {
+            if (el && el.id === 'low-contrast-text') {
+              viewportViolations.push({
+                id: 'low-contrast-text',
+                severity: 'high',
+                description: 'Element with ID low-contrast-text detected'
+              });
+            }
+          }
+
+          // 2. Layout shift checks (comparing desktop to design baseline)
+          if (v === 'desktop') {
+            const baselineDomPath = path.join(this.designDir, 'dom_structure.json');
+            if (fs.existsSync(baselineDomPath)) {
+              try {
+                const baselineElements = JSON.parse(fs.readFileSync(baselineDomPath, 'utf8'));
+                if (Array.isArray(baselineElements)) {
+                  const baselineMap = {};
+                  for (const el of baselineElements) {
+                    if (el && el.id) {
+                      baselineMap[el.id] = el;
+                    }
+                  }
+                  for (const el of liveElements) {
+                    if (el && el.id && baselineMap[el.id]) {
+                      const baselineEl = baselineMap[el.id];
+                      const diffX = Math.abs(el.x - baselineEl.x);
+                      const diffY = Math.abs(el.y - baselineEl.y);
+                      if (diffX > 5 || diffY > 5) {
+                        viewportViolations.push({
+                          id: `layout-shift-${el.id}`,
+                          severity: 'high',
+                          description: `Layout shift for element #${el.id}: coordinates differ by more than 5px (baseline: [${baselineEl.x}, ${baselineEl.y}], live: [${el.x}, ${el.y}])`
+                        });
+                      }
+                    }
+                  }
+                }
+              } catch (e) {
+                console.error('Failed to run baseline shift check:', e.message);
+              }
+            } else {
+              try {
+                fs.writeFileSync(baselineDomPath, JSON.stringify(liveElements, null, 2), 'utf8');
+              } catch (e) {}
+            }
+          }
+
+          // 3. Figma layout spec bounding-box check
+          if (figmaLayout && figmaLayout[v]) {
+            for (const key of ['header', 'sidebar', 'main-content', 'submit-btn']) {
+              const expected = figmaLayout[v][key];
+              if (expected) {
+                const el = this.findMatchingElement(liveElements, key);
+                if (el) {
+                  const tolerance = expected.tolerance !== undefined ? expected.tolerance : 5;
+                  const diffX = Math.abs(el.x - expected.x);
+                  const diffY = Math.abs(el.y - expected.y);
+                  const diffW = Math.abs(el.width - expected.width);
+                  const diffH = Math.abs(el.height - expected.height);
+                  if (diffX > tolerance || diffY > tolerance || diffW > tolerance || diffH > tolerance) {
+                    viewportViolations.push({
+                      id: `figma-mismatch-${key}`,
+                      severity: 'high',
+                      description: `Figma layout mismatch for ${key} in ${v} viewport: expected [x:${expected.x}, y:${expected.y}, w:${expected.width}, h:${expected.height}] with tolerance ${tolerance}, got [x:${el.x}, y:${el.y}, w:${el.width}, h:${el.height}]`
+                    });
+                  }
+                } else if (expected.width > 0 && expected.height > 0) {
+                  viewportViolations.push({
+                    id: `figma-missing-${key}`,
+                    severity: 'high',
+                    description: `Required Figma element '${key}' not found in the live DOM for ${v} viewport`
+                  });
+                }
+              }
+            }
+          }
+
+          // 4. Overlap/collision detection check
+          for (let i = 0; i < liveElements.length; i++) {
+            for (let j = i + 1; j < liveElements.length; j++) {
+              const el1 = liveElements[i];
+              const el2 = liveElements[j];
+              if (!el1 || !el2) continue;
+              const overlap = this.getOverlap(el1, el2);
+              if (overlap) {
+                viewportViolations.push({
+                  id: `collision-${el1.id || el1.tagName}-${el2.id || el2.tagName}`,
                   severity: 'high',
-                  description: 'Element with ID low-contrast-text detected'
+                  description: `Collision detected between non-nested elements: '${el1.id || el1.tagName}' and '${el2.id || el2.tagName}' (overlap of ${overlap.xOverlap.toFixed(2)}px x ${overlap.yOverlap.toFixed(2)}px in viewport ${v})`
                 });
               }
             }
           }
 
-          if (fs.existsSync(baselineDomPath)) {
-            const baselineElements = JSON.parse(fs.readFileSync(baselineDomPath, 'utf8'));
-            if (Array.isArray(baselineElements) && Array.isArray(liveElements)) {
-              const baselineMap = {};
-              for (const el of baselineElements) {
-                if (el && el.id) {
-                  baselineMap[el.id] = el;
-                }
-              }
-
-              for (const el of liveElements) {
-                if (el && el.id && baselineMap[el.id]) {
-                  const baselineEl = baselineMap[el.id];
-                  const diffX = Math.abs(el.x - baselineEl.x);
-                  const diffY = Math.abs(el.y - baselineEl.y);
-                  if (diffX > 5 || diffY > 5) {
-                    localViolations.push({
-                      id: `layout-shift-${el.id}`,
-                      severity: 'high',
-                      description: `Layout shift for element #${el.id}: coordinates differ by more than 5px (baseline: [${baselineEl.x}, ${baselineEl.y}], live: [${el.x}, ${el.y}])`
-                    });
-                  }
+          // 5. Touch target sizing check (only on mobile)
+          if (v === 'mobile') {
+            for (const el of liveElements) {
+              if (el && this.isInteractive(el)) {
+                if (el.width < 44 || el.height < 44) {
+                  viewportViolations.push({
+                    id: `touch-target-size-${el.id || el.tagName}`,
+                    severity: 'high',
+                    description: `Touch target size check failed for interactive element '${el.id || el.tagName}': size is ${el.width}x${el.height}px, which is below the minimum 44x44px for mobile devices`
+                  });
                 }
               }
             }
-          } else {
-            fs.writeFileSync(baselineDomPath, liveContent, 'utf8');
           }
-        } catch (e) {
-          console.error('Failed to run DOM local check:', e.message);
+
+          // 6. Baseline grid alignment check: only check key elements or elements that match Figma keys
+          for (const key of ['header', 'sidebar', 'main-content', 'submit-btn']) {
+            const el = this.findMatchingElement(liveElements, key);
+            if (el) {
+              const xAlign = this.isMultipleOf4(el.x);
+              const yAlign = this.isMultipleOf4(el.y);
+              const ptAlign = this.isMultipleOf4(el.paddingTop || 0);
+              const prAlign = this.isMultipleOf4(el.paddingRight || 0);
+              const pbAlign = this.isMultipleOf4(el.paddingBottom || 0);
+              const plAlign = this.isMultipleOf4(el.paddingLeft || 0);
+              
+              if (!xAlign || !yAlign || !ptAlign || !prAlign || !pbAlign || !plAlign) {
+                const details = [];
+                if (!xAlign) details.push(`x (${el.x}px)`);
+                if (!yAlign) details.push(`y (${el.y}px)`);
+                if (!ptAlign) details.push(`paddingTop (${el.paddingTop}px)`);
+                if (!prAlign) details.push(`paddingRight (${el.paddingRight}px)`);
+                if (!pbAlign) details.push(`paddingBottom (${el.paddingBottom}px)`);
+                if (!plAlign) details.push(`paddingLeft (${el.paddingLeft}px)`);
+                
+                viewportViolations.push({
+                  id: `grid-alignment-${el.id || el.tagName}`,
+                  severity: 'high',
+                  description: `Baseline grid alignment violation on element '${el.id || el.tagName}': ${details.join(', ')} is not a multiple of 4px in viewport ${v}`
+                });
+              }
+            }
+          }
         }
       }
 
-      const hasCriticalOrHighLocal = localViolations.some(v => v.severity?.toLowerCase() === 'critical' || v.severity?.toLowerCase() === 'high');
-      const fallbackReport = {
+      // Store viewport specific report
+      const hasCriticalOrHighLocal = viewportViolations.some(violation => violation.severity?.toLowerCase() === 'critical' || violation.severity?.toLowerCase() === 'high');
+      reports[v] = {
         pass: !hasCriticalOrHighLocal,
-        violations: localViolations
+        violations: viewportViolations
       };
 
-      for (const v of viewports) {
-        reports[v] = fallbackReport;
-      }
+      allLayoutViolations.push(...viewportViolations);
     }
 
+    // Write viewport-specific JSON reports
     for (const v of viewports) {
       const reportPath = path.join(this.evidenceDir, `vlm_audit_report_${v}.json`);
       fs.writeFileSync(reportPath, JSON.stringify(reports[v], null, 2), 'utf8');
     }
 
-    for (const v of viewports) {
-      if (reports[v] && Array.isArray(reports[v].violations)) {
-        if (apiKey) {
-          allViolations.push(...reports[v].violations);
-        } else {
-          allViolations = reports[v].violations;
-          break;
-        }
-      }
-    }
+    // Combine Go accessibility violations with local layout/VLM violations
+    const a11yViolations = (this.goA11yViolations || []).map(v => ({
+      id: v.id,
+      severity: 'high',
+      description: `Accessibility violation: [${v.id}] at ${v.selector}: ${v.description}`
+    }));
+    const combinedViolations = [...a11yViolations, ...allLayoutViolations];
 
     const allViewportsPassed = viewports.every(v => reports[v] && reports[v].pass);
-    const hasCriticalOrHigh = allViolations.some(v => v.severity?.toLowerCase() === 'critical' || v.severity?.toLowerCase() === 'high');
+    const hasCriticalOrHigh = combinedViolations.some(v => v.severity?.toLowerCase() === 'critical' || v.severity?.toLowerCase() === 'high');
     const masterPass = allViewportsPassed && !hasCriticalOrHigh;
 
     const masterReport = {
       pass: masterPass,
-      violations: allViolations
+      violations: combinedViolations
     };
 
     const masterReportPath = path.join(this.evidenceDir, 'vlm_audit_report.json');
     fs.writeFileSync(masterReportPath, JSON.stringify(masterReport, null, 2), 'utf8');
 
-    if (!masterPass) {
-      console.error('\x1b[31m✘ Visual review audit failed with layout violations:\x1b[0m');
-      console.error(JSON.stringify(allViolations, null, 2));
-      process.exit(1);
-    } else {
-      const summary = `=========================================
+    // Compile active visual audit log
+    const targetUrl = this.targetUrl || 'http://localhost:3000';
+    let logContent = `=========================================
 VEYRA VISUAL AUDIT LOGS — ACTIVE REPORT
 =========================================
-All viewports passed visual and layout auditing!
-No critical or high severity violations detected.
+Target: ${targetUrl}
+Viewports captured: Mobile, Tablet, Desktop
+A11y Violations Found: ${a11yViolations.length}
+Layout/VLM Violations Found: ${allLayoutViolations.length}
+Total Violations: ${combinedViolations.length}
 Generated at: ${new Date().toISOString()}
 =========================================`;
-      fs.writeFileSync(path.join(this.evidenceDir, 'audit_summary.log'), summary, 'utf8');
+
+    if (combinedViolations.length > 0) {
+      logContent += '\n\nViolations:';
+      console.error(`Visual review audit failed with ${combinedViolations.length} violations:`);
+      for (const v of combinedViolations) {
+        logContent += `\n - [${v.id}] (Severity: ${v.severity}) ${v.description}`;
+        console.error(` - [${v.id}] (Severity: ${v.severity}) ${v.description}`);
+      }
+      fs.writeFileSync(path.join(this.evidenceDir, 'audit_summary.log'), logContent, 'utf8');
+      process.exit(1);
+    } else {
+      logContent += '\n\n✔ No accessibility violations detected.';
+      fs.writeFileSync(path.join(this.evidenceDir, 'audit_summary.log'), logContent, 'utf8');
       console.log('\x1b[32m✔ Visual review audit passed successfully.\x1b[0m');
       process.exit(0);
     }

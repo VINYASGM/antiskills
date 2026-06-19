@@ -216,16 +216,17 @@
     "semantic_keys": []
   },
   "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\verify.js": {
-    "mtime": 1781623910544,
+    "mtime": 1781854079305,
     "imports": [
       "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\patch.js",
       "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\context.js",
-      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\sandbox-path.js"
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\sandbox-path.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\kernel_panic.js"
     ],
     "semantic_keys": []
   },
   "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\veyra.js": {
-    "mtime": 1781624097830,
+    "mtime": 1781854303448,
     "imports": [
       "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\db.js",
       "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\context.js",
@@ -235,6 +236,7 @@
       "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\governance.js",
       "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\dashboard.js",
       "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\visual-review.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\veyra-mcp.js",
       "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\linter.js",
       "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\ast_transform.js",
       "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\event_bus.js",
@@ -246,7 +248,7 @@
     ]
   },
   "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\visual-review.js": {
-    "mtime": 1781360748968,
+    "mtime": 1781855817278,
     "imports": [],
     "semantic_keys": [
       "schema:mock-vlm-failure",
@@ -266,7 +268,7 @@
     "semantic_keys": []
   },
   "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\context\\file-manifests\\bd-500.json": {
-    "mtime": 1781624790379,
+    "mtime": 1781855959221,
     "imports": [],
     "semantic_keys": []
   },
@@ -1004,7 +1006,7 @@
     "semantic_keys": []
   },
   "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\verify.test.js": {
-    "mtime": 1781623933931,
+    "mtime": 1781854108240,
     "imports": [
       "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\verify.js",
       "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\patch.js",
@@ -1014,7 +1016,8 @@
       "schema:test",
       "schema:ping",
       "schema:test-fail",
-      "schema:echo"
+      "schema:echo",
+      "schema:compile-fail"
     ]
   },
   "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\veyra.test.js": {
@@ -1027,16 +1030,17 @@
     ]
   },
   "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\visual-testing\\audit.go": {
-    "mtime": 1779791525573,
+    "mtime": 1781854997485,
     "imports": [],
     "semantic_keys": [
-      "schema:missing-alt",
+      "schema:image-alt",
       "schema:missing-role",
-      "schema:color-contrast"
+      "schema:color-contrast",
+      "schema:label"
     ]
   },
   "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\visual-testing\\audit_test.go": {
-    "mtime": 1779791512102,
+    "mtime": 1781855701721,
     "imports": [],
     "semantic_keys": [
       "schema:bad-image",
@@ -1060,7 +1064,7 @@
     "semantic_keys": []
   },
   "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\visual-testing\\snapshot.go": {
-    "mtime": 1779791518057,
+    "mtime": 1781855682340,
     "imports": [],
     "semantic_keys": []
   },
@@ -1095,12 +1099,12 @@
     "semantic_keys": []
   },
   "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\checklists\\contract-bd-mock-sandbox-success.json": {
-    "mtime": 1781624790929,
+    "mtime": 1781855960551,
     "imports": [],
     "semantic_keys": []
   },
   "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\checklists\\contract-bd-mock-sandbox.json": {
-    "mtime": 1781624790922,
+    "mtime": 1781855959895,
     "imports": [],
     "semantic_keys": []
   },
@@ -1206,6 +1210,123 @@
   },
   "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\schannel-9caf2e6b70957eeb\\lib-schannel.json": {
     "mtime": 1781624778950,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-bsGoTs\\source.js": {
+    "mtime": 1781853416667,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-7ZNiSs\\source.js": {
+    "mtime": 1781853870531,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-5GVAll\\source.js": {
+    "mtime": 1781854039817,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-WPyswA\\source.js": {
+    "mtime": 1781854085414,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\kernel_panic.js": {
+    "mtime": 1781854074060,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-JMX6z6\\source.js": {
+    "mtime": 1781854115233,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-jGK5hp\\source.js": {
+    "mtime": 1781854171012,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-JjlFsp\\source.js": {
+    "mtime": 1781854268208,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-HenvXn\\source.js": {
+    "mtime": 1781854343265,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\veyra-mcp.js": {
+    "mtime": 1781854316066,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\db.js"
+    ],
+    "semantic_keys": [
+      "schema:object",
+      "schema:boolean",
+      "schema:string",
+      "schema:array",
+      "schema:task_state",
+      "schema:open",
+      "schema:text"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\mcp.test.js": {
+    "mtime": 1781854331583,
+    "imports": [],
+    "semantic_keys": [
+      "schema:in_progress"
+    ]
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-JHSWAq\\source.js": {
+    "mtime": 1781855199750,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-Wap9Px\\source.js": {
+    "mtime": 1781855217037,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-iPJ4O2\\source.js": {
+    "mtime": 1781855387305,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-zAvNQM\\source.js": {
+    "mtime": 1781855395499,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-ECSIT6\\source.js": {
+    "mtime": 1781855419221,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-CSrigo\\source.js": {
+    "mtime": 1781855592907,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-OmL9RD\\source.js": {
+    "mtime": 1781855655382,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-j4vWjx\\source.js": {
+    "mtime": 1781855858805,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\checklists\\figma-layout.json": {
+    "mtime": 1781855746221,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-3LzVgM\\source.js": {
+    "mtime": 1781855959219,
     "imports": [],
     "semantic_keys": []
   }

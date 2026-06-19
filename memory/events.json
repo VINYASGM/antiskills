@@ -244,5 +244,379 @@
     },
     "status": "pending",
     "timestamp": "2026-06-16T15:46:29.575Z"
+  },
+  {
+    "id": 33,
+    "topic": "task_requested",
+    "sender": "be-agent",
+    "payload": {
+      "file": "src/main.ts",
+      "action": "add_node"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:16:55.458Z"
+  },
+  {
+    "id": 36,
+    "topic": "governance_tripped",
+    "sender": "governance",
+    "payload": {
+      "transactionId": "3333",
+      "taskId": "bd-0003"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:16:55.740Z"
+  },
+  {
+    "id": 37,
+    "topic": "task_requested",
+    "sender": "be-agent",
+    "payload": {
+      "file": "src/main.ts",
+      "action": "add_node"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:24:29.326Z"
+  },
+  {
+    "id": 40,
+    "topic": "governance_tripped",
+    "sender": "governance",
+    "payload": {
+      "transactionId": "3333",
+      "taskId": "bd-0003"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:24:29.429Z"
+  },
+  {
+    "id": 41,
+    "topic": "task_requested",
+    "sender": "be-agent",
+    "payload": {
+      "file": "src/main.ts",
+      "action": "add_node"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:27:18.904Z"
+  },
+  {
+    "id": 44,
+    "topic": "governance_tripped",
+    "sender": "governance",
+    "payload": {
+      "transactionId": "3333",
+      "taskId": "bd-0003"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:27:18.977Z"
+  },
+  {
+    "id": 45,
+    "topic": "task_requested",
+    "sender": "be-agent",
+    "payload": {
+      "file": "src/main.ts",
+      "action": "add_node"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:28:04.621Z"
+  },
+  {
+    "id": 47,
+    "topic": "governance_tripped",
+    "sender": "governance",
+    "payload": {
+      "transactionId": "3333",
+      "taskId": "bd-0003"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:28:04.689Z"
+  },
+  {
+    "id": 48,
+    "topic": "task_requested",
+    "sender": "be-agent",
+    "payload": {
+      "file": "src/main.ts",
+      "action": "add_node"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:28:34.351Z"
+  },
+  {
+    "id": 49,
+    "topic": "governance_tripped",
+    "sender": "governance",
+    "payload": {
+      "transactionId": "3333",
+      "taskId": "bd-0003"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:28:34.489Z"
+  },
+  {
+    "id": 50,
+    "topic": "task_requested",
+    "sender": "be-agent",
+    "payload": {
+      "file": "src/main.ts",
+      "action": "add_node"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:29:30.067Z"
+  },
+  {
+    "id": 51,
+    "topic": "governance_tripped",
+    "sender": "governance",
+    "payload": {
+      "transactionId": "3333",
+      "taskId": "bd-0003"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:29:30.245Z"
+  },
+  {
+    "id": 52,
+    "topic": "task_requested",
+    "sender": "be-agent",
+    "payload": {
+      "file": "src/main.ts",
+      "action": "add_node"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:31:07.433Z"
+  },
+  {
+    "id": 53,
+    "topic": "governance_tripped",
+    "sender": "governance",
+    "payload": {
+      "transactionId": "3333",
+      "taskId": "bd-0003"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:31:07.610Z"
+  },
+  {
+    "id": 54,
+    "topic": "governance_tripped",
+    "sender": "governance",
+    "payload": {
+      "transactionId": "3333",
+      "taskId": "bd-0003"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:32:22.314Z"
+  },
+  {
+    "id": 55,
+    "topic": "task_requested",
+    "sender": "be-agent",
+    "payload": {
+      "file": "src/main.ts",
+      "action": "add_node"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:32:22.999Z"
+  },
+  {
+    "id": 56,
+    "topic": "task_requested",
+    "sender": "be-agent",
+    "payload": {
+      "file": "src/main.ts",
+      "action": "add_node"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:46:39.012Z"
+  },
+  {
+    "id": 57,
+    "topic": "governance_tripped",
+    "sender": "governance",
+    "payload": {
+      "transactionId": "3333",
+      "taskId": "bd-0003"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:46:39.879Z"
+  },
+  {
+    "id": 58,
+    "topic": "task_requested",
+    "sender": "be-agent",
+    "payload": {
+      "file": "src/main.ts",
+      "action": "add_node"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:46:56.073Z"
+  },
+  {
+    "id": 59,
+    "topic": "governance_tripped",
+    "sender": "governance",
+    "payload": {
+      "transactionId": "3333",
+      "taskId": "bd-0003"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:46:57.071Z"
+  },
+  {
+    "id": 60,
+    "topic": "task_requested",
+    "sender": "be-agent",
+    "payload": {
+      "file": "src/main.ts",
+      "action": "add_node"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:49:46.478Z"
+  },
+  {
+    "id": 61,
+    "topic": "governance_tripped",
+    "sender": "governance",
+    "payload": {
+      "transactionId": "3333",
+      "taskId": "bd-0003"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:49:47.374Z"
+  },
+  {
+    "id": 62,
+    "topic": "task_requested",
+    "sender": "be-agent",
+    "payload": {
+      "file": "src/main.ts",
+      "action": "add_node"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:49:54.451Z"
+  },
+  {
+    "id": 63,
+    "topic": "governance_tripped",
+    "sender": "governance",
+    "payload": {
+      "transactionId": "3333",
+      "taskId": "bd-0003"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:49:55.446Z"
+  },
+  {
+    "id": 64,
+    "topic": "task_requested",
+    "sender": "be-agent",
+    "payload": {
+      "file": "src/main.ts",
+      "action": "add_node"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:50:18.318Z"
+  },
+  {
+    "id": 65,
+    "topic": "governance_tripped",
+    "sender": "governance",
+    "payload": {
+      "transactionId": "3333",
+      "taskId": "bd-0003"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:50:19.226Z"
+  },
+  {
+    "id": 66,
+    "topic": "task_requested",
+    "sender": "be-agent",
+    "payload": {
+      "file": "src/main.ts",
+      "action": "add_node"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:53:12.039Z"
+  },
+  {
+    "id": 67,
+    "topic": "governance_tripped",
+    "sender": "governance",
+    "payload": {
+      "transactionId": "3333",
+      "taskId": "bd-0003"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:53:12.903Z"
+  },
+  {
+    "id": 68,
+    "topic": "task_requested",
+    "sender": "be-agent",
+    "payload": {
+      "file": "src/main.ts",
+      "action": "add_node"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:54:14.463Z"
+  },
+  {
+    "id": 69,
+    "topic": "governance_tripped",
+    "sender": "governance",
+    "payload": {
+      "transactionId": "3333",
+      "taskId": "bd-0003"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:54:15.425Z"
+  },
+  {
+    "id": 70,
+    "topic": "task_requested",
+    "sender": "be-agent",
+    "payload": {
+      "file": "src/main.ts",
+      "action": "add_node"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:57:37.899Z"
+  },
+  {
+    "id": 71,
+    "topic": "governance_tripped",
+    "sender": "governance",
+    "payload": {
+      "transactionId": "3333",
+      "taskId": "bd-0003"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:57:38.842Z"
+  },
+  {
+    "id": 72,
+    "topic": "task_requested",
+    "sender": "be-agent",
+    "payload": {
+      "file": "src/main.ts",
+      "action": "add_node"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:59:18.502Z"
+  },
+  {
+    "id": 73,
+    "topic": "governance_tripped",
+    "sender": "governance",
+    "payload": {
+      "transactionId": "3333",
+      "taskId": "bd-0003"
+    },
+    "status": "pending",
+    "timestamp": "2026-06-19T07:59:19.334Z"
   }
 ]

@@ -38,6 +38,7 @@ Core Commands:
   daemon stop
   daemon status
   daemon run
+  mcp                        Run Model Context Protocol (MCP) server
 `);
 }
 
@@ -362,6 +363,10 @@ function parseOptions(argsList) {
       else if (command === 'visual-review') {
         const visualReview = require('./visual-review');
         await visualReview.run();
+      }
+      else if (command === 'mcp') {
+        const mcp = require('./veyra-mcp');
+        mcp.startServer();
       }
       else if (command === 'lint') {
         const linter = require('./linter');

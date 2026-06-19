@@ -143,6 +143,12 @@ node bin/veyra.js status
 node bin/veyra.js status --json
 ```
 
+### Model Context Protocol (MCP) Server Integration
+Run the native Model Context Protocol (MCP) server in the foreground, communicating over standard input/output (stdio) with JSON-RPC 2.0:
+```powershell
+node bin/veyra.js mcp
+```
+
 ### Programmatic AST Transformation CLI
 Modify file structure using TypeScript syntax AST engine:
 ```powershell

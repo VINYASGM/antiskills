@@ -24,6 +24,8 @@ Veyra uses plain-text Markdown, JSON, Map memory caches, and Python/Node graph a
 | **Gemini VLM API** | Multimodal Layout Auditing (via `gemini-1.5-flash` model). |
 | **Base64 Encoding** | Converts screenshots and Figma design mockups to base64 data URIs for vision model ingestion. |
 | **JSON Reports** | Formats visual regression, coordinate, contrast, and layout alignment audit results into structured reports. |
+| **Microsoft TypeScript API** | Programmatic AST traversal of TypeScript/JavaScript files to pinpoint syntax/logical error locations. |
+| **Zlib Gzip Compression** | Compresses diagnostic telemetry and reports into gzipped JSON to reduce workspace footprint. |
 
 ---
 ## 2. State Persistence
@@ -107,6 +109,7 @@ For completeness, other core schemas used in the platform are:
 - **Circuit Breaker Governance:** Tracks failed validation attempts to trigger escalations.
 - **Dashboard Telemetry:** Aggregates status counts, locks, and active patch channels.
 - **Visual Review Audit Report:** Stores multi-viewport screenshot verification results.
+- **Kernel Panic Report (`memory/evidence/kernel_panic_report.json.gz`):** Gzipped JSON capturing raw stderr, resolved file coordinates, and the deepest AST node details.
 
 ---
 
@@ -372,13 +375,28 @@ Provides safe, concurrent verification of patches in an isolated environment bef
 - **Safe Cleanup:** Unlinks the `node_modules` junction and deletes all copied files inside a `try-finally` block to protect the main project's node dependencies.
 - **Commit & Rollback Isolation:** Blocks writing to the main workspace on verification failure and ensures no rollback is attempted on the main workspace files.
 
-### 7.10 Pub/Sub Swarm Worker Loop (Milestone 18)
-Coordinates multi-agent task allocations asynchronously via event subscription:
-- **Event Logging Integration**: `bin/db.js` is updated to publish JIT events to the event bus file on status changes. It dynamically imports `bin/event_bus.js` inside methods to prevent circular dependencies, updates `memory/event_bus.json` under lockfile protection, and captures the `oldStatus` before updates.
-- **Swarm Daemon Service (`bin/daemon.js`):** Polls every 500ms. It JIT-syncs beads, subscribes to topic events (`bead_created`, `bead_resolved`, `bead_failed`, `bead_status_changed`, `task_allocated`), and evaluates open/failed beads.
-- **Dependency Resolution & Failure Cascading:** Evaluates dependencies of open/failed tasks. If parent dependencies are resolved, the task is routed via `bin/router.js` and claimed/started for the primary role. If a parent dependency fails, the failure cascades downstream (claiming and failing the dependent bead).
-- **Startup Recovery Sweep:** Runs at boot time, force-releasing stale `claimed` or `in_progress` beads back to `open`, then immediately routing/allocating tasks with resolved dependencies.
-- **CLI Commands:** Provides `daemon start [--background]` (detaching and piping stdout/stderr on Windows), `daemon stop`, `daemon status`, and `daemon run` commands.
+### 7.11 Model Context Protocol (MCP) Server CLI Integration
+To expose Veyra's database and state queries to external LLMs and client workflows, a native Model Context Protocol (MCP) server is implemented in `bin/veyra-mcp.js`:
+- **Protocol & Transport:** Runs over standard input/output (stdio) using line-delimited JSON-RPC 2.0 messages.
+- **Handshake Protocol:** Responds to the `initialize` method with protocol version `"2024-11-05"` and server info.
+- **Notification Support:** Handles JSON-RPC notifications (requests without an `id` field) silently.
+- **Tools Registry:** Publishes a standard MCP tool schema via the `tools/list` request:
+  - `get_status`: Returns current beads status summary formatted as a CLI table or structured JSON.
+  - `create_bead`: Creates a new bead task state.
+  - `list_beads`: Lists all beads currently registered in the database.
+  - `update_bead`: Dynamically updates specific fields on a bead by ID.
+- **Tool Execution:** Executes tool requests via the `tools/call` method by querying/writing to the `bin/db.js` instance, returning standardized `content` results.
+- **CLI Bootstrapping:** Binds to the command `node bin/veyra.js mcp` to start the server in the foreground.
+
+### 7.4 Visual Review & Layout Assertion Engine
+The visual testing pipeline comprises a Playwright-based capture tool and a deterministic layout validator:
+1. **Responsive Viewport Capture (`visual-testing/snapshot.go`):** Executes in a Go runner using Playwright. Navigates to the target page and captures screenshots for `mobile` (375x667), `tablet` (768x1024), and `desktop` (1440x900) viewports. For each viewport, a JavaScript script is evaluated to extract all visible elements in the DOM along with their bounding box (`x`, `y`, `width`, `height`) and computed padding styles (`paddingTop`, `paddingRight`, `paddingBottom`, `paddingLeft`), serializing them to `dom_structure_<viewport>.json`.
+2. **Geometric Assertion Engine (`bin/visual-review.js`):** Loads the layout specification (`checklists/figma-layout.json`) and performs four geometric checks:
+   - **Bounding-box tolerance checks:** Compares key elements (`header`, `sidebar`, `main-content`, `submit-btn`) coordinates and dimensions to figma spec, raising violations if differences exceed the configured tolerance.
+   - **Overlap/collision detection:** Checks all non-nested elements for spatial intersections. Nested elements (parent-child) are excluded by testing coordinate containment.
+   - **Touch target sizing check:** Enforces minimum 44x44px dimensions for interactive elements on the mobile viewport.
+   - **Baseline grid alignment check:** Enforces that coordinates and paddings are multiples of 4px.
+3. **Unified Report Aggregator:** Combines accessibility violations (reported by the Go standard Axe-core audit engine) with geometric layout violations. Generates the master report `vlm_audit_report.json` and exits with code 1 if critical or high violations are found.
 
 ---
 

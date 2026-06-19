@@ -420,3 +420,231 @@ describe('VisualReviewRunner — URL Sanitization & Command Injection Mitigation
     exitSpy.mockRestore();
   });
 });
+
+describe('VisualReviewRunner — Accessibility Audit Exit Codes', () => {
+  let originalCwd;
+  let tmpDir;
+  let exitSpy;
+  let execSpy;
+
+  beforeEach(() => {
+    originalCwd = process.cwd();
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'veyra-a11y-exit-test-'));
+    fs.mkdirSync(path.join(tmpDir, 'memory', 'evidence', 'visual'), { recursive: true });
+    fs.mkdirSync(path.join(tmpDir, 'visual-testing'), { recursive: true });
+    
+    // Fake the Go JIT environment files
+    const binName = process.platform === 'win32' ? 'visual-testing.exe' : 'visual-testing';
+    fs.writeFileSync(path.join(tmpDir, 'visual-testing', 'go.mod'), 'module visual-testing');
+    fs.writeFileSync(path.join(tmpDir, 'visual-testing', binName), 'mock binary');
+    
+    process.chdir(tmpDir);
+    exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {});
+    execSpy = vi.spyOn(require('node:child_process'), 'execSync');
+  });
+
+  afterEach(() => {
+    exitSpy.mockRestore();
+    execSpy.mockRestore();
+    process.chdir(originalCwd);
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (e) {}
+    const vrPath = require.resolve('../../bin/visual-review.js');
+    delete require.cache[vrPath];
+  });
+
+  test('run() exits with code 1 when there are accessibility violations', async () => {
+    execSpy.mockImplementation((cmd, options) => {
+      if (cmd.includes('audit')) {
+        return Buffer.from(JSON.stringify({
+          violations: [
+            {
+              id: 'image-alt',
+              selector: 'img#bad-image',
+              description: 'Image missing alt'
+            }
+          ]
+        }));
+      }
+      return Buffer.from('');
+    });
+
+    const visualReview = require('../../bin/visual-review.js');
+    visualReview.evidenceDir = path.join(tmpDir, 'memory', 'evidence', 'visual');
+
+    await visualReview.run();
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    
+    // Verify violations were written to audit_summary.log
+    const log = fs.readFileSync(path.join(visualReview.evidenceDir, 'audit_summary.log'), 'utf8');
+    expect(log).toContain('Violations:');
+    expect(log).toContain('image-alt');
+  });
+
+  test('run() exits with code 0 when there are no accessibility violations', async () => {
+    execSpy.mockImplementation((cmd, options) => {
+      if (cmd.includes('audit')) {
+        return Buffer.from(JSON.stringify({
+          violations: []
+        }));
+      }
+      return Buffer.from('');
+    });
+
+    const visualReview = require('../../bin/visual-review.js');
+    visualReview.evidenceDir = path.join(tmpDir, 'memory', 'evidence', 'visual');
+
+    await visualReview.run();
+
+    expect(exitSpy).toHaveBeenCalledWith(0);
+
+    // Verify passing summary was written to audit_summary.log
+    const log = fs.readFileSync(path.join(visualReview.evidenceDir, 'audit_summary.log'), 'utf8');
+    expect(log).toContain('No accessibility violations detected');
+  });
+});
+
+describe('VisualReviewRunner — New Geometric Layout Assertions', () => {
+  let originalCwd;
+  let tmpDir;
+  let exitSpy;
+
+  beforeEach(() => {
+    originalCwd = process.cwd();
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'veyra-geom-test-'));
+    fs.mkdirSync(path.join(tmpDir, 'memory', 'evidence', 'visual'), { recursive: true });
+    fs.mkdirSync(path.join(tmpDir, 'checklists'), { recursive: true });
+    process.chdir(tmpDir);
+    exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    exitSpy.mockRestore();
+    process.chdir(originalCwd);
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (e) {}
+    const vrPath = require.resolve('../../bin/visual-review.js');
+    delete require.cache[vrPath];
+  });
+
+  test('Figma layout bounding box mismatch triggers violation', async () => {
+    const visualReview = require('../../bin/visual-review.js');
+    visualReview.evidenceDir = path.join(tmpDir, 'memory', 'evidence', 'visual');
+
+    // Create a figma-layout spec
+    const figmaSpec = {
+      desktop: {
+        header: { x: 0, y: 0, width: 1440, height: 80, tolerance: 5 }
+      }
+    };
+    fs.writeFileSync(path.join(tmpDir, 'checklists', 'figma-layout.json'), JSON.stringify(figmaSpec), 'utf8');
+
+    // Live DOM structure with header mismatching the spec
+    const liveDom = [
+      { id: 'header', tagName: 'header', x: 10, y: 0, width: 1440, height: 80 }
+    ];
+    fs.writeFileSync(path.join(visualReview.evidenceDir, 'dom_structure_desktop.json'), JSON.stringify(liveDom), 'utf8');
+
+    await visualReview.audit();
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    const masterReport = JSON.parse(fs.readFileSync(path.join(visualReview.evidenceDir, 'vlm_audit_report.json'), 'utf8'));
+    expect(masterReport.pass).toBe(false);
+    expect(masterReport.violations.some(v => v.id === 'figma-mismatch-header')).toBe(true);
+  });
+
+  test('Figma layout missing required element triggers violation', async () => {
+    const visualReview = require('../../bin/visual-review.js');
+    visualReview.evidenceDir = path.join(tmpDir, 'memory', 'evidence', 'visual');
+
+    const figmaSpec = {
+      desktop: {
+        header: { x: 0, y: 0, width: 1440, height: 80, tolerance: 5 }
+      }
+    };
+    fs.writeFileSync(path.join(tmpDir, 'checklists', 'figma-layout.json'), JSON.stringify(figmaSpec), 'utf8');
+
+    // Empty live DOM structure (missing header)
+    const liveDom = [];
+    fs.writeFileSync(path.join(visualReview.evidenceDir, 'dom_structure_desktop.json'), JSON.stringify(liveDom), 'utf8');
+
+    await visualReview.audit();
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    const masterReport = JSON.parse(fs.readFileSync(path.join(visualReview.evidenceDir, 'vlm_audit_report.json'), 'utf8'));
+    expect(masterReport.pass).toBe(false);
+    expect(masterReport.violations.some(v => v.id === 'figma-missing-header')).toBe(true);
+  });
+
+  test('Collision detection ignores nested parent-child elements but detects sibling overlap', async () => {
+    const visualReview = require('../../bin/visual-review.js');
+    visualReview.evidenceDir = path.join(tmpDir, 'memory', 'evidence', 'visual');
+
+    // 1. Nested: el2 is completely inside el1
+    const liveDomNested = [
+      { id: 'parent-div', tagName: 'div', x: 0, y: 0, width: 100, height: 100 },
+      { id: 'child-div', tagName: 'div', x: 10, y: 10, width: 50, height: 50 }
+    ];
+    fs.writeFileSync(path.join(visualReview.evidenceDir, 'dom_structure_desktop.json'), JSON.stringify(liveDomNested), 'utf8');
+
+    await visualReview.audit();
+    expect(exitSpy).toHaveBeenCalledWith(0); // Passes because nested elements don't collide
+
+    // 2. Siblings overlapping (colliding)
+    exitSpy.mockClear();
+    const liveDomCollision = [
+      { id: 'sibling-1', tagName: 'div', x: 0, y: 0, width: 100, height: 100 },
+      { id: 'sibling-2', tagName: 'div', x: 50, y: 50, width: 100, height: 100 }
+    ];
+    fs.writeFileSync(path.join(visualReview.evidenceDir, 'dom_structure_desktop.json'), JSON.stringify(liveDomCollision), 'utf8');
+
+    await visualReview.audit();
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    const masterReport = JSON.parse(fs.readFileSync(path.join(visualReview.evidenceDir, 'vlm_audit_report.json'), 'utf8'));
+    expect(masterReport.pass).toBe(false);
+    expect(masterReport.violations.some(v => v.id.includes('collision'))).toBe(true);
+  });
+
+  test('Touch target size check enforces >= 44x44px for interactive elements on mobile', async () => {
+    const visualReview = require('../../bin/visual-review.js');
+    visualReview.evidenceDir = path.join(tmpDir, 'memory', 'evidence', 'visual');
+
+    // Live DOM structure for mobile with a button that is too small
+    const liveDomMobile = [
+      { id: 'tiny-btn', tagName: 'button', x: 100, y: 100, width: 30, height: 30 }
+    ];
+    fs.writeFileSync(path.join(visualReview.evidenceDir, 'dom_structure_mobile.json'), JSON.stringify(liveDomMobile), 'utf8');
+
+    await visualReview.audit();
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    const masterReport = JSON.parse(fs.readFileSync(path.join(visualReview.evidenceDir, 'vlm_audit_report.json'), 'utf8'));
+    expect(masterReport.pass).toBe(false);
+    expect(masterReport.violations.some(v => v.id === 'touch-target-size-tiny-btn')).toBe(true);
+  });
+
+  test('Baseline grid alignment check identifies non-multiples of 4 coordinates/padding', async () => {
+    const visualReview = require('../../bin/visual-review.js');
+    visualReview.evidenceDir = path.join(tmpDir, 'memory', 'evidence', 'visual');
+
+    // Define in figma spec so it gets checked
+    const figmaSpec = {
+      desktop: {
+        header: { x: 0, y: 0, width: 1440, height: 80 }
+      }
+    };
+    fs.writeFileSync(path.join(tmpDir, 'checklists', 'figma-layout.json'), JSON.stringify(figmaSpec), 'utf8');
+
+    // Live DOM structure with header not aligned to 4px grid (e.g. x=5)
+    const liveDom = [
+      { id: 'header', tagName: 'header', x: 5, y: 0, width: 1440, height: 80, paddingTop: 1, paddingRight: 0, paddingBottom: 0, paddingLeft: 0 }
+    ];
+    fs.writeFileSync(path.join(visualReview.evidenceDir, 'dom_structure_desktop.json'), JSON.stringify(liveDom), 'utf8');
+
+    await visualReview.audit();
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    const masterReport = JSON.parse(fs.readFileSync(path.join(visualReview.evidenceDir, 'vlm_audit_report.json'), 'utf8'));
+    expect(masterReport.pass).toBe(false);
+    expect(masterReport.violations.some(v => v.id === 'grid-alignment-header')).toBe(true);
+  });
+});

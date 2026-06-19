@@ -168,6 +168,33 @@ None
 - [x] Structured Logging: Implement structured, append-only `agent-audit.jsonl` audit logging detailing timestamps, actions, agents, durations, and outcomes.
 - [x] Test Adaptations: Refactor Vitest test suites to mock HTTPS network calls and utilize lockfile-protected JSON file systems instead of database connections.
 
+### ✅ Milestone 26: AI-Native Debugging Bridge
+- [x] Integrate kernel panic monitoring hook within failed verification commands catch blocks in `bin/verify.js`.
+- [x] Create a dedicated `bin/kernel_panic.js` module to parse stderr lines and resolve error file locations (file path, line, column).
+- [x] Traversed the TypeScript AST to pinpoint and format the deepest AST node at the coordinates of the compiler error.
+- [x] Generated gzipped JSON reports at `memory/evidence/kernel_panic_report.json.gz` using node's native `zlib.gzipSync`.
+- [x] Wrote Vitest unit tests triggering verification command errors and checking compressed JSON mapping outputs.
+
+### ✅ Milestone 27: Core Model Context Protocol (MCP) Server Integration
+- [x] Create native Node.js-based MCP server in `bin/veyra-mcp.js` using standard stdio JSON-RPC 2.0.
+- [x] Expose `get_status`, `create_bead`, `list_beads`, and `update_bead` as standard MCP tools.
+- [x] Integrate command `mcp` into Veyra CLI in `bin/veyra.js` to start the MCP server.
+- [x] Write comprehensive Vitest test suite in `tests/bin/mcp.test.js` covering handshake, tools list, and tool calls.
+
+### ✅ Milestone 28: Deterministic Accessibility Engine (Axe-core Playwright Integration)
+- [x] Implement Axe-core script injection with local rules checker fallback in Go Playwright `RunAccessibilityAudit`.
+- [x] Catch missing alt attribute, tabindex role, low-contrast-text, and form label/aria omissions.
+- [x] Update Node review runner (`bin/visual-review.js`) to log violations and exit with appropriate status code (1 for violations, 0 for passing).
+- [x] Add comprehensive Vitest assertions checking process exit codes in `tests/bin/visual-review.test.js`.
+
+### ✅ Milestone 29: Geometric Layout Assertions & Visual Auditing Remediation
+- [x] Capture DOM structures (including padding styles paddingTop, paddingRight, paddingBottom, paddingLeft) for all viewports, saving mobile, tablet, desktop, and backward compatible JSON files.
+- [x] Create reference spec `checklists/figma-layout.json` defining bounding boxes for key elements (`header`, `sidebar`, `main-content`, `submit-btn`).
+- [x] Implement 4 geometric assertions (bounding box tolerance check, overlap/collision detection, touch target sizing, grid alignment validation).
+- [x] Unify accessibility standard audits and layout/VLM reviews, removing early exits.
+- [x] Repair fragile Go accessibility tests to support both standard CDN axe-core and fallback schemas.
+- [x] Add Node unit tests in `tests/bin/visual-review.test.js` validating assertions.
+
 ---
 ## Architectural Decision Records (ADRs)
 - [x] **[ADR 0001](docs/adr/0001-deprecate-legacy-git-worktrees.md)**: Deprecate Legacy Git Worktrees in Favor of VFS Patching

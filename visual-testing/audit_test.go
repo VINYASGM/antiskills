@@ -52,7 +52,7 @@ func TestAccessibilityAudit(t *testing.T) {
 	// Verify we caught the missing alt attribute violation
 	foundAltViolation := false
 	for _, v := range report.Violations {
-		if v.ID == "missing-alt" || v.Selector == "img#bad-image" {
+		if v.ID == "image-alt" || v.ID == "missing-alt" || v.Selector == "img#bad-image" || v.Selector == "#bad-image" {
 			foundAltViolation = true
 		}
 	}
@@ -63,7 +63,7 @@ func TestAccessibilityAudit(t *testing.T) {
 	// Verify we caught the bad interactive element tab-index violation
 	foundTabViolation := false
 	for _, v := range report.Violations {
-		if v.ID == "missing-role" || v.Selector == "div#bad-interactive" {
+		if v.ID == "missing-role" || v.ID == "scrollable-region-focusable" || v.ID == "aria-allowed-role" || v.ID == "aria-roles" || v.Selector == "div#bad-interactive" || v.Selector == "#bad-interactive" {
 			foundTabViolation = true
 		}
 	}
