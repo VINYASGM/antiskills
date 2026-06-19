@@ -3,7 +3,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { execFileSync } from 'node:child_process';
-import Database from 'better-sqlite3';
 import { findPythonCommand } from '../../bin/python-command';
 
 describe('Vector Search Engine', () => {
@@ -45,67 +44,79 @@ describe('Vector Search Engine', () => {
     const agentDir = path.join(tempDir, '.agent');
     fs.mkdirSync(agentDir, { recursive: true });
 
-    // Initialize mock memory.sqlite database
     const dbPath = path.join(agentDir, 'memory.sqlite');
-    const db = new Database(dbPath);
+    const authPath = path.join(tempDir, 'src', 'auth.js');
+    const utilsPath = path.join(tempDir, 'src', 'utils.js');
+    fs.mkdirSync(path.dirname(authPath), { recursive: true });
 
-    db.exec(`
-      CREATE TABLE files (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          path TEXT UNIQUE NOT NULL,
-          content_hash TEXT NOT NULL,
-          last_modified INTEGER NOT NULL
-      );
-      CREATE TABLE chunks (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          file_id INTEGER NOT NULL,
-          start_line INTEGER NOT NULL,
-          end_line INTEGER NOT NULL,
-          content TEXT NOT NULL,
-          FOREIGN KEY(file_id) REFERENCES files(id) ON DELETE CASCADE
-      );
-      CREATE TABLE vec_chunks (
-          chunk_id INTEGER PRIMARY KEY,
-          embedding BLOB NOT NULL,
-          FOREIGN KEY(chunk_id) REFERENCES chunks(id) ON DELETE CASCADE
-      );
-    `);
+    // Populate mock SQLite database using Python's built-in sqlite3 module
+    const pythonCode = `
+import sqlite3
+import sys
+import struct
 
-    // Insert mock file 1 (high match for login query)
-    const fileId1 = db.prepare(`
-      INSERT INTO files (path, content_hash, last_modified) VALUES (?, ?, ?)
-    `).run(path.join(tempDir, 'src', 'auth.js'), 'hash1', Date.now()).lastInsertRowid;
+db_path = sys.argv[1]
+auth_path = sys.argv[2]
+utils_path = sys.argv[3]
 
-    const chunkId1 = db.prepare(`
-      INSERT INTO chunks (file_id, start_line, end_line, content) VALUES (?, ?, ?, ?)
-    `).run(fileId1, 1, 10, 'login form authenticator function').lastInsertRowid;
+conn = sqlite3.connect(db_path)
+c = conn.cursor()
 
-    // Pack f32 array (384 dims) for high similarity
-    const highEmb = new Float32Array(384);
-    // BGE-small embedding weights: bge-small outputs are normalized. We can simulate it.
-    // Query embedding is generated from "login" which will have some vector.
-    // We can set all values to 0.05 to get a positive cosine similarity.
-    highEmb.fill(0.05);
-    db.prepare(`
-      INSERT INTO vec_chunks (chunk_id, embedding) VALUES (?, ?)
-    `).run(chunkId1, Buffer.from(highEmb.buffer));
+c.execute("""
+  CREATE TABLE files (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      path TEXT UNIQUE NOT NULL,
+      content_hash TEXT NOT NULL,
+      last_modified INTEGER NOT NULL
+  )
+""")
+c.execute("""
+  CREATE TABLE chunks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      file_id INTEGER NOT NULL,
+      start_line INTEGER NOT NULL,
+      end_line INTEGER NOT NULL,
+      content TEXT NOT NULL,
+      FOREIGN KEY(file_id) REFERENCES files(id) ON DELETE CASCADE
+  )
+""")
+c.execute("""
+  CREATE TABLE vec_chunks (
+      chunk_id INTEGER PRIMARY KEY,
+      embedding BLOB NOT NULL,
+      FOREIGN KEY(chunk_id) REFERENCES chunks(id) ON DELETE CASCADE
+  )
+""")
 
-    // Insert mock file 2 (low match/opposite embedding)
-    const fileId2 = db.prepare(`
-      INSERT INTO files (path, content_hash, last_modified) VALUES (?, ?, ?)
-    `).run(path.join(tempDir, 'src', 'utils.js'), 'hash2', Date.now()).lastInsertRowid;
+# Insert mock file 1
+c.execute("INSERT INTO files (path, content_hash, last_modified) VALUES (?, ?, ?)", (auth_path, 'hash1', 123456789))
+file_id1 = c.lastrowid
 
-    const chunkId2 = db.prepare(`
-      INSERT INTO chunks (file_id, start_line, end_line, content) VALUES (?, ?, ?, ?)
-    `).run(fileId2, 1, 10, 'utility date formatter').lastInsertRowid;
+c.execute("INSERT INTO chunks (file_id, start_line, end_line, content) VALUES (?, ?, ?, ?)", (file_id1, 1, 10, 'login form authenticator function'))
+chunk_id1 = c.lastrowid
 
-    const lowEmb = new Float32Array(384);
-    lowEmb.fill(-0.05); // Negative similarity
-    db.prepare(`
-      INSERT INTO vec_chunks (chunk_id, embedding) VALUES (?, ?)
-    `).run(chunkId2, Buffer.from(lowEmb.buffer));
+high_emb = [0.05] * 384
+high_bytes = struct.pack('f'*384, *high_emb)
+c.execute("INSERT INTO vec_chunks (chunk_id, embedding) VALUES (?, ?)", (chunk_id1, sqlite3.Binary(high_bytes)))
 
-    db.close();
+# Insert mock file 2
+c.execute("INSERT INTO files (path, content_hash, last_modified) VALUES (?, ?, ?)", (utils_path, 'hash2', 123456789))
+file_id2 = c.lastrowid
+
+c.execute("INSERT INTO chunks (file_id, start_line, end_line, content) VALUES (?, ?, ?, ?)", (file_id2, 1, 10, 'utility date formatter'))
+chunk_id2 = c.lastrowid
+
+low_emb = [-0.05] * 384
+low_bytes = struct.pack('f'*384, *low_emb)
+c.execute("INSERT INTO vec_chunks (chunk_id, embedding) VALUES (?, ?)", (chunk_id2, sqlite3.Binary(low_bytes)))
+
+conn.commit()
+conn.close()
+`;
+
+    execFileSync(pythonCommand, ['-c', pythonCode, dbPath, authPath, utilsPath], {
+      cwd: tempDir
+    });
 
     try {
       const output = execFileSync(pythonCommand, [scriptPath, 'login'], {
@@ -118,8 +129,6 @@ describe('Vector Search Engine', () => {
       expect(typeof results).toBe('object');
       
       const keys = Object.keys(results);
-      // We expect src/auth.js to be returned because its embedding similarity is high,
-      // and src/utils.js to have negative or much lower similarity so it should be ranked lower or not returned.
       if (keys.length > 0) {
         expect(keys[0]).toContain('auth.js');
       }

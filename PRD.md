@@ -1,8 +1,8 @@
 # Product Requirements Document — Veyra
 
-**Version:** 3.1
+**Version:** 4.0
 **Author:** VEYRA-OS / ANTIGRAVITY
-**Date:** 2026-06-07
+**Date:** 2026-06-16
 **Status:** Active
 
 ---
@@ -27,24 +27,30 @@ Veyra V4 transitions from the rigid waterfall-like coordination of V3 to an **AI
 
 ## 3. Problem Statement & V4 Solutions
 
-AI coding agents suffer from six systemic architectural failures at scale, which Veyra OS V4 completely resolves:
+AI coding agents suffer from nine systemic architectural failures at scale, which Veyra OS V4 completely resolves:
 
 1. **The Worktree Rebase & Semantic Conflict Bottleneck:** Sequential rebasing of multiple agent worktrees stalls parallel execution and leads to logical/semantic integration failures.
    - *V4 Solution:* **Contract-Proven Verification Check.** Instead of sequential rebase lockups, agents merge atomically into an integration branch only after satisfying automated, formal verification checks and proof-carrying tests (e.g. Vitest semantic compliance).
 2. **Memory Graph Scalability Collapse (beads.json / beads.db limits):** Single-file JSON or local filesystem SQLite cache limits lock concurrency and blow out context windows on large codebases.
    - *V4 Solution:* **Decoupled MCP Graph Memory.** Offload persistent memory to an external Model Context Protocol (MCP) server backed by an embeddable graph database (DuckDB + NetworkX) with recursive episodic compression to distill history.
-3. **AST-Only Context Fragmentation:** Deterministic AST analysis fails to capture implicit relationships, side-effects, and non-imported business/styling dependencies.
+3. **Dependency Weight & Binary Bloat (SQLite/better-sqlite3 Runtime Overhead):** Relying on heavy, platform-specific binaries like `better-sqlite3` causes compilation failures, node-gyp build issues, and hinders zero-dependency execution across varied developer environments.
+   - *V4 Solution:* **Zero-Dependency Map Cache & Lockfile JSON Storage.** Replace SQLite database backends with standard JavaScript `Map` memory cache and file-backed JSON storage, protected by `proper-lockfile` to achieve clean, native node executions without C++ binary compilation.
+4. **Bead Identity Collisions in Distributed Swarms:** Incremental integer bead IDs (`bd-0001`) create collision risks when multiple distributed subagents spawn beads concurrently in local worktrees.
+   - *V4 Solution:* **UUIDv4 Bead ID Migration.** Transition all bead identifiers to globally unique UUIDv4 strings prefixed by `bd-`, preventing namespace conflicts during asynchronous agent operations.
+5. **AST-Only Context Fragmentation:** Deterministic AST analysis fails to capture implicit relationships, side-effects, and non-imported business/styling dependencies.
    - *V4 Solution:* **Hybrid Context Control Plane.** Integrate deterministic import-graph parsing for local dependency blast radius with highly constrained semantic vector embedding RAG search for global codebase intelligence.
-4. **Waterfall Phase-Gate Friction:** Rigid "Spec -> Plan -> Implement" workflow causes agents to design highly complex, un-implementable plans due to lack of environment loop feedback.
+6. **Waterfall Phase-Gate Friction:** Rigid "Spec -> Plan -> Implement" workflow causes agents to design highly complex, un-implementable plans due to lack of environment loop feedback.
    - *V4 Solution:* **Recursive Prototyping Loops.** Establish a dual-agent loop: a fast "Explorer" agent rapidly prototypes in an isolated REPL to validate assumptions, and then an "Architect" agent formalizes the spec for the "Implementer" team.
-5. **Infinite Ping-Pong Token Drain:** Lack of limits between Testing, Review, and Implementation agents leads to infinite loop refactoring cycles.
+7. **Infinite Ping-Pong Token Drain:** Lack of limits between Testing, Review, and Implementation agents leads to infinite loop refactoring cycles.
    - *V4 Solution:* **Bounded State-Machine Circuit Breaker.** Enforce strict transaction and retry bounds (e.g., 3-strikes limit) in the Universal Agent Control Plane, auto-escalating to the human operator with a clean failure diff when exceeded.
-6. **Concurrent Task Processing & Dual-Agent Conflicts:** Lack of concurrency locking leads to multiple agents claiming, running, and writing overlapping files for the same task simultaneously.
-   - *V4 Solution:* **Task Queue & Claim Discipline.** SQLite-based atomic row-level locks tracking task ownership via `claimed_by` and `claimed_at` fields, coupled with automatic stale-claim releases and synchronized Markdown status updates, ensuring absolute task exclusive-processing guarantees.
-7. **Swarm Telemetry & System Observability Gaps:** Multi-agent swarms operate concurrently in the background, making it extremely difficult for developers or human operators to monitor database locks, retry strikes, patch channels, and overall progress in real-time.
-   - *V4 Solution:* **Terminal Swarm Dashboard.** A unified, high-performance terminal UI dashboard displaying JIT database locks, active governance transaction attempts, tripped circuit breaker escalations, and active patch channels, providing total swarm telemetry and execution transparency.
-8. **Static Code Indexing & Graph Intelligence Gaps:** Single-language AST parsing, lack of non-code knowledge capture (PDFs, docs), absence of graph topology metrics (God Nodes, Surprising Connections), lack of security filters (secrets leaking, zip-bombs), and raw text outputs restrict context richness and swarm safety.
-   - *V4 Solution:* **Graphify Enrichment Core.** Porting Graphify-style capabilities including secrets/zip-bomb screening, multi-language parser fallbacks, NetworkX graph metrics, and interactive browser HTML trees/flowcharts to optimize swarm context and safety.
+8. **Concurrent Task Processing & Dual-Agent Conflicts:** Lack of concurrency locking leads to multiple agents claiming, running, and writing overlapping files for the same task simultaneously.
+   - *V4 Solution:* **Task Queue & Claim Discipline.** Lockfile-protected pure JSON storage and memory Map cache tracking task ownership via `claimed_by` and `claimed_at` fields, coupled with automatic stale-claim releases and synchronized Markdown status updates, ensuring absolute task exclusive-processing guarantees.
+9. **Swarm Telemetry & System Observability Gaps:** Multi-agent swarms operate concurrently in the background, making it extremely difficult for developers or human operators to monitor database locks, retry strikes, patch channels, and overall progress in real-time.
+   - *V4 Solution:* **Dynamic OS status & Terminal Swarm Dashboard.** A unified, high-performance terminal UI dashboard and a dynamic CLI command (`veyra status`), displaying active JSON file locks, active governance transaction attempts, tripped circuit breaker escalations, and active patch channels, providing total swarm telemetry and execution transparency.
+10. **Static Code Indexing & Graph Intelligence Gaps:** Single-language AST parsing, lack of non-code knowledge capture (PDFs, docs), absence of graph topology metrics (God Nodes, Surprising Connections), lack of security filters (secrets leaking, zip-bombs), and raw text outputs restrict context richness and swarm safety.
+    - *V4 Solution:* **Graphify Enrichment Core.** Porting Graphify-style capabilities including secrets/zip-bomb screening, multi-language parser fallbacks, NetworkX graph metrics, and interactive browser HTML trees/flowcharts to optimize swarm context and safety.
+11. **Supply Chain Vulnerabilities:** Integration of unvetted third-party npm packages can introduce critical security risks to the runtime environment.
+    - *V4 Solution:* **OSV.dev Supply Chain Security Checks.** Integrates automatic queries to the OSV.dev vulnerability database via HTTPS to scan runtime dependencies and lockfiles, halting execution on detected threats with offline mock fallbacks.
 
 ---
 
@@ -66,10 +72,10 @@ Coordinates recursive loops. Spawns ephemeral sandboxed explorers to test hypoth
 State-machine based circuit breaker tracking multi-agent interactions. Halts execution loops, generates failure diagnostics, and alerts human operators after 3 failed verification passes.
 
 ### 4.6 Task Queue & Concurrency Locking (`bin/db.js` & `bin/veyra.js`)
-An atomic state machine and locking framework (`claim`, `release`, `start`, `complete`, `fail`, `reopen`) built inside SQLite WAL cache, synchronized JIT with physical Markdown bead documents to prevent dual-agent task assignment conflicts.
+An atomic state machine and locking framework (`claim`, `release`, `start`, `complete`, `fail`, `reopen`) built using a `Map` memory cache and lockfile-backed JSON storage, synchronized JIT with physical Markdown bead documents to prevent dual-agent task assignment conflicts.
 
 ### 4.7 Terminal Swarm Dashboard (`bin/dashboard.js`)
-A gorgeous terminal-based telemetry interface extracting SQLite concurrency locks, active governance transactions, circuit-breaker metrics, and patch directories to render real-time swarm operational states using double-bordered boxes, tables, and progress indicators.
+A gorgeous terminal-based telemetry interface extracting JSON lockfile states, active governance transactions, circuit-breaker metrics, and patch directories to render real-time swarm operational states using double-bordered boxes, tables, and progress indicators.
 
 ### 4.8 Graphify Enrichment Core (`bin/context.js`, `memory-mcp-server/graph.py`)
 Enhances Veyra's static code indexing and context assembly with secrets/sensitive path skipping, zip-bomb checks for documents, topological metrics, extensionless shebang interpretation, and collapsible HTML visualizations.
@@ -115,12 +121,21 @@ Provides automated visual regression and responsive layout verification using vi
 Integrates file-level locking (`proper-lockfile`) in the memory database module (`bin/db.js`) to secure JSON file-per-bead write transactions against concurrent agent write race conditions, using synchronous retry loops and robust try/finally cleanup semantics.
 
 ### 4.12 Pub/Sub Swarm Worker Loop (Milestone 18)
-Coordinates multi-agent task allocations asynchronously. A background daemon service (`bin/daemon.js`) polls every 500ms, subscribing to `agent_events` in the SQLite WAL event bus to process tasks. It manages:
+Coordinates multi-agent task allocations asynchronously. A background daemon service (`bin/daemon.js`) polls every 500ms, subscribing to events in the lockfile-backed JSON event bus to process tasks. It manages:
 - **Dependency resolution**: routes tasks only when parent dependencies are resolved.
 - **Cascading failures**: automatically propagates failures down to downstream dependent tasks.
 - **Asynchronous allocation**: claims and routes tasks to primary agent roles using `bin/router.js` and publishes `task_allocated` events.
 - **Startup recovery**: force-releases stale tasks and does a startup recovery sweep.
 Provides CLI daemon commands (`start`, `stop`, `status`, `run`) to manage background execution.
+
+### 4.13 Dynamic OS CLI Status (`veyra status`)
+A command-line status utility (`node bin/veyra.js status [--json]`) that queries the live system state from the memory cache and JSON files, outputting a dynamic status breakdown of beads, active events, task queues, and system health in plain text or structured JSON.
+
+### 4.14 OSV.dev Supply Chain Security Checks
+Automated supply chain security queries targeting the OSV.dev API. Scans project npm runtime packages and lockfiles for known security vulnerabilities via HTTPS, with a resilient offline mock fallback if the remote service is unavailable.
+
+### 4.15 Agent Audit Observability Logging
+A structured, append-only JSON Lines logging system (`agent-audit.jsonl`) that records fine-grained agent action details, including timestamps, agent IDs, tool calls, status codes, and execution duration.
 
 ---
 

@@ -1,17 +1,17 @@
 # Architecture — Veyra
 
-**Version:** 3.1
+**Version:** 4.0
 **Status:** Living Document
-**Last Updated:** 2026-06-07
+**Last Updated:** 2026-06-16
 
 ---
 
 ## 1. System Topology
 
-The Veyra V3 architecture comprises a decentralized **AI-Native Flow State & Contract-Proven OS** operating layer. It resolves multi-agent coordination locks, infinite loops, and semantic conflicts through a decoupled control plane, external graph memory, and isolated integration verifications.
+The Veyra V4 architecture comprises a decentralized **AI-Native Flow State & Contract-Proven OS** operating layer. It resolves multi-agent coordination locks, infinite loops, and semantic conflicts through a decoupled control plane, external graph memory, and isolated integration verifications, executing with zero native binary database dependencies.
 
-**Plain-text summary:** The Human Orchestrator defines requirements. The Veyra engine uses a **Dual Explorer-Architect Loop** to eliminate rigid waterfall planning. An *Explorer* agent rapidly prototypes in an isolated playground. The *Architect* agent translates these learnings into concrete programmatic and mathematical **Contracts** (`checklists/contract-XXXX.json`). The *Implementer* agent writes the logic in a unified single branch utilizing the **VFS Patch System** (`bin/patch.js`). The **Verify Engine** (`bin/verify.js`) checks patches against the contract using automated test suites before commits. All agents claim their tasks from a centralized SQLite-based **Task Queue & Concurrency Lock** (`bin/db.js`) to prevent dual-agent race conditions or overlapping writes. All agents publish active plans to the JIT SQLite intent registry to intercept styling or logic collisions. An external **MCP Graph Memory Server** backed by DuckDB + NetworkX stores episodic context, which is dynamically summarized (compressed) to stay under context limits. If a task fails verification repeatedly, the **Governance State-Machine Circuit Breaker** (`bin/governance.js`) trips at 3 failures, halting execution and auto-escalating to the human.
-A central **Swarm Status Dashboard** (`bin/dashboard.js`) taps into the SQLite database, governance storage dir, and patches directory to render a live visual telemetry control plane of the entire system state back to the human developer.
+**Plain-text summary:** The Human Orchestrator defines requirements. The Veyra engine uses a **Dual Explorer-Architect Loop** to eliminate rigid waterfall planning. An *Explorer* agent rapidly prototypes in an isolated playground. The *Architect* agent translates these learnings into concrete programmatic and mathematical **Contracts** (`checklists/contract-XXXX.json`). The *Implementer* agent writes the logic in a unified single branch utilizing the **VFS Patch System** (`bin/patch.js`). The **Verify Engine** (`bin/verify.js`) checks patches against the contract using automated test suites before commits. All agents claim their tasks from a decentralized, lockfile-backed **JSON Task Queue & Map Cache** (`bin/db.js`) to prevent dual-agent race conditions or overlapping writes. All agents publish active plans to the JIT JSON intent registry to intercept styling or logic collisions. An external **MCP Graph Memory Server** backed by DuckDB + NetworkX stores episodic context, which is dynamically summarized (compressed) to stay under context limits. If a task fails verification repeatedly, the **Governance State-Machine Circuit Breaker** (`bin/governance.js`) trips at 3 failures, halting execution and auto-escalating to the human.
+A central **Swarm Status Dashboard** (`bin/dashboard.js`) and dynamic `veyra status` command tap into the JSON state files (`beads.json`, `event_bus.json`), governance storage dir, and patches directory to render a live visual telemetry control plane and structured JSON output back to the human developer. Agent executions are audited via structured, append-only logging to `agent-audit.jsonl`, and dependencies are verified against the external OSV.dev registry.
 
 ```mermaid
 graph TD
@@ -20,15 +20,21 @@ graph TD
         H --> SPEC["📋 Specifications: PRD, TRD, Architecture"]
         VERIFY["🧪 Verify Engine: Contract proofs & tests"] -->|Merges atomic patch| GIT_HEAD["🔀 Git Repository Main Branch"]
         GOV["🛡️ Governance Circuit Breaker: 3 strikes policy"] -->|Trips & Alerts| H
-        DASHBOARD["📺 Swarm Dashboard CLI: status & locks"] -->|Render visual telemetry| H
+        DASHBOARD["📺 Swarm Dashboard CLI: veyra status & locks"] -->|Render visual telemetry| H
     end
 
     subgraph AEE["Agent Execution Environment (VFS Flow State Workspace)"]
         EXPLORER["🔬 Explorer Agent: REPL Prototyping"] -->|Validate assumptions| ARCHITECT["📐 Architect Agent: Contract generation"]
         ARCHITECT -->|Checklist & Contracts| IMPLEMENTER["🔧 Implementer Agent: VFS Patch Generation"]
-        IMPLEMENTER -->|Broadcast Intent| INTENT["📡 JIT SQLite WAL Intent Registry"]
+        IMPLEMENTER -->|Broadcast Intent| INTENT["📡 JIT JSON Intent File"]
         IMPLEMENTER -->|Generate patch| PATCH["🔧 VFS Patch Check & Apply"]
         PATCH -->|Dry-run validated patch| VERIFY
+        
+        %% Audit logging flow
+        IMPLEMENTER & EXPLORER & ARCHITECT & VERIFY -->|Write event logs| AUDIT["📝 agent-audit.jsonl Log"]
+        
+        %% Supply Chain Check flow
+        VERIFY -->|Query vulnerabilities| OSV["🌐 OSV.dev Vulnerability API"]
     end
 
     subgraph MEM["Decoupled High-Performance Graph Memory"]
@@ -38,13 +44,13 @@ graph TD
     end
 
     subgraph TQ["Concurrency Lock Boundary"]
-        DB_QUEUE["🔒 SQLite Task Queue & Concurrency Lock"]
+        JSON_DB["🔒 lockfile-backed JSON State & Map Cache"]
     end
 
-    H --> DB_QUEUE
-    DB_QUEUE -->|Exclusive task assignment| EXPLORER
+    H --> JSON_DB
+    JSON_DB -->|Exclusive task assignment| EXPLORER
     VERIFY -->|Failed attempts track| GOV
-    DB_QUEUE -.->|Extract locks & stats| DASHBOARD
+    JSON_DB -.->|Extract locks & stats| DASHBOARD
     GOV -.->|Extract retry strikes| DASHBOARD
     PATCH -.->|List active channels| DASHBOARD
 ```
@@ -53,7 +59,7 @@ graph TD
 
 ## 2. Agent Interaction & Choreography Protocol
 
-Veyra V3 implements **Actor-based Choreography** combined with strict safety and prototyping loops.
+Veyra V4 implements **Actor-based Choreography** combined with strict safety and prototyping loops.
 
 ### Dual Explorer-Architect Loop
 1. **Hypothesis Validation:** Instead of writing complex specs blind, the *Explorer* agent works directly in a sandboxed REPL to investigate tools, APIs, and file structures.
@@ -66,9 +72,9 @@ Every cross-agent transaction is monitored by `bin/governance.js`. If the *Imple
 - The VFS patch state is preserved, and a detailed diagnostic bundle (diffs, stack traces, and communication histories) is dispatched directly to the human developer, preventing infinite token spend loops.
 
 ### Task Queue & Claim Locking
-Before performing any task (bead) operations, agents must atomically lease-lock the bead in the centralized SQLite queue to guarantee exclusive worker processing:
-- **Optimistic Locking:** Claim requests use atomic SQLite queries enforcing `claimed_by IS NULL` to prevent overlapping assignments.
-- **JIT JSON Sync:** Lock transitions write to the SQLite database and immediately update the JSON memory bead file, which is validated JIT using a strict Zod schema.
+Before performing any task (bead) operations, agents must atomically lease-lock the bead using a filesystem lockfile to guarantee exclusive worker processing:
+- **Optimistic Locking:** Claim requests use lockfiles to synchronize reads and updates, verifying that the `claimed_by` field is null before writing.
+- **JIT JSON Sync:** Lock transitions modify the in-memory Map cache and immediately write updates to the JSON bead file, which is validated JIT using a strict Zod schema.
 - **Stale Cleanups:** A 30-minute stale-lease sweeping algorithm executes on subsequent claim requests to automatically recover from crashed or stalled worker processes.
 
 ---
@@ -80,14 +86,14 @@ To scale memory to extremely large codebases without blowing out token budgets:
 - **Graph Clustering (NetworkX):** Identifies closely related historical decisions, requirements, and tasks as graph clusters.
 - **Episodic Compression:** Merges and summarizes older, closed clusters into single semantic nodes, delivering lightweight dense historical contexts to active agents.
 - **Hybrid Context assembly:** Merges syntax-tree (AST) crawler paths for immediate caller-callee scopes with a fast vector embedding database (RAG) search for global configurations and styled elements.
-- **File Watcher & JIT Cache Invalidation:** The Rust file watcher actor notifies the coordinator of changed or deleted files, writing pending event records to the SQLite event bus. The context assembler JIT processes these events, deletes corresponding rows from the crawl cache, and invalidates in-memory mtime/bead caches, guaranteeing cache freshness before graph evaluation.
+- **File Watcher & JIT Cache Invalidation:** The Rust file watcher actor notifies the coordinator of changed or deleted files, writing pending event records to the JSON event bus. The context assembler JIT processes these events, clears corresponding entries from the crawl cache, and invalidates in-memory mtime/bead caches, guaranteeing cache freshness before graph evaluation.
 - **ONNX Embeddings:** Generates 384-dimensional semantic embeddings in Rust (via tokenizers/ort) and retrieves them via Python `vector_search.py` using cosine similarity, falling back to TF-IDF if dependencies or databases are missing.
 
 ---
 
 ## 4. Contract-Proven VFS Patches
 
-- **Intent Registry:** Agents broadcast planned files, styling tokens, database columns, and endpoints to SQLite WAL cache.
+- **Intent Registry:** Agents broadcast planned files, styling tokens, database columns, and endpoints to the lockfile-backed JSON intent file.
 - **Formal Verification:** Proposed unified patch files (`patch.js`) are checked by the `verify.js` engine, running precise linters, TypeScript compilations, and Vitest test suites.
 - **Atomic Commits:** Patch is applied to the physical directory *only* after satisfying all contract proofs, keeping the main branch consistently green.
 
@@ -96,9 +102,9 @@ To scale memory to extremely large codebases without blowing out token budgets:
 ## 5. Swarm Telemetry & Observability Layer
 
 To monitor parallel executions and manage circuit breakers:
-- **Telemetry Aggregator (`bin/dashboard.js`):** Extends visual primitives from `bin/ui.js` to compile database states, active concurrency locks, governance strikes, and directory-based patch channels.
+- **Telemetry Aggregator (`bin/dashboard.js`):** Extends visual primitives from `bin/ui.js` to compile JSON lockfile states, active concurrency locks, governance strikes, and directory-based patch channels.
 - **Visual Primitives Mapping:**
-  - Database status summaries and progress are wrapped inside cyan double-bordered `drawBox` modules.
+  - Task status summaries and progress are wrapped inside cyan double-bordered `drawBox` modules.
   - Active concurrency locks are formatted inside a blue table (`drawTable`), demonstrating agent ownership, claim status, and holds duration.
   - Governance transaction streams display current strike counts against thresholds (`X/3`), coloring `tripped` breakers in bright red ANSI style.
   - Channels are parsed straight from the filesystem `patches/` folder and listed as active workspaces.
@@ -221,8 +227,8 @@ To ensure multi-agent patch concurrent safety and prevent workspace corruption, 
 
 ## 10.5 Pub/Sub Swarm Worker Loop (Milestone 18)
 Decoupled multi-agent execution relies on asynchronous pub/sub worker coordination:
-1. **JIT Database Event Ingestion:** Status changes on beads triggers event publishing inside `bin/db.js` using dynamic imports of `bin/event_bus.js` (avoiding circular dependency locks). These events (e.g. `bead_created`, `bead_status_changed`, `bead_resolved`, `bead_failed`) are recorded to the SQLite `agent_events` table.
-2. **Daemon Polling Loop:** A background microservice (`bin/daemon.js`) polls `agent_events` every 500ms, subscribing to topics to mark them completed.
+1. **JIT Event Ingestion:** Status changes on beads triggers event publishing inside `bin/db.js` using dynamic imports of `bin/event_bus.js` (avoiding circular dependency locks). These events (e.g. `bead_created`, `bead_status_changed`, `bead_resolved`, `bead_failed`) are recorded under lockfile to the JSON event bus.
+2. **Daemon Polling Loop:** A background microservice (`bin/daemon.js`) polls the JSON event bus every 500ms, subscribing to topics to mark them completed.
 3. **Dependency Cascading:** Tracks dependencies of open/failed beads. When a dependency fails, the failure cascades downstream to dependents. If all parent dependencies are resolved, the daemon routes/allocates the task to the primary role via `bin/router.js` and publishes `task_allocated`.
 4. **Startup Sweep & CLI Integration:** Boot time runs a sweep to recover stale tasks. Background execution is managed via CLI (`daemon start [--background]`, `daemon stop`, `daemon status`, `daemon run`).
 
@@ -230,7 +236,7 @@ Decoupled multi-agent execution relies on asynchronous pub/sub worker coordinati
 
 ## 11. Architectural Decision Records (ADRs)
 
-The architectural structure of Veyra V3 is officially guided by the following Architectural Decision Records:
+The architectural structure of Veyra V4 is officially guided by the following Architectural Decision Records:
 
 - **[ADR 0001: Deprecate Legacy Git Worktrees in Favor of VFS Patching](docs/adr/0001-deprecate-legacy-git-worktrees.md)**: Transitioning from sequential Git worktrees to the line and AST-based VFS patch engine (`patch.js`) to eliminate merge chaos and locking overhead.
 - **[ADR 0002: Prevent JSON Database Concurrency Collisions Using proper-lockfile](docs/adr/0002-prevent-concurrency-collision-via-proper-lockfile.md)**: Using `proper-lockfile` with a synchronous retry spin-lock mechanism to safeguard JSON write integrity.
@@ -239,7 +245,7 @@ The architectural structure of Veyra V3 is officially guided by the following Ar
 - **[ADR 0005: Rust File Watcher Events & ONNX Semantic Search Integration](docs/adr/0005-file-watcher-events-and-onnx-semantic-search.md)**: Connecting Rust file watcher events (`agent_events`) with Python ONNX similarity search (`vector_search.py`) for semantic relevance and JIT cache invalidation.
 - **[ADR 0006: Pub/Sub Swarm Worker Loop](docs/adr/0006-pubsub-swarm-worker.md)**: Employs background worker daemon polling SQLite WAL event bus, managing async routing/allocation and failure propagation.
 
-All V3 upgrades are fully complete, robust, and verified.
+All V4 upgrades are fully complete, robust, and verified.
 
 
 

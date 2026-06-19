@@ -361,7 +361,7 @@ function createWorkspace() {
       return detectConflicts(patches);
     },
 
-    commit() {
+    async commit() {
       const conflicts = detectConflicts(patches);
       if (conflicts.hasConflict) {
         return { applied: 0, rejected: patches.length, errors: conflicts.details };
@@ -458,7 +458,7 @@ function createWorkspace() {
 
           // Call verifyContract(contractPath, null, sandboxDir)
           const { verifyContract } = require('./verify.js');
-          const verificationResult = verifyContract(contractPath, null, sandboxDir);
+          const verificationResult = await verifyContract(contractPath, null, sandboxDir);
 
           if (!verificationResult.success) {
             const verificationLogs = verificationResult.logs.join('\n');

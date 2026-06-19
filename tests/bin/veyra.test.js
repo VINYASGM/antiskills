@@ -43,4 +43,42 @@ describe('Veyra CLI property coercion', () => {
     content = fs.readFileSync(filePath, 'utf8');
     expect(content).toContain('name: "hello"');
   });
+
+  test('CLI status command outputs progress table and JSON formats', () => {
+    const beadsDir = path.join(process.cwd(), 'memory', 'beads');
+    if (!fs.existsSync(beadsDir)) {
+      fs.mkdirSync(beadsDir, { recursive: true });
+    }
+    const mockBead = {
+      id: 'bd-0001',
+      type: 'task_state',
+      status: 'open',
+      title: 'Mock Status Task',
+      author: 'system',
+      timestamp: new Date().toISOString(),
+      tags: [],
+      dependencies: [],
+      claimed_by: null,
+      claimed_at: null,
+      evidence: null
+    };
+    const beadFile = path.join(beadsDir, 'bd-0001.json');
+    fs.writeFileSync(beadFile, JSON.stringify(mockBead, null, 2), 'utf8');
+
+    try {
+      const outputText = execSync('node bin/veyra.js status', { encoding: 'utf8' });
+      expect(outputText).toContain('Live Active Task Progress');
+      expect(outputText).toContain('bd-0001');
+      expect(outputText).toContain('Mock Status Task');
+
+      const outputJsonStr = execSync('node bin/veyra.js status --json', { encoding: 'utf8' });
+      const parsed = JSON.parse(outputJsonStr);
+      expect(Array.isArray(parsed)).toBe(true);
+      expect(parsed.some(b => b.id === 'bd-0001' && b.title === 'Mock Status Task')).toBe(true);
+    } finally {
+      if (fs.existsSync(beadFile)) {
+        fs.unlinkSync(beadFile);
+      }
+    }
+  });
 });

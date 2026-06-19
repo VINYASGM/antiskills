@@ -266,7 +266,7 @@ describe('Workspace — commit', () => {
     cleanupTempDir(tmpDir);
   });
 
-  test('workspace.commit() applies patches to real files atomically', () => {
+  test('workspace.commit() applies patches to real files atomically', async () => {
     // Setup: create a real file
     const filePath = path.join(tmpDir, 'test.ts');
     fs.writeFileSync(filePath, 'original content\n');
@@ -275,7 +275,7 @@ describe('Workspace — commit', () => {
     const diff = patchModule.createPatch('original content\n', 'modified content\n');
     workspace.addPatch('agent-1', filePath, diff);
 
-    const result = workspace.commit();
+    const result = await workspace.commit();
     expect(result.applied).toBe(1);
     expect(result.rejected).toBe(0);
 
@@ -283,7 +283,7 @@ describe('Workspace — commit', () => {
     expect(newContent).toBe('modified content\n');
   });
 
-  test('workspace.commit() applies AST patches to real files atomically', () => {
+  test('workspace.commit() applies AST patches to real files atomically', async () => {
     const filePath = path.join(tmpDir, 'test_ast.ts');
     fs.writeFileSync(filePath, 'const port = 8080;\n');
 
@@ -293,7 +293,7 @@ describe('Workspace — commit', () => {
     ]);
     workspace.addPatch('agent-1', filePath, astPatch);
 
-    const result = workspace.commit();
+    const result = await workspace.commit();
     expect(result.applied).toBe(1);
     expect(result.rejected).toBe(0);
 
@@ -301,7 +301,7 @@ describe('Workspace — commit', () => {
     expect(newContent).toContain('port = 9000');
   });
 
-  test('workspace.commit() rolls back and writes nothing to disk if a subsequent patch fails', () => {
+  test('workspace.commit() rolls back and writes nothing to disk if a subsequent patch fails', async () => {
     const file1 = path.join(tmpDir, 'file1.ts');
     const file2 = path.join(tmpDir, 'file2.ts');
     
@@ -320,7 +320,7 @@ describe('Workspace — commit', () => {
     workspace.addPatch('agent-1', file1, patch1);
     workspace.addPatch('agent-2', file2, patch2);
 
-    const result = workspace.commit();
+    const result = await workspace.commit();
     expect(result.applied).toBe(0);
     expect(result.rejected).toBe(2);
     expect(result.errors.length).toBeGreaterThan(0);
@@ -330,7 +330,7 @@ describe('Workspace — commit', () => {
     expect(fs.readFileSync(file2, 'utf8')).toBe('const b = 2;\n');
   });
 
-  test('workspace.commit() runs sandbox verification, blocking writes to main workspace on failure', () => {
+  test('workspace.commit() runs sandbox verification, blocking writes to main workspace on failure', async () => {
     // 1. Create a real file in main workspace
     const mainFile = path.join(tmpDir, 'src_file.ts');
     fs.writeFileSync(mainFile, 'const port = 8080;\n', 'utf8');
@@ -380,7 +380,7 @@ describe('Workspace — commit', () => {
     // Call commit() with VEYRA_FORCE_SANDBOX = 'true'
     process.env.VEYRA_FORCE_SANDBOX = 'true';
     try {
-      const commitResult = workspace.commit();
+      const commitResult = await workspace.commit();
 
       // Verify it failed because of contract verification
       expect(commitResult.applied).toBe(0);
@@ -406,7 +406,7 @@ describe('Workspace — commit', () => {
     }
   });
 
-  test('workspace.commit() runs sandbox verification, allowing writes to main workspace on success', () => {
+  test('workspace.commit() runs sandbox verification, allowing writes to main workspace on success', async () => {
     // 1. Create a real file in main workspace
     const mainFile = path.join(tmpDir, 'src_file2.ts');
     fs.writeFileSync(mainFile, 'const port = 8080;\n', 'utf8');
@@ -454,7 +454,7 @@ describe('Workspace — commit', () => {
     // Call commit() with VEYRA_FORCE_SANDBOX = 'true'
     process.env.VEYRA_FORCE_SANDBOX = 'true';
     try {
-      const commitResult = workspace.commit();
+      const commitResult = await workspace.commit();
 
       // Verify it succeeded
       expect(commitResult.applied).toBe(1);

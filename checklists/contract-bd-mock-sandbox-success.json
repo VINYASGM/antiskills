@@ -1,0 +1,11 @@
+{
+  "contractId": "ct-mock-sandbox-success",
+  "taskId": "bd-mock-sandbox-success",
+  "targetFiles": [
+    "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-patch-test-T7kCqg\\src_file2.ts"
+  ],
+  "rules": {
+    "noConsoleLogs": true
+  },
+  "formalProofs": []
+}

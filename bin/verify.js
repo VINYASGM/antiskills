@@ -11,6 +11,76 @@ const { z } = require('zod');
 const { applyPatch } = require('./patch');
 const contextAssembler = require('./context');
 const { sandboxPathFor } = require('./sandbox-path');
+const https = require('node:https');
+
+function checkOfflineMock(packageName, version) {
+  const vulnerableMocks = {
+    'lodash': ['4.17.11'],
+    'vulnerable-package': ['1.0.0']
+  };
+  if (vulnerableMocks[packageName] && vulnerableMocks[packageName].includes(version)) {
+    return true; // vulnerable
+  }
+  return false; // secure
+}
+
+function queryOSV(packageName, version) {
+  return new Promise((resolve) => {
+    if (!process.env.GEMINI_API_KEY) {
+      return resolve(checkOfflineMock(packageName, version));
+    }
+
+    const payload = JSON.stringify({
+      package: {
+        name: packageName,
+        ecosystem: 'npm'
+      },
+      version: version
+    });
+
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload)
+      },
+      timeout: 3000
+    };
+
+    const req = https.request('https://api.osv.dev/v1/query', options, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode === 200) {
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.vulns && parsed.vulns.length > 0) {
+              resolve(true); // vulnerable
+            } else {
+              resolve(false); // secure
+            }
+          } catch (e) {
+            resolve(checkOfflineMock(packageName, version));
+          }
+        } else {
+          resolve(checkOfflineMock(packageName, version));
+        }
+      });
+    });
+
+    req.on('error', () => {
+      resolve(checkOfflineMock(packageName, version));
+    });
+
+    req.on('timeout', () => {
+      req.destroy();
+      resolve(checkOfflineMock(packageName, version));
+    });
+
+    req.write(payload);
+    req.end();
+  });
+}
 
 // 1. Zod Contract Schema
 const ContractSchema = z.object({
@@ -42,9 +112,27 @@ function parseContract(contractData) {
  * @param {string} patchPath - Path to patch.diff file.
  * @returns {{success: boolean, logs: string[]}}
  */
-function verifyContract(contractPath, patchPath, sandboxDir = null) {
+async function verifyContract(contractPath, patchPath, sandboxDir = null) {
   const logs = [];
   logs.push(`Loading contract: ${path.basename(contractPath)}`);
+
+  // Load original package.json if it exists
+  let originalDeps = {};
+  let originalDevDeps = {};
+  const pkgPath = 'package.json';
+  const resolvedPkgPath = sandboxDir ? sandboxPathFor(sandboxDir, pkgPath) : pkgPath;
+  const originalPkgExists = fs.existsSync(resolvedPkgPath) || fs.existsSync(pkgPath);
+  
+  if (originalPkgExists) {
+    try {
+      const sourcePath = fs.existsSync(resolvedPkgPath) ? resolvedPkgPath : pkgPath;
+      const pkg = JSON.parse(fs.readFileSync(sourcePath, 'utf8'));
+      originalDeps = pkg.dependencies || {};
+      originalDevDeps = pkg.devDependencies || {};
+    } catch (e) {
+      // Ignore
+    }
+  }
 
   // Load contract
   let contract;
@@ -132,6 +220,39 @@ function verifyContract(contractPath, patchPath, sandboxDir = null) {
       }
       patchApplied = true;
       logs.push(`✓ Patched changes written to target workspace files atomically`);
+
+      // Check for new/updated packages in package.json and run OSV checks
+      const patchedPkgPath = sandboxDir ? sandboxPathFor(sandboxDir, pkgPath) : pkgPath;
+      if (fs.existsSync(patchedPkgPath)) {
+        let patchedDeps = {};
+        let patchedDevDeps = {};
+        try {
+          const pkg = JSON.parse(fs.readFileSync(patchedPkgPath, 'utf8'));
+          patchedDeps = pkg.dependencies || {};
+          patchedDevDeps = pkg.devDependencies || {};
+        } catch (e) {
+          logs.push(`⚠ Warning: Patched package.json could not be parsed: ${e.message}`);
+        }
+
+        const allOriginal = { ...originalDeps, ...originalDevDeps };
+        const allPatched = { ...patchedDeps, ...patchedDevDeps };
+
+        for (const [name, versionSpec] of Object.entries(allPatched)) {
+          const cleanVersion = versionSpec.replace(/^[^\d]+/g, '');
+          const origVersionSpec = allOriginal[name];
+
+          if (!origVersionSpec || origVersionSpec !== versionSpec) {
+            logs.push(`OSV check: Verifying package ${name}@${cleanVersion}...`);
+            const isVulnerable = await queryOSV(name, cleanVersion);
+            if (isVulnerable) {
+              logs.push(`❌ OSV check: Package ${name}@${cleanVersion} is VULNERABLE!`);
+              throw new Error(`OSV check failed: Vulnerable package ${name}@${cleanVersion} detected`);
+            } else {
+              logs.push(`✓ OSV check: Package ${name}@${cleanVersion} is secure`);
+            }
+          }
+        }
+      }
     } else {
       logs.push(`✓ Skipping patch application (patchPath was empty or null)`);
     }

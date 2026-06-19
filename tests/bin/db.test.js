@@ -2,11 +2,6 @@ const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
 
-/**
- * BeadsDB Tests
- * Tests the SQLite-backed memory system: frontmatter parsing, bead CRUD, sync, migration.
- */
-
 // Helper: create isolated temp dir for each test to avoid cross-test contamination
 function createTempProject() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'veyra-test-'));
@@ -20,12 +15,13 @@ function cleanupTempDir(dir) {
   } catch (e) {}
 }
 
-// We can't import db.js directly because it's a singleton that binds to process.cwd().
-// Instead, test the class methods by requiring the module fresh in a controlled cwd.
-// For unit tests, we'll extract parseFrontmatter/stringifyFrontmatter logic inline.
+afterEach(() => {
+  if (typeof vi !== 'undefined') {
+    vi.restoreAllMocks();
+  }
+});
 
 describe('BeadsDB — Frontmatter Parsing', () => {
-  // Test parseFrontmatter by instantiating a fresh DB in a temp dir
   let originalCwd;
   let tmpDir;
   let db;
@@ -35,10 +31,8 @@ describe('BeadsDB — Frontmatter Parsing', () => {
     tmpDir = createTempProject();
     process.chdir(tmpDir);
 
-    // Clear require cache to get fresh singleton
     const dbPath = require.resolve('../../bin/db.js');
     delete require.cache[dbPath];
-    // Also clear intent.js cache since it imports db.js
     const intentPath = path.join(path.dirname(dbPath), 'intent.js');
     if (require.cache[intentPath]) delete require.cache[intentPath];
 
@@ -46,14 +40,9 @@ describe('BeadsDB — Frontmatter Parsing', () => {
   });
 
   afterEach(() => {
-    // Close the database connection
-    if (db && db.db) {
-      try { db.db.close(); } catch (e) {}
-    }
     process.chdir(originalCwd);
     cleanupTempDir(tmpDir);
 
-    // Clean require cache again
     const dbPath = require.resolve('../../bin/db.js');
     delete require.cache[dbPath];
   });
@@ -149,7 +138,6 @@ describe('BeadsDB — Frontmatter Roundtrip', () => {
   });
 
   afterEach(() => {
-    if (db && db.db) { try { db.db.close(); } catch (e) {} }
     process.chdir(originalCwd);
     cleanupTempDir(tmpDir);
     const dbPath = require.resolve('../../bin/db.js');
@@ -201,14 +189,13 @@ describe('BeadsDB — CRUD Operations', () => {
   });
 
   afterEach(() => {
-    if (db && db.db) { try { db.db.close(); } catch (e) {} }
     process.chdir(originalCwd);
     cleanupTempDir(tmpDir);
     const dbPath = require.resolve('../../bin/db.js');
     delete require.cache[dbPath];
   });
 
-  test('create() writes JSON file and returns bead ID', () => {
+  test('create() writes JSON file and returns UUIDv4 bead ID', () => {
     const beadId = db.create({
       type: 'task_state',
       status: 'open',
@@ -219,33 +206,34 @@ describe('BeadsDB — CRUD Operations', () => {
       dependencies: [],
     });
 
-    expect(beadId).toBe('bd-0001');
+    const beadIdRegex = /^bd-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    expect(beadId).toMatch(beadIdRegex);
 
-    const filePath = path.join(tmpDir, 'memory', 'beads', 'bd-0001.json');
+    const filePath = path.join(tmpDir, 'memory', 'beads', `${beadId}.json`);
     expect(fs.existsSync(filePath)).toBe(true);
   });
 
-  test('create() syncs to SQLite — get() retrieves it', () => {
-    db.create({
+  test('create() syncs to Map — get() retrieves it', () => {
+    const beadId = db.create({
       type: 'task_state',
       status: 'open',
-      title: 'SQLite Sync Test',
-      description: 'Should appear in DB.',
+      title: 'Map Sync Test',
+      description: 'Should appear in cache.',
       author: 'test',
       tags: ['sync'],
       dependencies: [],
     });
 
-    const retrieved = db.get('bd-0001');
+    const retrieved = db.get(beadId);
     expect(retrieved).not.toBeNull();
-    expect(retrieved.title).toBe('SQLite Sync Test');
+    expect(retrieved.title).toBe('Map Sync Test');
     expect(retrieved.tags).toEqual(['sync']);
   });
 
   test('getAll() returns all beads sorted by ID', () => {
-    db.create({ type: 'task_state', status: 'open', title: 'First', tags: [], dependencies: [] });
-    db.create({ type: 'task_state', status: 'open', title: 'Second', tags: [], dependencies: [] });
-    db.create({ type: 'task_state', status: 'done', title: 'Third', tags: [], dependencies: [] });
+    db.create({ id: 'bd-0001', type: 'task_state', status: 'open', title: 'First', tags: [], dependencies: [] });
+    db.create({ id: 'bd-0002', type: 'task_state', status: 'open', title: 'Second', tags: [], dependencies: [] });
+    db.create({ id: 'bd-0003', type: 'task_state', status: 'resolved', title: 'Third', tags: [], dependencies: [] });
 
     const all = db.getAll();
     expect(all.length).toBe(3);
@@ -254,13 +242,9 @@ describe('BeadsDB — CRUD Operations', () => {
     expect(all[2].id).toBe('bd-0003');
   });
 
-  test('getNextId() returns sequential IDs', () => {
-    expect(db.getNextId()).toBe('bd-0001');
-
-    db.create({ type: 'task_state', status: 'open', title: 'A', tags: [], dependencies: [] });
-    // After creation, next should be bd-0002
-    const next = db.getNextId();
-    expect(next).toBe('bd-0002');
+  test('getNextId() returns UUIDv4 IDs matching regex', () => {
+    const beadIdRegex = /^bd-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    expect(db.getNextId()).toMatch(beadIdRegex);
   });
 
   test('get() returns null for non-existent ID', () => {
@@ -286,7 +270,6 @@ describe('BeadsDB — Legacy Migration', () => {
   });
 
   test('migrateLegacy() converts legacy Markdown and json.migrated to Zod JSON', () => {
-    // Write a legacy Markdown bead
     const mdContent = `---
 id: bd-0001
 type: task_state
@@ -307,7 +290,6 @@ This is legacy md description.`;
       'utf8'
     );
 
-    // Write a legacy json.migrated bead
     const legacyMigrated = {
       id: 'bd-0002',
       type: 'task_state',
@@ -328,7 +310,6 @@ This is legacy md description.`;
       'utf8'
     );
 
-    // Initialize DB (triggers migrateLegacy in constructor)
     process.chdir(tmpDir);
     const dbPath = require.resolve('../../bin/db.js');
     delete require.cache[dbPath];
@@ -336,15 +317,12 @@ This is legacy md description.`;
     if (require.cache[intentPath]) delete require.cache[intentPath];
     const db = require('../../bin/db.js');
 
-    // Legacy Markdown and json.migrated should be unlinked/deleted
     expect(fs.existsSync(path.join(tmpDir, 'memory', 'beads', 'bd-0001.md'))).toBe(false);
     expect(fs.existsSync(path.join(tmpDir, 'memory', 'beads', 'bd-0002.json.migrated'))).toBe(false);
 
-    // Standard validated json files should exist
     expect(fs.existsSync(path.join(tmpDir, 'memory', 'beads', 'bd-0001.json'))).toBe(true);
     expect(fs.existsSync(path.join(tmpDir, 'memory', 'beads', 'bd-0002.json'))).toBe(true);
 
-    // Should be queryable in SQLite
     const bead1 = db.get('bd-0001');
     expect(bead1).not.toBeNull();
     expect(bead1.title).toBe('Legacy Markdown Bead');
@@ -353,14 +331,8 @@ This is legacy md description.`;
     expect(bead2).not.toBeNull();
     expect(bead2.title).toBe('Legacy Migrated JSON');
     expect(bead2.status).toBe('claimed');
-
-    if (db && db.db) { try { db.db.close(); } catch (e) {} }
   });
 });
-
-// ──────────────────────────────────────────────
-// Phase 2: Dirty-flag sync optimization tests
-// ──────────────────────────────────────────────
 
 describe('BeadsDB — Sync Optimization (Phase 2)', () => {
   let originalCwd;
@@ -379,7 +351,6 @@ describe('BeadsDB — Sync Optimization (Phase 2)', () => {
   });
 
   afterEach(() => {
-    if (db && db.db) { try { db.db.close(); } catch (e) {} }
     process.chdir(originalCwd);
     cleanupTempDir(tmpDir);
     const dbPath = require.resolve('../../bin/db.js');
@@ -387,26 +358,22 @@ describe('BeadsDB — Sync Optimization (Phase 2)', () => {
   });
 
   test('sync() tracks file mtimes and skips unchanged files on re-sync', () => {
-    // Create a bead
-    db.create({ type: 'task_state', status: 'open', title: 'Tracked', tags: [], dependencies: [] });
+    db.create({ id: 'bd-0001', type: 'task_state', status: 'open', title: 'Tracked', tags: [], dependencies: [] });
 
-    // db should expose _fileHashes or _fileMtimes map
     expect(db._fileMtimes).toBeDefined();
     expect(db._fileMtimes instanceof Map).toBe(true);
     expect(db._fileMtimes.size).toBeGreaterThan(0);
   });
 
   test('sync() only re-parses files with changed mtime', () => {
-    db.create({ type: 'task_state', status: 'open', title: 'A', tags: [], dependencies: [] });
-    db.create({ type: 'task_state', status: 'open', title: 'B', tags: [], dependencies: [] });
+    db.create({ id: 'bd-0001', type: 'task_state', status: 'open', title: 'A', tags: [], dependencies: [] });
+    db.create({ id: 'bd-0002', type: 'task_state', status: 'open', title: 'B', tags: [], dependencies: [] });
 
-    // Track sync count via _syncStats
     db.sync();
     expect(db._syncStats).toBeDefined();
     expect(db._syncStats.filesScanned).toBe(2);
-    expect(db._syncStats.filesSkipped).toBe(2); // Both unchanged since last sync
+    expect(db._syncStats.filesSkipped).toBe(2);
 
-    // Modify one file
     const filePath = path.join(tmpDir, 'memory', 'beads', 'bd-0001.json');
     const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     data.title = 'A-modified';
@@ -414,29 +381,26 @@ describe('BeadsDB — Sync Optimization (Phase 2)', () => {
 
     db.sync();
     expect(db._syncStats.filesScanned).toBe(2);
-    expect(db._syncStats.filesSkipped).toBe(1); // Only bd-0002 skipped
+    expect(db._syncStats.filesSkipped).toBe(1);
   });
 
   test('get() uses cached data when sync TTL has not expired', () => {
-    db.create({ type: 'task_state', status: 'open', title: 'Cached', tags: [], dependencies: [] });
+    db.create({ id: 'bd-0001', type: 'task_state', status: 'open', title: 'Cached', tags: [], dependencies: [] });
 
-    // First get() triggers sync
     db.get('bd-0001');
     const firstSyncTime = db._lastSyncTime;
 
-    // Second get() within TTL should NOT re-sync
     const result = db.get('bd-0001');
     expect(result.title).toBe('Cached');
-    expect(db._lastSyncTime).toBe(firstSyncTime); // Same sync time = no re-sync
+    expect(db._lastSyncTime).toBe(firstSyncTime);
   });
 
-  test('getNextId() queries SQLite directly without full sync', () => {
-    db.create({ type: 'task_state', status: 'open', title: 'X', tags: [], dependencies: [] });
+  test('getNextId() returns UUIDv4 directly without full sync', () => {
+    db.create({ id: 'bd-0001', type: 'task_state', status: 'open', title: 'X', tags: [], dependencies: [] });
 
     const syncTimeBefore = db._lastSyncTime;
     const nextId = db.getNextId();
-    expect(nextId).toBe('bd-0002');
-    // getNextId should NOT trigger a new sync
+    expect(nextId).toMatch(/^bd-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
     expect(db._lastSyncTime).toBe(syncTimeBefore);
   });
 });
@@ -458,7 +422,6 @@ describe('BeadsDB — File Locking & Concurrency', () => {
   });
 
   afterEach(() => {
-    if (db && db.db) { try { db.db.close(); } catch (e) {} }
     process.chdir(originalCwd);
     cleanupTempDir(tmpDir);
     const dbPath = require.resolve('../../bin/db.js');
@@ -469,8 +432,7 @@ describe('BeadsDB — File Locking & Concurrency', () => {
     const lockfile = require('proper-lockfile');
     const lockSpy = vi.spyOn(lockfile, 'lockSync');
 
-    // 1. Successful write
-    db.create({
+    const beadId = db.create({
       type: 'task_state',
       status: 'open',
       title: 'Locking Test',
@@ -480,7 +442,7 @@ describe('BeadsDB — File Locking & Concurrency', () => {
       dependencies: []
     });
 
-    const jsonPath = path.join(tmpDir, 'memory', 'beads', 'bd-0001.json');
+    const jsonPath = path.join(tmpDir, 'memory', 'beads', `${beadId}.json`);
     expect(lockSpy).toHaveBeenCalledWith(jsonPath, expect.objectContaining({
       retries: expect.objectContaining({
         retries: 10,
@@ -491,7 +453,6 @@ describe('BeadsDB — File Locking & Concurrency', () => {
 
     lockSpy.mockClear();
 
-    // 2. Failed validation (schema error) should release lock
     expect(() => {
       db.create({
         type: 'task_state',
@@ -570,3 +531,88 @@ describe('BeadsDB — File Locking & Concurrency', () => {
   });
 });
 
+describe('BeadsDB — UUIDv4 Concurrency & Observability Logs', () => {
+  let originalCwd;
+  let tmpDir;
+  let db;
+
+  beforeEach(() => {
+    originalCwd = process.cwd();
+    tmpDir = createTempProject();
+    process.chdir(tmpDir);
+    const dbPath = require.resolve('../../bin/db.js');
+    delete require.cache[dbPath];
+    const intentPath = path.join(path.dirname(dbPath), 'intent.js');
+    if (require.cache[intentPath]) delete require.cache[intentPath];
+    db = require('../../bin/db.js');
+  });
+
+  afterEach(() => {
+    process.chdir(originalCwd);
+    cleanupTempDir(tmpDir);
+    const dbPath = require.resolve('../../bin/db.js');
+    delete require.cache[dbPath];
+  });
+
+  test('concurrent creations do not collide', () => {
+    const generatedIds = new Set();
+    const count = 100;
+    for (let i = 0; i < count; i++) {
+      const id = db.create({
+        type: 'task_state',
+        status: 'open',
+        title: `Concurrent Bead ${i}`,
+        author: 'agent'
+      });
+      expect(generatedIds.has(id)).toBe(false);
+      generatedIds.add(id);
+    }
+    expect(generatedIds.size).toBe(count);
+  });
+
+  test('observability logs are outputted to logs/agent-audit.jsonl on state changes', () => {
+    const beadId = db.create({
+      type: 'task_state',
+      status: 'open',
+      title: 'Audit Logged Bead',
+      description: 'Audit test description.',
+      author: 'agent-1'
+    });
+
+    db.claim(beadId, 'agent-1');
+    db.start(beadId, 'agent-1');
+    db.complete(beadId, 'agent-1', 'resolved successfully');
+
+    const logPath = path.join(tmpDir, 'logs', 'agent-audit.jsonl');
+    expect(fs.existsSync(logPath)).toBe(true);
+
+    const logContent = fs.readFileSync(logPath, 'utf8').trim().split('\n');
+    expect(logContent.length).toBeGreaterThanOrEqual(4);
+
+    const entries = logContent.map(line => JSON.parse(line));
+    
+    // Check create entry
+    const createEntry = entries.find(e => e.action_type === 'create');
+    expect(createEntry).toBeDefined();
+    expect(createEntry.agent_id).toBe('agent-1');
+    expect(createEntry.bead_id).toBe(beadId);
+    expect(createEntry.token_count).toBe(Math.round('Audit test description.'.length / 4));
+    expect(typeof createEntry.input_hash).toBe('string');
+
+    // Check claim entry
+    const claimEntry = entries.find(e => e.action_type === 'claim');
+    expect(claimEntry).toBeDefined();
+    expect(claimEntry.agent_id).toBe('agent-1');
+    expect(claimEntry.bead_id).toBe(beadId);
+    expect(claimEntry.input_hash).toBeNull();
+    expect(claimEntry.token_count).toBe(0);
+
+    // Check complete entry
+    const completeEntry = entries.find(e => e.action_type === 'complete');
+    expect(completeEntry).toBeDefined();
+    expect(completeEntry.agent_id).toBe('agent-1');
+    expect(completeEntry.bead_id).toBe(beadId);
+    expect(completeEntry.token_count).toBe(Math.round('resolved successfully'.length / 4));
+    expect(typeof completeEntry.input_hash).toBe('string');
+  });
+});

@@ -66,12 +66,27 @@ fn write_watcher_event(
     file_path: &std::path::Path,
     topic: &str,
 ) -> anyhow::Result<()> {
-    let conn = rusqlite::Connection::open(beads_db_path)?;
     let normalized = file_path.to_string_lossy().replace("\\", "/");
-    let payload = format!("{{\"path\":\"{}\"}}", normalized);
-    conn.execute(
-        "INSERT INTO agent_events (topic, sender, payload, status, timestamp) VALUES (?1, ?2, ?3, ?4, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
-        (topic, "file_watcher", &payload, "pending"),
-    )?;
+    let payload = format!(
+        r#"{{"path":"{}","topic":"{}","sender":"file_watcher","status":"pending"}}"#,
+        normalized, topic
+    );
+
+    let events_dir = beads_db_path
+        .parent()
+        .ok_or_else(|| anyhow::anyhow!("No parent directory for beads_db_path"))?
+        .join("events");
+    
+    std::fs::create_dir_all(&events_dir)?;
+
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_millis())
+        .unwrap_or(0);
+    let pid = std::process::id();
+    let filename = format!("watcher-{}-{}.json", timestamp, pid);
+    let event_file_path = events_dir.join(filename);
+
+    std::fs::write(event_file_path, payload)?;
     Ok(())
 }

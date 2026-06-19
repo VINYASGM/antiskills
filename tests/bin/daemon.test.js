@@ -53,6 +53,7 @@ describe('Daemon Swarm — Event Publishing', () => {
   test('db operations publish expected events to the event bus', () => {
     // 1. Create bead
     const beadId = db.create({
+      id: 'bd-0001',
       type: 'task_state',
       status: 'open',
       title: 'Test Bead',
@@ -101,6 +102,7 @@ describe('Daemon Swarm — Event Publishing', () => {
 
   test('db.fail() publishes fail events', () => {
     db.create({
+      id: 'bd-0001',
       type: 'task_state',
       status: 'open',
       title: 'Fail Bead',

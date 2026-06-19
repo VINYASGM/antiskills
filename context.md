@@ -1,6 +1,6 @@
-# Veyra OS V3 Context
+# Veyra OS V4 Context
 
-Welcome to Veyra, the developer context hub. This document serves as the absolute source of truth for the codebase architecture, execution flow, and developer operations for the **Veyra OS V3** framework.
+Welcome to Veyra, the developer context hub. This document serves as the absolute source of truth for the codebase architecture, execution flow, and developer operations for the **Veyra OS V4** framework.
 
 ---
 
@@ -12,7 +12,7 @@ Veyra is a reusable, AI-native engineering operating system repository framework
 - **Hybrid Context Assembly:** Combines local syntax-tree (AST) crawls with global similarity vector searches (RAG) to ensure maximum relevancy and zero token waste.
 - **Explorer-Architect Prototyping Loops:** A fast *Explorer* sandbox tests assumptions before the *Architect* formalizes specs, mitigating waterfall friction.
 - **Governance State-Machine Circuit Breakers:** Strict 3-strike retry bounds in `bin/governance.js` protect against infinite agent ping-pong loop token drain.
-- **Swarm Telemetry Observability:** Swarm dashboard (`bin/dashboard.js`) rendering database locks, retry states, and active patch channels to display live swarm status.
+- **Swarm Telemetry Observability:** Swarm dashboard (`bin/dashboard.js`) rendering JSON locks, retry states, and active patch channels to display live swarm status.
 
 ---
 
@@ -31,6 +31,12 @@ Veyra is a reusable, AI-native engineering operating system repository framework
   - [router.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/router.js) — Dual Explorer-Architect flow routing layer.
   - [veyra.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/veyra.js) — CLI Entrypoint bootloader.
   - [visual-review.js](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/bin/visual-review.js) — Multimodal VLM responsive layout auditor.
+- [memory/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/memory) — Live task state storage and execution directories.
+  - `beads/` — Directory containing individual Zod-validated JSON files for each task bead (e.g. `bd-88db054d-bfdf-4c3e-b83b-f6cf01844b20.json`).
+  - `crawl_cache.json` — Cached filesystem imports and mtime timestamps for incremental crawler scanning.
+  - `event_bus.json` — Event bus logfile tracking status transitions and coordination events.
+  - `intents.json` — Registry mapping planned files and endpoints to isolate agent styling conflicts.
+  - `agent-audit.jsonl` — Append-only JSON Lines format log recording fine-grained agent action details.
 - [memory-mcp-server/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/memory-mcp-server) — MCP memory server running DuckDB + NetworkX graph operations.
 - [agents/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/agents) — Definitions for Orchestrator, Explorer, Architect, and Implementer roles.
 - [checklists/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/checklists) — JSON structured code contracts.
@@ -39,6 +45,19 @@ Veyra is a reusable, AI-native engineering operating system repository framework
 - [context/](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/context) — Generated context index outputs.
   - [tree.html](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/context/tree.html) — Collapsible D3.js interactive hierarchical file-to-symbol tree.
   - [graph.html](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/veyra/context/graph.html) — Collapsible Mermaid/D3.js callflow community-grouped architecture graph map.
+
+### 2.1 Bead Format Example
+Active tasks (beads) are represented as Zod-validated JSON documents. In V4, bead IDs are transitioned to standard UUIDv4 strings prefixed with `bd-`:
+```json
+{
+  "id": "bd-88db054d-bfdf-4c3e-b83b-f6cf01844b20",
+  "title": "Implement OSV.dev supply chain checks",
+  "status": "open",
+  "claimed_by": null,
+  "claimed_at": null,
+  "dependencies": []
+}
+```
 
 
 ---
@@ -52,7 +71,7 @@ graph TD
     
     subgraph VFS Execution Flow
         ARCHITECT -->|Produce Contract| IMPLEMENTER[🔧 Implementer VFS Patch]
-        IMPLEMENTER -->|Intent publish| INTENT[JIT Intent SQLite WAL]
+        IMPLEMENTER -->|Intent publish| INTENT[JIT JSON Intent File]
         INTENT -->|Conflict Check| PATCH_CHECK[VFS patch scan]
         
         PATCH_CHECK -->|Assemble Context| CONTEXT[Hybrid context AST + vector RAG]
@@ -67,7 +86,7 @@ graph TD
     GOV -->|Pass| COMMIT[Atomic merge to branch Git]
     GOV -->|Fail threshold| ALARM[🚨 Escalate to Human with Failure diff]
     
-    DB_QUEUE["🔒 SQLite DB Locks"] -.-> DASHBOARD
+    JSON_DB["🔒 lockfile JSON State"] -.-> DASHBOARD
     GOV -.-> DASHBOARD
     PATCH_CHECK -.-> DASHBOARD
 ```
@@ -112,6 +131,16 @@ Display database locks, retry strikes, and active patch channels visually:
 node bin/veyra.js dashboard
 # OR
 node bin/veyra.js ui dashboard
+```
+
+### Dynamic Swarm Status Check
+Retrieve the current live state of beads, active event streams, task queues, and system telemetry dynamically under lockfile:
+```powershell
+# Output standard text status breakdown
+node bin/veyra.js status
+
+# Output structured machine-readable JSON status
+node bin/veyra.js status --json
 ```
 
 ### Programmatic AST Transformation CLI

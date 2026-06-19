@@ -32,6 +32,7 @@ Core Commands:
   bead update <id> <key=value...>
   worktree add <name>
   worktree remove <name>
+  status                     Display live task progress
   dashboard | ui dashboard   Display swarm status, database locks, and active channels
   daemon start [--background]
   daemon stop
@@ -202,6 +203,42 @@ function parseOptions(argsList) {
         printHelp();
       }
     } 
+    else if (command === 'status') {
+      const { options } = parseOptions(args.slice(1));
+      const beads = beadsDB.getAll();
+      if (options.json) {
+        console.log(JSON.stringify(beads, null, 2));
+      } else {
+        console.log('\n\x1b[1m\x1b[36m=== Live Active Task Progress ===\x1b[0m\n');
+        const colWidths = { id: 10, status: 15, author: 15, claimed: 15, title: 30 };
+        const header = `| ${'ID'.padEnd(colWidths.id)} | ${'Status'.padEnd(colWidths.status)} | ${'Author'.padEnd(colWidths.author)} | ${'Claimed By'.padEnd(colWidths.claimed)} | ${'Title'.padEnd(colWidths.title)} |`;
+        const separator = `+-${'-'.repeat(colWidths.id)}-+-${'-'.repeat(colWidths.status)}-+-${'-'.repeat(colWidths.author)}-+-${'-'.repeat(colWidths.claimed)}-+-${'-'.repeat(colWidths.title)}-+`;
+        
+        console.log(separator);
+        console.log(header);
+        console.log(separator);
+        
+        for (const bead of beads) {
+          let statusColor = '\x1b[0m';
+          if (bead.status === 'open') statusColor = '\x1b[32m';
+          else if (bead.status === 'claimed') statusColor = '\x1b[33m';
+          else if (bead.status === 'in_progress') statusColor = '\x1b[35m';
+          else if (bead.status === 'resolved') statusColor = '\x1b[34m';
+          else if (bead.status === 'failed') statusColor = '\x1b[31m';
+          
+          const idStr = bead.id.padEnd(colWidths.id);
+          const rawStatus = bead.status || '';
+          const paddedStatus = rawStatus.padEnd(colWidths.status);
+          const coloredStatus = statusColor + paddedStatus + '\x1b[0m';
+          const authorStr = (bead.author || 'system').padEnd(colWidths.author);
+          const claimedStr = (bead.claimed_by || 'None').padEnd(colWidths.claimed);
+          const titleStr = ((bead.title || '').length > colWidths.title ? (bead.title || '').slice(0, colWidths.title - 3) + '...' : (bead.title || '')).padEnd(colWidths.title);
+          
+          console.log(`| ${idStr} | ${coloredStatus} | ${authorStr} | ${claimedStr} | ${titleStr} |`);
+        }
+        console.log(separator + '\n');
+      }
+    } 
     else if (command === 'worktree') {
       if (subcommand === 'add') {
         const name = remainingArgs[0];
@@ -290,7 +327,7 @@ function parseOptions(argsList) {
             console.error('Conflicts detected:', conflicts.details);
             process.exit(1);
           }
-          const result = workspace.commit();
+          const result = await workspace.commit();
           console.log(`Applied ${result.applied} patches.`);
         }
       }
@@ -298,7 +335,7 @@ function parseOptions(argsList) {
         const verifyEngine = require('./verify');
         if (subcommand === 'check') {
           const [patchFilePath, contractFilePath] = remainingArgs;
-          const result = verifyEngine.verifyContract(contractFilePath, patchFilePath);
+          const result = await verifyEngine.verifyContract(contractFilePath, patchFilePath);
           if (!result.success) {
             console.error('Verification failed:', result.logs);
             process.exit(1);

@@ -17,6 +17,7 @@ The terminal-based dashboard aggregates real-time swarm telemetry, displaying ov
 | 3 | Implement Tests | Write tests/bin/dashboard.test.js and run Vitest suite | M2 | COMPLETED |
 | 4 | Verification & Audit | Review correctness and execute forensic integrity audit | M3 | COMPLETED |
 | 21 | AST Expansion & Agent Integration | Implement classes, decorators, JSX, interfaces/types AST APIs, wire to CLI/patch, and update agent markdown prompts | none | COMPLETED |
+| 25 | Zero-Dependency Refactoring | Decommission SQLite, migrate to UUIDv4, add veyra status CLI, OSV.dev checking, structured audit logging, and tests | none | COMPLETED |
 
 ## Interface Contracts
 ### SwarmDashboard (`bin/dashboard.js`)
@@ -26,3 +27,10 @@ The terminal-based dashboard aggregates real-time swarm telemetry, displaying ov
 - `getGovernanceTransactions()`: Reads governance status and highlights warnings/trips.
 - `getPatchChannels()`: Lists active workspace subdirectories.
 - `render()`: Returns the fully formatted string output.
+
+### Supply Chain Security (`bin/verify.js` or `bin/security.js`)
+- `queryOSV(packageName, version)`: Construct and POST OSV JSON payload to OSV.dev API, returning vulnerability object.
+- `checkOSV(packageJsonPath, lockfilePath)`: Scan package manifests, check each dependency against OSV vulnerability database via queryOSV with offline mock fallbacks, throwing/returning exit code 1 on threat.
+
+### Dynamic Status CLI (`bin/veyra.js` & `bin/db.js`)
+- `status`: Command-line command `status [--json]` querying Map cache and JSON persistence files under lockfile, rendering user-friendly ANSI text or structured JSON of beads, active events, task queues, and system health.

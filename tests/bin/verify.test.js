@@ -44,7 +44,7 @@ describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
     expect(parsed.formalProofs[0].type).toBe('test');
   });
 
-  it('verifyContract() succeeds when rules and command execution pass', () => {
+  it('verifyContract() succeeds when rules and command execution pass', async () => {
     // Write original file
     fs.writeFileSync(targetFilePath, 'const x = 42;\nconst y = 100;\n', 'utf8');
 
@@ -67,12 +67,12 @@ describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
     };
     fs.writeFileSync(contractPath, JSON.stringify(contract, null, 2), 'utf8');
 
-    const result = verifyContract(contractPath, patchPath);
+    const result = await verifyContract(contractPath, patchPath);
     expect(result.success).toBe(true);
     expect(fs.readFileSync(targetFilePath, 'utf8')).toBe(modified); // Assert file is modified permanently after pass
   });
 
-  it('verifyContract() fails and rolls back changes when a rule is violated (e.g., console.log found)', () => {
+  it('verifyContract() fails and rolls back changes when a rule is violated (e.g., console.log found)', async () => {
     const original = 'const x = 42;\n';
     fs.writeFileSync(targetFilePath, original, 'utf8');
 
@@ -92,7 +92,7 @@ describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
     };
     fs.writeFileSync(contractPath, JSON.stringify(contract, null, 2), 'utf8');
 
-    const result = verifyContract(contractPath, patchPath);
+    const result = await verifyContract(contractPath, patchPath);
     expect(result.success).toBe(false);
     expect(result.logs.some(l => l.includes('Rule Violation'))).toBe(true);
     
@@ -100,7 +100,7 @@ describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
     expect(fs.readFileSync(targetFilePath, 'utf8')).toBe(original);
   });
 
-  it('verifyContract() fails and rolls back changes when an executable proof command fails', () => {
+  it('verifyContract() fails and rolls back changes when an executable proof command fails', async () => {
     const original = 'const val = 10;\n';
     fs.writeFileSync(targetFilePath, original, 'utf8');
 
@@ -118,7 +118,7 @@ describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
     };
     fs.writeFileSync(contractPath, JSON.stringify(contract, null, 2), 'utf8');
 
-    const result = verifyContract(contractPath, patchPath);
+    const result = await verifyContract(contractPath, patchPath);
     expect(result.success).toBe(false);
     expect(result.logs.some(l => l.includes('Proof [test-fail] Failed!'))).toBe(true);
 
@@ -126,7 +126,7 @@ describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
     expect(fs.readFileSync(targetFilePath, 'utf8')).toBe(original);
   });
 
-  it('verifyContract() triggers JIT context freshness checks and re-evaluation when manifest is stale', () => {
+  it('verifyContract() triggers JIT context freshness checks and re-evaluation when manifest is stale', async () => {
     // Write original file
     fs.writeFileSync(targetFilePath, 'const x = 42;\n', 'utf8');
 
@@ -163,7 +163,7 @@ describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
     };
     fs.writeFileSync(contractPath, JSON.stringify(contract, null, 2), 'utf8');
 
-    const result = verifyContract(contractPath, patchPath);
+    const result = await verifyContract(contractPath, patchPath);
     expect(result.success).toBe(true);
     expect(result.logs.some(l => l.includes('JIT Context dependency graph re-evaluated'))).toBe(true);
 
@@ -177,7 +177,7 @@ describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
     }
   });
 
-  it('verifyContract() supports sandboxed execution and does not modify original files or rollback main workspace', () => {
+  it('verifyContract() supports sandboxed execution and does not modify original files or rollback main workspace', async () => {
     // 1. Setup original file in workspace
     const originalContent = 'const val = 100;\n';
     fs.writeFileSync(targetFilePath, originalContent, 'utf8');
@@ -203,7 +203,7 @@ describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
     fs.writeFileSync(contractPath, JSON.stringify(contract, null, 2), 'utf8');
 
     // 5. Run verifyContract with sandboxDir
-    const result = verifyContract(contractPath, patchPath, sandboxDir);
+    const result = await verifyContract(contractPath, patchPath, sandboxDir);
     expect(result.success).toBe(false);
     expect(result.logs.some(l => l.includes('Rule Violation'))).toBe(true);
 
@@ -219,7 +219,7 @@ describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
     }
   });
 
-  it('verifyContract() handles null/empty patchPath gracefully and checks sandbox files directly', () => {
+  it('verifyContract() handles null/empty patchPath gracefully and checks sandbox files directly', async () => {
     // 1. Setup original file
     fs.writeFileSync(targetFilePath, 'const a = 1;\n', 'utf8');
 
@@ -246,13 +246,106 @@ describe('Verify Engine — Contract Checker & Sandboxed Execution', () => {
     fs.writeFileSync(contractPath, JSON.stringify(contract, null, 2), 'utf8');
 
     // 5. Run verifyContract with null patchPath
-    const result = verifyContract(contractPath, null, sandboxDir);
+    const result = await verifyContract(contractPath, null, sandboxDir);
     expect(result.success).toBe(true);
     expect(result.logs.some(l => l.includes('Skipping patch application'))).toBe(true);
 
     // Cleanup sandbox
     if (fs.existsSync(sandboxDir)) {
       fs.rmSync(sandboxDir, { recursive: true, force: true });
+    }
+  });
+
+  it('OSV dependency check rejects vulnerable package additions/updates', async () => {
+    // 1. Setup original package.json in tempDir
+    const originalPkg = {
+      name: 'test-app',
+      dependencies: {
+        'lodash': '4.17.21'
+      }
+    };
+    const packageJsonPath = path.join(tempDir, 'package.json');
+    fs.writeFileSync(packageJsonPath, JSON.stringify(originalPkg, null, 2), 'utf8');
+
+    // 2. Setup modified package.json content
+    const patchedPkg = {
+      name: 'test-app',
+      dependencies: {
+        'lodash': '4.17.11' // Vulnerable package version in offline mock
+      }
+    };
+    const patchedContent = JSON.stringify(patchedPkg, null, 2);
+
+    // 3. Create a patch diff
+    const diff = createPatch(JSON.stringify(originalPkg, null, 2), patchedContent);
+    const patchFile = path.join(tempDir, 'package-patch.diff');
+    fs.writeFileSync(patchFile, diff, 'utf8');
+
+    // 4. Create a contract specifying package.json in targetFiles
+    const contract = {
+      contractId: 'ct-osv-vulnerable',
+      taskId: 'bd-osv',
+      targetFiles: ['package.json'],
+      formalProofs: []
+    };
+    const osvContractPath = path.join(tempDir, 'osv-contract.json');
+    fs.writeFileSync(osvContractPath, JSON.stringify(contract, null, 2), 'utf8');
+
+    // 5. Run verifyContract
+    const originalCwd = process.cwd();
+    process.chdir(tempDir);
+    try {
+      const result = await verifyContract(osvContractPath, patchFile);
+      expect(result.success).toBe(false);
+      expect(result.logs.some(l => l.includes('VULNERABLE') || l.includes('detected'))).toBe(true);
+    } finally {
+      process.chdir(originalCwd);
+    }
+  });
+
+  it('OSV dependency check permits safe package additions/updates', async () => {
+    // 1. Setup original package.json in tempDir
+    const originalPkg = {
+      name: 'test-app',
+      dependencies: {
+        'lodash': '4.17.20'
+      }
+    };
+    const packageJsonPath = path.join(tempDir, 'package.json');
+    fs.writeFileSync(packageJsonPath, JSON.stringify(originalPkg, null, 2), 'utf8');
+
+    // 2. Setup modified package.json content
+    const patchedPkg = {
+      name: 'test-app',
+      dependencies: {
+        'lodash': '4.17.21' // Safe package version
+      }
+    };
+    const patchedContent = JSON.stringify(patchedPkg, null, 2);
+
+    // 3. Create a patch diff
+    const diff = createPatch(JSON.stringify(originalPkg, null, 2), patchedContent);
+    const patchFile = path.join(tempDir, 'package-patch-safe.diff');
+    fs.writeFileSync(patchFile, diff, 'utf8');
+
+    // 4. Create a contract specifying package.json in targetFiles
+    const contract = {
+      contractId: 'ct-osv-safe',
+      taskId: 'bd-osv-safe',
+      targetFiles: ['package.json'],
+      formalProofs: []
+    };
+    const osvContractPath = path.join(tempDir, 'osv-contract-safe.json');
+    fs.writeFileSync(osvContractPath, JSON.stringify(contract, null, 2), 'utf8');
+
+    // 5. Run verifyContract
+    const originalCwd = process.cwd();
+    process.chdir(tempDir);
+    try {
+      const result = await verifyContract(osvContractPath, patchFile);
+      expect(result.success).toBe(true);
+    } finally {
+      process.chdir(originalCwd);
     }
   });
 });

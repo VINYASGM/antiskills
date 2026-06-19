@@ -1,6 +1,44 @@
 const path = require('node:path');
 const fs = require('node:fs');
-const beadsDB = require('./db.js');
+const lockfile = require('proper-lockfile');
+
+// Monkeypatch lockfile.lockSync to support synchronous retries
+const originalLockSync = lockfile.lockSync;
+const monkeypatchedLockSync = function (file, options) {
+  const opts = { ...options };
+  const retriesConfig = opts.retries;
+  delete opts.retries;
+
+  let retries = 0;
+  let maxRetries = 0;
+  let minTimeout = 50;
+  let maxTimeout = 100;
+
+  if (typeof retriesConfig === 'number') {
+    maxRetries = retriesConfig;
+  } else if (retriesConfig && typeof retriesConfig.retries === 'number') {
+    maxRetries = retriesConfig.retries;
+    if (typeof retriesConfig.minTimeout === 'number') minTimeout = retriesConfig.minTimeout;
+    if (typeof retriesConfig.maxTimeout === 'number') maxTimeout = retriesConfig.maxTimeout;
+  }
+
+  while (true) {
+    try {
+      return originalLockSync.call(lockfile, file, opts);
+    } catch (err) {
+      if ((err.code === 'ELOCKED' || err.code === 'EEXIST') && retries < maxRetries) {
+        retries++;
+        const delay = minTimeout + Math.random() * (maxTimeout - minTimeout);
+        const start = Date.now();
+        while (Date.now() - start < delay) {
+          // Sync spin sleep
+        }
+        continue;
+      }
+      throw err;
+    }
+  }
+};
 
 /**
  * 📡 IntentManager — Continuous Context Broadcasting
@@ -8,27 +46,33 @@ const beadsDB = require('./db.js');
  * and analyze overlaps JIT to prevent semantic conflicts before the commit phase.
  * 
  * *Upgraded in Phase 6 to use SQLite WAL pub-sub instead of JSON file writes.*
+ * *Re-implemented in V4 to use pure JSON lockfile concurrency.*
  */
 class IntentManager {
-  /**
-   * Cleans up legacy ephemeral intent JSON folders if they exist.
-   */
   constructor() {
-    this.intentsDir = path.join(process.cwd(), 'memory', 'intents');
+    this.intentsPath = path.join(process.cwd(), 'memory', 'intents.json');
   }
 
-  /**
-   * Broadcasts an agent's architectural intents to the shared intents bus.
-   * 
-   * @param {string} agentId - Identifier of the active agent (e.g. 'frontend-engineer').
-   * @param {string} taskId - Bead ID of the task (e.g. 'bd-0004').
-   * @param {object} data - Object containing file paths, DB columns, REST routes, and CSS style bindings.
-   * @returns {object} Struct mapping the published intent attributes.
-   * @throws {Error} If writing to the shared intents directory encounters filesystem access locks.
-   * @example
-   * intentManager.publish('backend-engineer', 'bd-0003', { files: ['src/db.ts'], databaseColumns: ['users.role'] });
-   */
+  _lockAndRead() {
+    const dir = path.dirname(this.intentsPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    if (!fs.existsSync(this.intentsPath)) {
+      fs.writeFileSync(this.intentsPath, '[]', 'utf8');
+    }
+    const release = monkeypatchedLockSync(this.intentsPath, { retries: { retries: 10, minTimeout: 50, maxTimeout: 100 } });
+    let intents = [];
+    try {
+      intents = JSON.parse(fs.readFileSync(this.intentsPath, 'utf8'));
+    } catch (e) {
+      intents = [];
+    }
+    return { intents, release };
+  }
+
   publish(agentId, taskId, data = {}) {
+    const { intents, release } = this._lockAndRead();
     const intent = {
       agentId,
       taskId,
@@ -39,44 +83,28 @@ class IntentManager {
       styles: data.styles || []
     };
 
-    beadsDB.db.prepare(`
-      INSERT INTO intents (agent_id, task_id, timestamp, data)
-      VALUES (?, ?, ?, ?)
-      ON CONFLICT(agent_id, task_id) DO UPDATE SET 
-        timestamp=excluded.timestamp, 
-        data=excluded.data
-    `).run(agentId, taskId, intent.timestamp, JSON.stringify(intent));
+    try {
+      const index = intents.findIndex(i => i.agentId === agentId && i.taskId === taskId);
+      if (index > -1) {
+        intents[index] = intent;
+      } else {
+        intents.push(intent);
+      }
+      fs.writeFileSync(this.intentsPath, JSON.stringify(intents, null, 2), 'utf8');
+    } finally {
+      release();
+    }
 
-    console.log(`✔ Intent broadcasted via SQLite WAL: ${agentId} on ${taskId}`);
+    console.log(`✔ Intent broadcasted via JSON: ${agentId} on ${taskId}`);
     return intent;
   }
 
-  /**
-   * Retrieves all active ephemeral intents published across all agent worktrees.
-   * 
-   * @returns {object[]} Ranked array of active intent records.
-   */
   list() {
-    const rows = beadsDB.db.prepare(`SELECT data FROM intents`).all();
-    const intents = [];
-    for (const row of rows) {
-      try {
-        intents.push(JSON.parse(row.data));
-      } catch (e) {}
-    }
+    const { intents, release } = this._lockAndRead();
+    release();
     return intents;
   }
 
-  /**
-   * Scans for semantic and structural overlaps against active peer intents published inside workspace directories.
-   * 
-   * @param {string} currentAgentId - Identifier of the scanning agent.
-   * @param {string} currentTaskId - Active bead task ID.
-   * @param {object} myData - Attributes matching files, columns, routes, and styles that the current agent plans to modify.
-   * @returns {Array<{type: string, severity: string, peer: string, task: string, details: string}>} Collection of detected semantic or file overlap conflicts.
-   * @example
-   * const conflicts = intentManager.checkConflicts('frontend-engineer', 'bd-0004', { routes: ['/api/users'] });
-   */
   checkConflicts(currentAgentId, currentTaskId, myData = {}) {
     const active = this.list().filter(i => !(i.agentId === currentAgentId && i.taskId === currentTaskId));
     const conflicts = [];
@@ -87,8 +115,7 @@ class IntentManager {
     const myStyles = new Set(myData.styles || []);
 
     for (const peer of active) {
-      // 1. Textual / File Conflict Scan
-      const fileOverlaps = peer.files.filter(f => myFiles.has(f));
+      const fileOverlaps = (peer.files || []).filter(f => myFiles.has(f));
       if (fileOverlaps.length > 0) {
         conflicts.push({
           type: 'textual_file_overlap',
@@ -99,8 +126,7 @@ class IntentManager {
         });
       }
 
-      // 2. Database Schema Semantic Scan
-      const colOverlaps = peer.databaseColumns.filter(c => myCols.has(c));
+      const colOverlaps = (peer.databaseColumns || []).filter(c => myCols.has(c));
       if (colOverlaps.length > 0) {
         conflicts.push({
           type: 'database_schema_drift',
@@ -111,8 +137,7 @@ class IntentManager {
         });
       }
 
-      // 3. API Contract Semantic Scan
-      const routeOverlaps = peer.routes.filter(r => myRoutes.has(r));
+      const routeOverlaps = (peer.routes || []).filter(r => myRoutes.has(r));
       if (routeOverlaps.length > 0) {
         conflicts.push({
           type: 'api_contract_drift',
@@ -123,8 +148,7 @@ class IntentManager {
         });
       }
 
-      // 4. Style Namespace Scan
-      const styleOverlaps = peer.styles.filter(s => myStyles.has(s));
+      const styleOverlaps = (peer.styles || []).filter(s => myStyles.has(s));
       if (styleOverlaps.length > 0) {
         conflicts.push({
           type: 'css_style_collision',
@@ -139,22 +163,22 @@ class IntentManager {
     return conflicts;
   }
 
-  /**
-   * Deletes and clears intent declarations when an agent task branch is merged/closed.
-   * 
-   * @param {string} agentId - Target agent.
-   * @param {string} taskId - Target task ID.
-   * @returns {void}
-   */
   clear(agentId, taskId) {
-    beadsDB.db.prepare(`DELETE FROM intents WHERE agent_id = ? AND task_id = ?`).run(agentId, taskId);
+    const { intents, release } = this._lockAndRead();
+    try {
+      const filtered = intents.filter(i => !(i.agentId === agentId && i.taskId === taskId));
+      fs.writeFileSync(this.intentsPath, JSON.stringify(filtered, null, 2), 'utf8');
+    } finally {
+      release();
+    }
     
     // Cleanup legacy file if exists
-    const filePath = path.join(this.intentsDir, `in-${agentId}-${taskId}.json`);
+    const intentsDir = path.join(process.cwd(), 'memory', 'intents');
+    const filePath = path.join(intentsDir, `in-${agentId}-${taskId}.json`);
     if (fs.existsSync(filePath)) {
       try { fs.unlinkSync(filePath); } catch (e) {}
     }
-    console.log(`✔ Intent cleared via SQLite: ${agentId} on ${taskId}`);
+    console.log(`✔ Intent cleared via JSON: ${agentId} on ${taskId}`);
   }
 }
 

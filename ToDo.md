@@ -1,6 +1,6 @@
 # Roadmap — Veyra
 
-**Last Updated:** 2026-06-07
+**Last Updated:** 2026-06-16
 
 ---
 
@@ -159,6 +159,14 @@ None
 - [x] Extend import crawling to support multi-language fallbacks (Python, Rust, Go, Apex, SQL).
 - [x] Update `memory-mcp-server/graph.py` to calculate degree centrality ("God Nodes") and Modular connections crossing communities / language barriers ("Surprising Connections").
 - [x] Build interactive HTML outputs: a collapsible tree using D3.js (`context/tree.html`) and an architecture Mermaid callflow diagram (`context/graph.html`).
+
+### ✅ Milestone 25: V4 Zero-Dependency Refactoring
+- [x] SQLite Removal: Decommission SQLite databases and pool handlers, replacing them with in-memory `Map` caches and file-backed JSON persistence files (`beads.json`, `crawl_cache.json`, `event_bus.json`, `intents.json`).
+- [x] UUIDv4 Migration: Transition bead identities to UUIDv4 format, enforcing validation using regex matching `/^bd-(?:\d{4}|[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i` for both legacy and new structures.
+- [x] CLI Status Command: Build a dynamic status utility (`node bin/veyra.js status [--json]`) querying system status under lockfile and rendering plain text or JSON telemetry.
+- [x] OSV.dev Checks: Integrate automated queries to OSV.dev API (`https://api.osv.dev/v1/querybatch`) via native Node HTTPS module, checking lockfile vulnerabilities with offline fallback mock registries.
+- [x] Structured Logging: Implement structured, append-only `agent-audit.jsonl` audit logging detailing timestamps, actions, agents, durations, and outcomes.
+- [x] Test Adaptations: Refactor Vitest test suites to mock HTTPS network calls and utilize lockfile-protected JSON file systems instead of database connections.
 
 ---
 ## Architectural Decision Records (ADRs)

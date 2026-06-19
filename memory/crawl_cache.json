@@ -1,0 +1,1212 @@
+{
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-wQ0uUO\\source.js": {
+    "mtime": 1781623826611,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\.agent\\skills\\ui-ux-pro-max\\scripts\\core.py": {
+    "mtime": 1779622418353,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\.agent\\skills\\ui-ux-pro-max\\scripts\\design_system.py": {
+    "mtime": 1779622418357,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\.agent\\skills\\ui-ux-pro-max\\scripts\\design_system.py",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\.agent\\skills\\ui-ux-pro-max\\scripts\\core.py"
+    ],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\.agent\\skills\\ui-ux-pro-max\\scripts\\search.py": {
+    "mtime": 1779622418359,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\.agent\\skills\\ui-ux-pro-max\\scripts\\search.py",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\.agent\\skills\\ui-ux-pro-max\\scripts\\core.py",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\.agent\\skills\\ui-ux-pro-max\\scripts\\design_system.py"
+    ],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\.agents\\teamwork_preview_explorer_dashboard_1\\proposed_dashboard.js": {
+    "mtime": 1780851524873,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\.agents\\teamwork_preview_explorer_dashboard_1\\proposed_dashboard.test.js": {
+    "mtime": 1780851578641,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\dashboard.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\db.js"
+    ],
+    "semantic_keys": [
+      "schema:bd-0001",
+      "schema:resolved",
+      "schema:bd-0002",
+      "schema:bd-0003",
+      "schema:in_progress",
+      "schema:bd-0004",
+      "schema:open",
+      "schema:bd-0005",
+      "schema:failed",
+      "schema:bd-0006",
+      "schema:claimed",
+      "schema:active",
+      "schema:tripped"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\.agents\\teamwork_preview_explorer_m18\\proposed_daemon.js": {
+    "mtime": 1781434746889,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\.agents\\teamwork_preview_explorer_m18\\proposed_daemon.test.js": {
+    "mtime": 1781434758957,
+    "imports": [],
+    "semantic_keys": [
+      "schema:bd-0001",
+      "schema:open",
+      "schema:task_state",
+      "schema:bd-0002"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\.agents\\teamwork_preview_explorer_m18\\proposed_db.js": {
+    "mtime": 1781434743434,
+    "imports": [],
+    "semantic_keys": [
+      "schema:table",
+      "schema:pending",
+      "schema:processed",
+      "schema:resolved",
+      "schema:open",
+      "schema:task_state",
+      "schema:Untitled",
+      "schema:claimed",
+      "schema:in_progress",
+      "schema:failed"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\.agents\\teamwork_preview_explorer_m18\\proposed_veyra.js": {
+    "mtime": 1781434754257,
+    "imports": [],
+    "semantic_keys": [
+      "schema:task_state",
+      "schema:open"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\ast_transform.js": {
+    "mtime": 1780896045900,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\context.js": {
+    "mtime": 1781623766901,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\db.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\python-command.js"
+    ],
+    "semantic_keys": [
+      "route:/api/users",
+      "route:/api/v1/auth",
+      "style:mermaid",
+      "schema:module"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\daemon.js": {
+    "mtime": 1781437204855,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\dashboard.js": {
+    "mtime": 1780853183698,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\db.js": {
+    "mtime": 1781623825311,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\schema.js"
+    ],
+    "semantic_keys": [
+      "schema:resolved",
+      "schema:open",
+      "schema:task_state",
+      "schema:Untitled",
+      "schema:claimed",
+      "schema:in_progress",
+      "schema:failed"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\event_bus.js": {
+    "mtime": 1781624195305,
+    "imports": [],
+    "semantic_keys": [
+      "schema:pending",
+      "schema:processing"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\governance.js": {
+    "mtime": 1781416853156,
+    "imports": [],
+    "semantic_keys": [
+      "schema:active",
+      "schema:tripped"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\intent.js": {
+    "mtime": 1781623756916,
+    "imports": [],
+    "semantic_keys": [
+      "schema:textual_file_overlap",
+      "schema:database_schema_drift",
+      "schema:api_contract_drift",
+      "schema:css_style_collision"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\linter.js": {
+    "mtime": 1779633259918,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\patch.js": {
+    "mtime": 1781623878453,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\sandbox-path.js"
+    ],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\python-command.js": {
+    "mtime": 1781444233052,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\router.js": {
+    "mtime": 1779792842712,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\sandbox-path.js": {
+    "mtime": 1781440233046,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\schema.js": {
+    "mtime": 1781623736934,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\skills.js": {
+    "mtime": 1779635719207,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\supervisor.js": {
+    "mtime": 1781415953825,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\skills.js"
+    ],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\ui.js": {
+    "mtime": 1780853188719,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\vector_search.py": {
+    "mtime": 1781621158617,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\verify.js": {
+    "mtime": 1781623910544,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\patch.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\context.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\sandbox-path.js"
+    ],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\veyra.js": {
+    "mtime": 1781624097830,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\db.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\context.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\intent.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\patch.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\verify.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\governance.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\dashboard.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\visual-review.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\linter.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\ast_transform.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\event_bus.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\daemon.js"
+    ],
+    "semantic_keys": [
+      "schema:task_state",
+      "schema:open"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\visual-review.js": {
+    "mtime": 1781360748968,
+    "imports": [],
+    "semantic_keys": [
+      "schema:mock-vlm-failure",
+      "schema:low-contrast-text"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\workflow.js": {
+    "mtime": 1779635890583,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\supervisor.js"
+    ],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\context\\file-manifests\\bd-0002.json": {
+    "mtime": 1779631540996,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\context\\file-manifests\\bd-500.json": {
+    "mtime": 1781624790379,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\demo-ast-patching.js": {
+    "mtime": 1780814933927,
+    "imports": [],
+    "semantic_keys": [
+      "schema:updateObjectProperty"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\compress.py": {
+    "mtime": 1779792576690,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\graph.py": {
+    "mtime": 1781620586680,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\server.py": {
+    "mtime": 1781341051061,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\graph.py",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\compress.py"
+    ],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\actors\\coordinator.rs": {
+    "mtime": 1781624287876,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\actors\\mod.rs": {
+    "mtime": 1779713093730,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\actors\\coordinator.rs",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\actors\\watcher.rs"
+    ],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\actors\\watcher.rs": {
+    "mtime": 1779713093638,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\db\\mod.rs": {
+    "mtime": 1779713059079,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\db\\writer.rs",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\db\\schema.rs"
+    ],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\db\\schema.rs": {
+    "mtime": 1779713058966,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\db\\writer.rs": {
+    "mtime": 1779713058990,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\main.rs": {
+    "mtime": 1781416893222,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\actors/mod.rs",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\db/mod.rs",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\mcp/mod.rs",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\pipeline/mod.rs"
+    ],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\mcp\\mod.rs": {
+    "mtime": 1779713145499,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\mcp\\server.rs"
+    ],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\mcp\\server.rs": {
+    "mtime": 1779714403029,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\pipeline\\mod.rs": {
+    "mtime": 1779713108849,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\pipeline\\worker.rs"
+    ],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\src\\pipeline\\worker.rs": {
+    "mtime": 1781416937835,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\.rustc_info.json": {
+    "mtime": 1781624308164,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\aho-corasick-4437a5d6426f90e9\\lib-aho_corasick.json": {
+    "mtime": 1781439875540,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\autocfg-bf86a7c9e7784a2f\\lib-autocfg.json": {
+    "mtime": 1781439851921,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\base64-29e6036a2f6c82cf\\lib-base64.json": {
+    "mtime": 1781439882248,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\base64-3ce8c6d3f7a88eeb\\lib-base64.json": {
+    "mtime": 1781439851789,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\base64ct-dffaece1ca0ad7ca\\lib-base64ct.json": {
+    "mtime": 1781439849739,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\bitflags-16e4802d75075e59\\lib-bitflags.json": {
+    "mtime": 1781439877311,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\byteorder-e689aeced596cff8\\lib-byteorder.json": {
+    "mtime": 1781439850584,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\bytes-047af3d8c0f71d02\\lib-bytes.json": {
+    "mtime": 1781439885322,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\bytes-8a6eb0491cb50e23\\lib-bytes.json": {
+    "mtime": 1781439849139,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\cc-c8feb4c9d782e7c7\\lib-cc.json": {
+    "mtime": 1781439856065,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\cfg-if-c2b69e76c7ce3a8e\\lib-cfg_if.json": {
+    "mtime": 1781439868148,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\chacha20-b1fd2908be0fc452\\lib-chacha20.json": {
+    "mtime": 1781439881677,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\cpufeatures-e4248beeb3aac2e8\\lib-cpufeatures.json": {
+    "mtime": 1781439877243,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\der-528158f98e56ea11\\lib-der.json": {
+    "mtime": 1781439859204,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\either-cfdbd94854e18a5a\\lib-either.json": {
+    "mtime": 1781439873880,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\encode_unicode-ba12d911711d9d06\\lib-encode_unicode.json": {
+    "mtime": 1781439880881,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\fallible-iterator-c3d4765314261dc1\\lib-fallible_iterator.json": {
+    "mtime": 1781439882166,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\fallible-streaming-iterator-d321f7e0a595a855\\lib-fallible_streaming_iterator.json": {
+    "mtime": 1781439881650,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\filetime-acbb92f193fb8d02\\lib-filetime.json": {
+    "mtime": 1781439884157,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\find-msvc-tools-08707f1fddde7e9d\\lib-find_msvc_tools.json": {
+    "mtime": 1781439851152,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\fnv-ee15dc5557a5d578\\lib-fnv.json": {
+    "mtime": 1781439848100,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\getrandom-b98b4e0adf72b062\\lib-getrandom.json": {
+    "mtime": 1781439875536,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\hmac-sha256-7416d58a4bc0a775\\lib-hmac_sha256.json": {
+    "mtime": 1781439851963,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\http-c5251363f836e554\\lib-http.json": {
+    "mtime": 1781439854719,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\ident_case-73258c4b040b070d\\lib-ident_case.json": {
+    "mtime": 1781439847066,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\itertools-94fd4f8518da303d\\lib-itertools.json": {
+    "mtime": 1781439885956,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\itertools-b26b5071ab051da9\\lib-itertools.json": {
+    "mtime": 1781439883561,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\itoa-6fb89abca1fe31f7\\lib-itoa.json": {
+    "mtime": 1781439846205,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\itoa-ff1b3e95b028d27a\\lib-itoa.json": {
+    "mtime": 1781439882365,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\lazy_static-d841885ec245de5a\\lib-lazy_static.json": {
+    "mtime": 1781439879644,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\lock_api-61a0a97d147249f9\\lib-lock_api.json": {
+    "mtime": 1781439876693,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\log-494bff57f545eb0c\\lib-log.json": {
+    "mtime": 1781439873470,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\log-6f14f6c01cdc1f41\\lib-log.json": {
+    "mtime": 1781439850924,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\lzma-rust2-282a9b1b98e62f4d\\lib-lzma_rust2.json": {
+    "mtime": 1781439854176,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\matchers-ad2e65f83c55e37e\\lib-matchers.json": {
+    "mtime": 1781439885044,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\memchr-120c0f92d28ec8a9\\lib-memchr.json": {
+    "mtime": 1781439869528,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\minimal-lexical-502063777d245869\\lib-minimal_lexical.json": {
+    "mtime": 1781439880475,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\mio-0580fd8b5f433234\\lib-mio.json": {
+    "mtime": 1781439883898,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\nom-696e4cfaa2205bb4\\lib-nom.json": {
+    "mtime": 1781439885494,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\nu-ansi-term-fbbfa8089def361b\\lib-nu_ansi_term.json": {
+    "mtime": 1781439883398,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\number_prefix-fad2a5e03649ad1d\\lib-number_prefix.json": {
+    "mtime": 1781439882669,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\once_cell-ef5f2e0f6d10641f\\lib-once_cell.json": {
+    "mtime": 1781439868173,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\pem-rfc7468-873c78dee3050f02\\lib-pem_rfc7468.json": {
+    "mtime": 1781439853891,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\percent-encoding-764d19be0b28f3dc\\lib-percent_encoding.json": {
+    "mtime": 1781439851458,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\pin-project-lite-e197a1fc64da9eb7\\lib-pin_project_lite.json": {
+    "mtime": 1781439876849,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\pkg-config-c3ddb4d8fcde3917\\lib-pkg_config.json": {
+    "mtime": 1781439852365,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\rand_core-430571a493eace91\\lib-rand_core.json": {
+    "mtime": 1781439874041,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\rand_core-db03dd196b489a1a\\lib-rand_core.json": {
+    "mtime": 1781439879545,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\rawpointer-8980953dbe7fd0b9\\lib-rawpointer.json": {
+    "mtime": 1781439879700,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\regex-automata-63d918970e6588dd\\lib-regex_automata.json": {
+    "mtime": 1781439884636,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\regex-ccf7cf428496cb8f\\lib-regex.json": {
+    "mtime": 1781439885925,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\regex-syntax-280792f168c30571\\lib-regex_syntax.json": {
+    "mtime": 1781439875116,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\rustls-pki-types-1157b2f1ed514d06\\lib-rustls_pki_types.json": {
+    "mtime": 1781439851451,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\same-file-ca843abbfe8c8027\\lib-same_file.json": {
+    "mtime": 1781439884256,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\schannel-b8120e951a5afeb1\\lib-schannel.json": {
+    "mtime": 1781439864935,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\scopeguard-5fdeabdf4f6bf574\\lib-scopeguard.json": {
+    "mtime": 1781439872154,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\sharded-slab-00c94f2b754575d0\\lib-sharded_slab.json": {
+    "mtime": 1781439884423,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\shlex-b9805c329debb77b\\lib-shlex.json": {
+    "mtime": 1781439845974,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\smallvec-6cdffd41099ffc2d\\lib-smallvec.json": {
+    "mtime": 1781439868361,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\socket2-667538cca9e7d28b\\lib-socket2.json": {
+    "mtime": 1781439883634,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\strsim-a9e5f57c3c594ff6\\lib-strsim.json": {
+    "mtime": 1781439848934,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\thread_local-66aedbfcb4ef3b71\\lib-thread_local.json": {
+    "mtime": 1781439884249,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\tracing-core-145f7cef1c477dea\\lib-tracing_core.json": {
+    "mtime": 1781439876004,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\tracing-log-12557c6bbc6fa6dc\\lib-tracing_log.json": {
+    "mtime": 1781439883814,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\unicode-ident-c19b7d19e98e00c5\\lib-unicode_ident.json": {
+    "mtime": 1781439847813,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\unicode-normalization-alignments-9fee27dbd05e5a30\\lib-unicode_normalization_alignments.json": {
+    "mtime": 1781439885009,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\unicode-segmentation-3f66837b8e3cea07\\lib-unicode_segmentation.json": {
+    "mtime": 1781439883146,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\unicode-width-d75ea0a976ec83f9\\lib-unicode_width.json": {
+    "mtime": 1781439880084,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\unicode_categories-63e4ef9a9dbc342b\\lib-unicode_categories.json": {
+    "mtime": 1781439884652,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\utf8-zero-561cb0cc9847db8e\\lib-utf8_zero.json": {
+    "mtime": 1781439851399,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\vcpkg-cfede6aa8c5599cb\\lib-vcpkg.json": {
+    "mtime": 1781439854751,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\version_check-cb5c9d34d558413d\\lib-version_check.json": {
+    "mtime": 1781439853350,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\walkdir-ee6f007a6d7083d5\\lib-walkdir.json": {
+    "mtime": 1781439884883,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\webpki-root-certs-290ffdd0d78aa2af\\lib-webpki_root_certs.json": {
+    "mtime": 1781439853420,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\winapi-util-f99d09b6beb67cc8\\lib-winapi_util.json": {
+    "mtime": 1781439882581,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\windows-link-0ce570982ccb1c2e\\lib-windows_link.json": {
+    "mtime": 1781439869233,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\windows-link-4912c44494a09911\\lib-windows_link.json": {
+    "mtime": 1781439845792,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\windows-sys-293bc5d86578848d\\lib-windows_sys.json": {
+    "mtime": 1781439880153,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\windows-sys-f55d9c771b15c4b1\\lib-windows_sys.json": {
+    "mtime": 1781439864675,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\zeroize-95f4582d11160583\\lib-zeroize.json": {
+    "mtime": 1781439846040,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\test_agent.py": {
+    "mtime": 1779792618998,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\test_graph_adversarial.py": {
+    "mtime": 1781620759940,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\graph.py"
+    ],
+    "semantic_keys": [
+      "schema:test"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\test_graph_stress.py": {
+    "mtime": 1781620760105,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\graph.py"
+    ],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\test_metrics.py": {
+    "mtime": 1781620712185,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\graph.py"
+    ],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\package-lock.json": {
+    "mtime": 1781440144972,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\package.json": {
+    "mtime": 1781624207750,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\src\\backend.js": {
+    "mtime": 1779722151806,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\src\\frontend.js": {
+    "mtime": 1779722150972,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\ast-transform.test.js": {
+    "mtime": 1780896066024,
+    "imports": [],
+    "semantic_keys": [
+      "style:foo",
+      "style:active",
+      "schema:main-app",
+      "schema:target"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\context-stress.test.js": {
+    "mtime": 1781341314870,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\context.test.js": {
+    "mtime": 1781624001523,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\db.js"
+    ],
+    "semantic_keys": [
+      "route:/api/users",
+      "route:/api/users/create",
+      "route:/api/dummy-seeded",
+      "style:btn-primary",
+      "style:active",
+      "schema:user_id",
+      "schema:email_field"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\daemon.test.js": {
+    "mtime": 1781624172428,
+    "imports": [],
+    "semantic_keys": [
+      "schema:bd-0001",
+      "schema:task_state",
+      "schema:open"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\dashboard-stress.test.js": {
+    "mtime": 1780853248964,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\dashboard.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\db.js"
+    ],
+    "semantic_keys": [
+      "schema:bd-0001",
+      "schema:claimed",
+      "schema:bd-0002",
+      "schema:in_progress",
+      "schema:bd-0001-extremely-long-id-that-exceeds-ten-chars",
+      "schema:active"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\dashboard.test.js": {
+    "mtime": 1780853209665,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\dashboard.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\db.js"
+    ],
+    "semantic_keys": [
+      "schema:bd-0001",
+      "schema:resolved",
+      "schema:bd-0002",
+      "schema:bd-0003",
+      "schema:in_progress",
+      "schema:bd-0004",
+      "schema:open",
+      "schema:bd-0005",
+      "schema:failed",
+      "schema:bd-0006",
+      "schema:claimed",
+      "schema:active",
+      "schema:tripped"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\db.test.js": {
+    "mtime": 1781623838339,
+    "imports": [],
+    "semantic_keys": [
+      "schema:bd-0010",
+      "schema:task_state",
+      "schema:open",
+      "schema:bd-0001",
+      "schema:First",
+      "schema:bd-0002",
+      "schema:Second",
+      "schema:bd-0003",
+      "schema:resolved",
+      "schema:Third",
+      "schema:claimed",
+      "schema:Tracked",
+      "schema:A",
+      "schema:B",
+      "schema:A-modified",
+      "schema:Cached",
+      "schema:X",
+      "schema:invalid-status-to-trigger-zod-error",
+      "schema:Initial"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\event-bus.test.js": {
+    "mtime": 1779793843620,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\governance.test.js": {
+    "mtime": 1781416991001,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\governance.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\event_bus.js"
+    ],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\intent.test.js": {
+    "mtime": 1779790669532,
+    "imports": [],
+    "semantic_keys": [
+      "route:/api/users",
+      "route:/api/a",
+      "route:/api/b"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\m20-adversarial.test.js": {
+    "mtime": 1781341314756,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\patch.test.js": {
+    "mtime": 1781623958725,
+    "imports": [],
+    "semantic_keys": [
+      "schema:updateVariableAssignment",
+      "schema:addClassDecorator",
+      "schema:updateJsxAttribute",
+      "schema:addMethod",
+      "schema:addClassMethod"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\router.test.js": {
+    "mtime": 1779792850670,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\schema.test.js": {
+    "mtime": 1780813185258,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\schema.js"
+    ],
+    "semantic_keys": [
+      "schema:bd-0123",
+      "schema:decision",
+      "schema:open",
+      "schema:bd-9999",
+      "schema:task_state",
+      "schema:in_progress",
+      "schema:bd-123",
+      "schema:bd-0001",
+      "schema:done",
+      "schema:Title"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\task-queue.test.js": {
+    "mtime": 1781624127116,
+    "imports": [],
+    "semantic_keys": [
+      "schema:bd-0001",
+      "schema:task_state",
+      "schema:open",
+      "schema:bd-0002",
+      "schema:Second"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\ui.test.js": {
+    "mtime": 1780853213701,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\vector-search.test.js": {
+    "mtime": 1781623969818,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\python-command.js"
+    ],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\verify.test.js": {
+    "mtime": 1781623933931,
+    "imports": [
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\verify.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\patch.js",
+      "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\bin\\sandbox-path.js"
+    ],
+    "semantic_keys": [
+      "schema:test",
+      "schema:ping",
+      "schema:test-fail",
+      "schema:echo"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\tests\\bin\\veyra.test.js": {
+    "mtime": 1781624020945,
+    "imports": [],
+    "semantic_keys": [
+      "schema:bd-0001",
+      "schema:task_state",
+      "schema:open"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\visual-testing\\audit.go": {
+    "mtime": 1779791525573,
+    "imports": [],
+    "semantic_keys": [
+      "schema:missing-alt",
+      "schema:missing-role",
+      "schema:color-contrast"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\visual-testing\\audit_test.go": {
+    "mtime": 1779791512102,
+    "imports": [],
+    "semantic_keys": [
+      "schema:bad-image",
+      "schema:low-contrast-text",
+      "schema:bad-interactive"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\visual-testing\\diff.go": {
+    "mtime": 1779791521025,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\visual-testing\\diff_test.go": {
+    "mtime": 1779791508912,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\visual-testing\\main.go": {
+    "mtime": 1779791529203,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\visual-testing\\snapshot.go": {
+    "mtime": 1779791518057,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\visual-testing\\snapshot_test.go": {
+    "mtime": 1779791506239,
+    "imports": [],
+    "semantic_keys": [
+      "style:card",
+      "style:description",
+      "schema:main-card",
+      "schema:heading"
+    ]
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\vitest.config.js": {
+    "mtime": 1779790466859,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-XqpT8X\\source.js": {
+    "mtime": 1781623925390,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-xASjqy\\source.js": {
+    "mtime": 1781623938613,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-lQ97Ro\\source.js": {
+    "mtime": 1781624110549,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\checklists\\contract-bd-mock-sandbox-success.json": {
+    "mtime": 1781624790929,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\checklists\\contract-bd-mock-sandbox.json": {
+    "mtime": 1781624790922,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-MrBi5z\\source.js": {
+    "mtime": 1781624154052,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-Jqr3YN\\source.js": {
+    "mtime": 1781624177751,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-bk01LL\\source.js": {
+    "mtime": 1781624200005,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-tB9vB4\\source.js": {
+    "mtime": 1781624288179,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-zNGcKB\\source.js": {
+    "mtime": 1781624320985,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\bytes-76765b86e79b9d72\\lib-bytes.json": {
+    "mtime": 1781624302337,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\cfg-if-59068db8513376d0\\lib-cfg_if.json": {
+    "mtime": 1781624300071,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\itoa-92d8b1e9c0939eb2\\lib-itoa.json": {
+    "mtime": 1781624300697,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\memchr-25e193189ac65f13\\lib-memchr.json": {
+    "mtime": 1781624301055,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\once_cell-01a5ec62eb147d5f\\lib-once_cell.json": {
+    "mtime": 1781624300430,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\regex-syntax-4fa10c42a51002ab\\lib-regex_syntax.json": {
+    "mtime": 1781624304190,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\smallvec-0bc754f1667b1370\\lib-smallvec.json": {
+    "mtime": 1781624300449,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\windows-link-57fe558fbc78bd39\\lib-windows_link.json": {
+    "mtime": 1781624300133,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\windows-sys-0475b418bdbd8de7\\lib-windows_sys.json": {
+    "mtime": 1781624308156,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\windows-sys-4d39483d409e0d26\\lib-windows_sys.json": {
+    "mtime": 1781624306249,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-TOeKBe\\source.js": {
+    "mtime": 1781624461714,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-ROdxmI\\source.js": {
+    "mtime": 1781624729432,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\VINYAS~1\\AppData\\Local\\Temp\\veyra-verify-test-S52KtO\\source.js": {
+    "mtime": 1781624790377,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\aho-corasick-667d957dbc5ff89d\\lib-aho_corasick.json": {
+    "mtime": 1781624779018,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\http-7caba7f59609ae22\\lib-http.json": {
+    "mtime": 1781624779561,
+    "imports": [],
+    "semantic_keys": []
+  },
+  "C:\\Users\\Vinyas G M\\OneDrive\\Desktop\\veyra\\memory-mcp-server\\target\\debug\\.fingerprint\\schannel-9caf2e6b70957eeb\\lib-schannel.json": {
+    "mtime": 1781624778950,
+    "imports": [],
+    "semantic_keys": []
+  }
+}

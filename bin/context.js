@@ -15,35 +15,19 @@ class ContextAssembler {
 
   _getCachedCrawl(filePath, mtime) {
     try {
-      const mtimeMs = Math.round((mtime instanceof Date) ? mtime.getTime() : Number(mtime));
-      const db = require('./db').db;
-      const row = db.prepare('SELECT mtime, imports, semantic_keys FROM crawl_cache WHERE file_path = ?').get(filePath);
-      if (row && Math.round(Number(row.mtime)) === mtimeMs) {
-        return {
-          imports: JSON.parse(row.imports),
-          semanticKeys: JSON.parse(row.semantic_keys)
-        };
-      }
+      const beadsDB = require('./db');
+      return beadsDB.getCachedCrawl(filePath, mtime);
     } catch (e) {
-      // Ignore database errors and return null
+      return null;
     }
-    return null;
   }
 
   _saveCachedCrawl(filePath, mtime, imports, semanticKeys) {
     try {
-      const mtimeMs = Math.round((mtime instanceof Date) ? mtime.getTime() : Number(mtime));
-      const db = require('./db').db;
-      db.prepare(`
-        INSERT INTO crawl_cache (file_path, mtime, imports, semantic_keys)
-        VALUES (?, ?, ?, ?)
-        ON CONFLICT(file_path) DO UPDATE SET
-          mtime = excluded.mtime,
-          imports = excluded.imports,
-          semantic_keys = excluded.semantic_keys
-      `).run(filePath, mtimeMs, JSON.stringify(imports), JSON.stringify(semanticKeys));
+      const beadsDB = require('./db');
+      beadsDB.saveCachedCrawl(filePath, mtime, imports, semanticKeys);
     } catch (e) {
-      // Ignore database errors
+      // Ignore
     }
   }
 
